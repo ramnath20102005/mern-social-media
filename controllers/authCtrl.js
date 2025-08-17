@@ -46,6 +46,8 @@ const authCtrl = {
         maxAge: 30 * 24 * 60 * 60 * 1000, //validity of 30 days
       });
 
+      await newUser.save();
+
       res.json({
         msg: "Registered Successfully!",
         access_token,
@@ -54,10 +56,6 @@ const authCtrl = {
           password: "",
         },
       });
-
-      await newUser.save();
-
-      res.json({ msg: "registered" });
     } catch (err) {
       return res.status(500).json({ msg: err.message });
     }

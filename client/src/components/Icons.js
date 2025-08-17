@@ -23,8 +23,8 @@ const Icons = ({ setContent, content, theme }) => {
       <div className="dropdown-menu" aria-labelledby="navbarDropdown">
         <Picker
           theme={theme ? "dark" : "light"}
-          showSkinTones="true"
-          showPreview="false"
+          showSkinTones={true}
+          showPreview={false}
           onSelect={(emoji) => setContent(content + emoji.native)}
           i18n={{
             search: "Search",

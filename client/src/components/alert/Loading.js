@@ -20,9 +20,9 @@ const Loading = () => {
         <span></span>
       </div>
 
-      <text className="loading_text" fill="#fff" x="5" y="47">
+      <span className="loading_text">
         Loading
-      </text>
+      </span>
     </div>
   );
 };
