@@ -8,10 +8,18 @@ const SocketServer = require('./socketServer');
 
 // Suppress circular dependency warnings
 process.removeAllListeners('warning');
+
+// Allow your hosted frontend origin (Render) and localhost during development
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? [
+      'https://mern-social-media-vu92.onrender.com', // your Render frontend
+    ]
+  : [
+      'http://localhost:3000'
+    ];
+
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://mern-social-media-frontend.vercel.app', 'https://mern-social-media-frontend.onrender.com', 'http://localhost:3000']
-    : ['http://localhost:3000'],
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -19,6 +27,9 @@ const corsOptions = {
 
 
 const app = express();
+
+// Trust reverse proxy (needed for secure cookies on Render/HTTPS)
+app.set('trust proxy', 1);
 
 // Increase payload limit for large image data URLs
 app.use(express.json({ limit: '50mb' }));
@@ -31,7 +42,13 @@ app.use(cookieParser())
 
 //#region // !Socket
 const http = require('http').createServer(app);
-const io = require('socket.io')(http);
+const io = require('socket.io')(http, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
+});
 
 
 

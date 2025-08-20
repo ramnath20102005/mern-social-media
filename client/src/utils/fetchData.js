@@ -3,7 +3,7 @@ import axios from 'axios';
 // Create axios instance with base URL
 const api = axios.create({
     baseURL: process.env.NODE_ENV === 'production' 
-        ? 'https://mern-social-media-roeo.vercel.app/api'
+        ? 'https://mysocial-lvsn.onrender.com/api'
         : 'http://localhost:8080/api'
 });
 

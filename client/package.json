@@ -1,6 +1,6 @@
 {
   "name": "client",
-  "proxy": "https://mern-social-media-roeo.vercel.app",
+  "proxy": "https://mysocial-lvsn.onrender.com",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -22,6 +22,7 @@
     "react-share": "^4.4.0",
     "chart.js": "^3.9.1",
     "react-chartjs-2": "^4.3.1",
+
     "redux": "^4.0.5",
     "redux-devtools-extension": "^2.13.9",
     "redux-thunk": "^2.3.0",
