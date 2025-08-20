@@ -98,7 +98,7 @@ After deployment, copy your backend URL: `https://mern-social-media-roeo.vercel.
 3. Connect your GitHub repository
 4. Configure:
    - **Name**: `mern-social-media-frontend`
-   - **Build Command**: `cd client && npm install && npm run build`
+   - **Build Command**: `cd client && npm install --legacy-peer-deps && npm run build`
    - **Publish Directory**: `client/build`
 
 #### 3.3 Environment Variables
