@@ -12,7 +12,7 @@ process.removeAllListeners('warning');
 // Allow your hosted frontend origin (Render) and localhost during development
 const allowedOrigins = process.env.NODE_ENV === 'production'
   ? [
-      'https://mern-social-media-vu92.onrender.com', // your Render frontend
+      'https://mysocial-frontend-nm3u.onrender.com', // your Render frontend
     ]
   : [
       'http://localhost:3000'
