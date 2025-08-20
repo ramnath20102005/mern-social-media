@@ -1,6 +1,6 @@
 {
   "name": "client",
-  "proxy": "https://your-backend-app-name.onrender.com",
+  "proxy": "https://your-backend-app-name.vercel.app",
   "version": "0.1.0",
   "private": true,
   "dependencies": {

@@ -3,7 +3,7 @@ import axios from 'axios';
 // Create axios instance with base URL
 const api = axios.create({
     baseURL: process.env.NODE_ENV === 'production' 
-        ? 'https://your-backend-app-name.onrender.com/api'
+        ? 'https://your-backend-app-name.vercel.app/api'
         : 'http://localhost:8080/api'
 });
 

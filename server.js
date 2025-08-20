@@ -9,8 +9,12 @@ const SocketServer = require('./socketServer');
 // Suppress circular dependency warnings
 process.removeAllListeners('warning');
 const corsOptions = {
-  Credential: 'true',
-  
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://your-frontend-app-name.vercel.app', 'https://your-frontend-app-name.onrender.com']
+    : ['http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 };
 
 

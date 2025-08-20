@@ -40,7 +40,7 @@
 4. Replace `<password>` with your database password
 5. Replace `<dbname>` with `mern-social-media`
 
-### 2. Backend Deployment (Render)
+### 2. Backend Deployment (Vercel)
 
 #### 2.1 Prepare Backend
 1. Ensure `package.json` has start script:
@@ -51,15 +51,16 @@
    }
    ```
 
-#### 2.2 Deploy to Render
-1. Go to [Render Dashboard](https://dashboard.render.com/)
-2. Click "New +" → "Web Service"
-3. Connect your GitHub repository
+#### 2.2 Deploy to Vercel
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+2. Click "New Project"
+3. Import your GitHub repository
 4. Configure:
-   - **Name**: `mern-social-media-backend`
-   - **Environment**: Node
+   - **Framework Preset**: Node.js
+   - **Root Directory**: ./
    - **Build Command**: `npm install`
-   - **Start Command**: `npm start`
+   - **Output Directory**: (leave empty)
+   - **Install Command**: `npm install`
 
 #### 2.3 Environment Variables
 Add these in Render dashboard → Environment:
@@ -72,21 +73,21 @@ NODE_ENV=production
 ```
 
 #### 2.4 Get Backend URL
-After deployment, copy your backend URL: `https://your-backend-app-name.onrender.com`
+After deployment, copy your backend URL: `https://your-backend-app-name.vercel.app`
 
 ### 3. Frontend Deployment (Render)
 
 #### 3.1 Update Frontend Configuration
 1. Update `client/package.json`:
    ```json
-   "proxy": "https://your-backend-app-name.onrender.com"
+   "proxy": "https://your-backend-app-name.vercel.app"
    ```
 
 2. Update `client/src/utils/fetchData.js`:
    ```javascript
    const api = axios.create({
        baseURL: process.env.NODE_ENV === 'production' 
-           ? 'https://your-backend-app-name.onrender.com/api'
+           ? 'https://your-backend-app-name.vercel.app/api'
            : '/api'
    });
    ```
@@ -103,7 +104,7 @@ After deployment, copy your backend URL: `https://your-backend-app-name.onrender
 #### 3.3 Environment Variables
 Add these in Render dashboard → Environment:
 ```
-REACT_APP_API_URL=https://your-backend-app-name.onrender.com
+REACT_APP_API_URL=https://your-backend-app-name.vercel.app
 NODE_ENV=production
 ```
 
@@ -143,7 +144,7 @@ cd client && npm start
 
 ## 🌐 Your Live URLs
 - **Frontend**: `https://your-frontend-app-name.onrender.com`
-- **Backend**: `https://your-backend-app-name.onrender.com`
+- **Backend**: `https://your-backend-app-name.vercel.app`
 - **Database**: MongoDB Atlas (cloud-hosted)
 
 ## 📞 Support
