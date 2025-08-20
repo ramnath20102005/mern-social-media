@@ -10,7 +10,7 @@ const SocketServer = require('./socketServer');
 process.removeAllListeners('warning');
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-frontend-app-name.vercel.app', 'https://your-frontend-app-name.onrender.com']
+    ? ['https://mern-social-media-frontend.vercel.app', 'https://mern-social-media-frontend.onrender.com', 'http://localhost:3000']
     : ['http://localhost:3000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],

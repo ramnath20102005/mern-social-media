@@ -73,21 +73,21 @@ NODE_ENV=production
 ```
 
 #### 2.4 Get Backend URL
-After deployment, copy your backend URL: `https://your-backend-app-name.vercel.app`
+After deployment, copy your backend URL: `https://mern-social-media-roeo.vercel.app`
 
 ### 3. Frontend Deployment (Render)
 
 #### 3.1 Update Frontend Configuration
 1. Update `client/package.json`:
    ```json
-   "proxy": "https://your-backend-app-name.vercel.app"
+   "proxy": "https://mern-social-media-roeo.vercel.app"
    ```
 
 2. Update `client/src/utils/fetchData.js`:
    ```javascript
    const api = axios.create({
        baseURL: process.env.NODE_ENV === 'production' 
-           ? 'https://your-backend-app-name.vercel.app/api'
+           ? 'https://mern-social-media-roeo.vercel.app/api'
            : '/api'
    });
    ```
@@ -104,7 +104,7 @@ After deployment, copy your backend URL: `https://your-backend-app-name.vercel.a
 #### 3.3 Environment Variables
 Add these in Render dashboard → Environment:
 ```
-REACT_APP_API_URL=https://your-backend-app-name.vercel.app
+REACT_APP_API_URL=https://mern-social-media-roeo.vercel.app
 NODE_ENV=production
 ```
 
@@ -143,8 +143,8 @@ cd client && npm start
 ```
 
 ## 🌐 Your Live URLs
-- **Frontend**: `https://your-frontend-app-name.onrender.com`
-- **Backend**: `https://your-backend-app-name.vercel.app`
+- **Frontend**: `https://your-frontend-app-name.onrender.com` (or Vercel)
+- **Backend**: `https://mern-social-media-roeo.vercel.app`
 - **Database**: MongoDB Atlas (cloud-hosted)
 
 ## 📞 Support

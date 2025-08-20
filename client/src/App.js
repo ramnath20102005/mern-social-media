@@ -28,7 +28,7 @@ function App() {
     dispatch(refreshToken());
 
     const socket = io(process.env.NODE_ENV === 'production' 
-      ? 'https://your-backend-app-name.vercel.app' 
+      ? 'https://mern-social-media-roeo.vercel.app' 
       : 'http://localhost:8080');
     dispatch({type: GLOBALTYPES.SOCKET, payload: socket })
     return () => socket.close()
