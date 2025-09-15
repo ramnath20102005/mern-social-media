@@ -5,10 +5,9 @@ import CardHeader from "./home/post_card/CardHeader";
 import Comments from './home/Comments';
 import InputComment from "./home/InputComment";
 
-
 const PostCard = ({ post, theme }) => {
   return (
-    <div className="card my-3 outer-shadow">
+    <div className="card my-22 outer-shadow">
       <CardHeader post={post} />
       <CardBody post={post} theme={theme} />
       <CardFooter post={post} />
@@ -19,4 +18,4 @@ const PostCard = ({ post, theme }) => {
   );
 };
 
-export default PostCard
+export default PostCard;

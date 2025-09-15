@@ -1,10 +1,130 @@
-.reactions{
-    display: grid;
-    grid-template-columns: repeat(4, 50px);
-    text-align: center;
-    cursor: pointer;
+/* Enhanced Reactions Grid for Modern UI */
+.reactions {
+  display: grid;
+  grid-template-columns: repeat(4, 50px);
+  grid-template-rows: repeat(1, 60px);
+  gap: 8px;
+  text-align: center;
+  cursor: pointer;
+  padding: 10px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
 
-.reactions span{
-    margin: 3px 0;
+.reactions::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 20% 20%, rgba(251, 131, 158, 0.1) 0%, transparent 50%),
+              radial-gradient(circle at 80% 80%, rgba(120, 63, 142, 0.1) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+
+.reactions:hover::before {
+  opacity: 1;
+}
+
+.reactions:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  gap: 12px;
+}
+
+.reactions span {
+  margin: 3px 0;
+  font-size: 24px; /* Assuming emojis or icons */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  width: 50px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.reactions span:hover {
+  transform: scale(1.15) rotate(5deg);
+  background: linear-gradient(135deg, var(--pink) 0%, var(--violet) 100%);
+  color: white;
+  box-shadow: 0 6px 20px rgba(251, 131, 158, 0.3);
+  border-color: transparent;
+  z-index: 2;
+}
+
+.reactions span.active {
+  background: linear-gradient(135deg, var(--c1) 0%, var(--c2) 100%);
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(253, 47, 36, 0.4);
+  animation: pulse 0.6s ease-out;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1.1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1.1); }
+}
+
+/* Counter Display (Assuming spans contain icons + counters) */
+.reactions span .counter {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text-primary);
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 10px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  white-space: nowrap;
+}
+
+.reactions span:hover .counter {
+  opacity: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .reactions {
+    grid-template-columns: repeat(4, 40px);
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .reactions span {
+    height: 40px;
+    width: 40px;
+    font-size: 20px;
+  }
+}
+
+/* Dark Mode Support (If Applicable) */
+@media (prefers-color-scheme: dark) {
+  .reactions {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  }
+
+  .reactions span {
+    background: rgba(0, 0, 0, 0.3);
+    color: #ecf0f1;
+  }
 }

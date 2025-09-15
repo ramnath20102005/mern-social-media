@@ -1,102 +1,363 @@
-/* #region status */
-.status{
-    background-color: transparent;
-    /* box-shadow: 0 0 5px #ddd; */
-    padding: 20px 0;
-    /* border-radius: 5px;
-    border: 1px solid rgba(0, 0, 0, 0.125); */
+/* #region Enhanced Status */
+.status {
+  background: transparent;
+  padding: 20px 0;
+  position: relative;
 }
 
-.status .statusBtn{
-    border-radius: 27px;
-    padding: 0 10px;
-    text-align: left;
-    margin: 0 5px;
-    margin-left: 3px;
-    font-size: 1.3rem;
+.my-22 {
+  margin: 10px 0; /* Adjust as needed */
+}
+.status::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(251, 131, 158, 0.3), transparent);
 }
 
-
-
-/* #endregion */
-
-
-/* #region Posts */
-.posts .card{
-    /* box-shadow: 0 0 5px #ddd; */
+.status .statusBtn {
+  border-radius: 27px;
+  padding: 12px 16px;
+  text-align: left;
+  margin: 0 5px;
+  margin-left: 3px;
+  font-size: 1.3rem;
+  background: linear-gradient(135deg, rgba(251, 131, 158, 0.1) 0%, rgba(120, 63, 142, 0.1) 100%);
+  border: 1px solid rgba(251, 131, 158, 0.2);
+  color: var(--text-primary);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
 
-/* #endregion */
-
-/* #region Post card's header */
-.posts .card_header{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    padding: 15px 25px;
+.status .statusBtn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
 }
 
-.posts .card_header .card_name{
-    transform: translateY(3px);
+.status .statusBtn:hover::before {
+  left: 100%;
 }
 
-.posts .card_header .dropdown-menu{
-    position: absolute;
-    left: inherit !important;
-    right: 0 ;
-
-}
-
-.posts .card_header .dropdown-item{
-    display: flex;
-    margin: 5px 0;
-}
-
-.posts .card_header .dropdown-item:hover{
-    background: var(--pink);
-}
-
-.posts .card_header #moreLink{
-    color: var(--c1);
+.status .statusBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(251, 131, 158, 0.2);
+  background: linear-gradient(135deg, rgba(251, 131, 158, 0.2) 0%, rgba(120, 63, 142, 0.2) 100%);
+  border-color: var(--pink);
+  color: var(--pink);
 }
 
 /* #endregion */
 
-
-/* #region Post card's body */
-.posts .card_body-content{
-    padding: 0 25px;
-    margin-top: -10px;
-    margin-bottom: 10px;
-
+/* #region Enhanced Posts */
+.posts {
+  padding-top: 90px; /* Added to ensure offset below fixed header */
 }
 
-.posts .card_body-content .readMore{
-    color: crimson;
-    cursor: pointer;
+.posts .card {
+  background: white;
+  border-radius: 20px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
 }
 
-/* #endregion  */
-
-/* #region Post card's footer */
-.posts .card_icon_menu{
-    display: flex;
-    justify-content: space-between;
-    padding: 0 15px;
-    cursor: pointer;
+.posts .card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
 }
 
-.posts .card_icon_menu i{
-    font-size: 28px;
-    margin: 10px;
+.posts .card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--gradient-primary);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-.posts .card_icon_menu img{
-    width: 28px;
-    height: 28px;
-    transform: translate(5px, 10px);
-    opacity: 0.9;
+.posts .card:hover::before {
+  opacity: 1;
 }
-/* #endregion  */
 
+/* #endregion */
+
+/* #region Enhanced Post Card's Header */
+.posts .card_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 18px 25px;
+  position: relative;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  transition: background 0.3s ease;
+}
+
+.posts .card:hover .card_header {
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8f0ff 100%);
+}
+
+.posts .card_header .card_name {
+  transform: translateY(3px);
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.posts .card_header .card_name .avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.posts .card_header .dropdown-menu {
+  position: absolute;
+  left: inherit !important;
+  right: 0;
+  top: 100%;
+  margin-top: 10px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: var(--shadow-hover);
+  min-width: 140px;
+  padding: 8px 0;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10;
+}
+
+.posts .card_header:hover .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.posts .card_header .dropdown-item {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-secondary);
+  font-size: 14px;
+  gap: 8px;
+}
+
+.posts .card_header .dropdown-item:hover {
+  background: var(--pink);
+  color: white;
+  transform: translateX(5px);
+}
+
+.posts .card_header #moreLink {
+  color: var(--c1);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  background: rgba(253, 47, 36, 0.1);
+}
+
+.posts .card_header #moreLink:hover {
+  background: var(--c1);
+  color: white;
+  transform: rotate(90deg);
+}
+
+/* #endregion */
+
+/* #region Enhanced Post Card's Body */
+.posts .card_body-content {
+  padding: 0 25px 20px;
+  margin-top: -10px;
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+
+.posts .card_body-content p {
+  color: var(--text-primary);
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+.posts .card_body-content .readMore {
+  color: var(--c1);
+  cursor: pointer;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: rgba(253, 47, 36, 0.1);
+  transition: all 0.3s ease;
+  display: inline-block;
+  text-decoration: none;
+}
+
+.posts .card_body-content .readMore:hover {
+  background: var(--c1);
+  color: white;
+  transform: scale(1.05);
+}
+
+/* #endregion */
+
+/* #region Enhanced Post Card's Footer */
+.posts .card_icon_menu {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 20px;
+  cursor: pointer;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  background: #f8f9fa;
+  transition: background 0.3s ease;
+}
+
+.posts .card:hover .card_icon_menu {
+  background: #f0f4ff;
+}
+
+.posts .card_icon_menu > div {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.posts .card_icon_menu i {
+  font-size: 24px;
+  margin: 0;
+  padding: 10px;
+  border-radius: 50%;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.posts .card_icon_menu i:hover {
+  color: var(--pink);
+  background: rgba(251, 131, 158, 0.1);
+  transform: scale(1.1) translateY(-2px);
+  box-shadow: 0 4px 15px rgba(251, 131, 158, 0.2);
+}
+
+.posts .card_icon_menu img {
+  width: 28px;
+  height: 28px;
+  transform: translateY(10px);
+  opacity: 0.9;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.posts .card_icon_menu img:hover {
+  opacity: 1;
+  transform: translateY(10px) scale(1.1);
+  border-color: var(--pink);
+  box-shadow: 0 4px 15px rgba(251, 131, 158, 0.3);
+}
+
+/* #endregion */
+
+/* Additional Enhancements for Post Media (Assuming Images/Videos) */
+.posts .card .post-media {
+  width: 100%;
+  height: 300px;
+  background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+  border-radius: 12px;
+  margin: 15px 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.posts .card .post-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.posts .card:hover .post-media img {
+  transform: scale(1.05);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .status .statusBtn {
+    font-size: 1.1rem;
+    padding: 10px 12px;
+  }
+
+  .posts .card {
+    margin-bottom: 100px;
+    border-radius: 160px;
+  }
+
+  .posts .card_header {
+    padding: 15px 20px;
+  }
+
+  .posts .card_body-content {
+    padding: 0 30px 15px;
+  }
+
+  .posts .card_icon_menu {
+    padding: 12px 15px;
+  }
+
+  .posts .card_icon_menu i,
+  .posts .card_icon_menu img {
+    font-size: 20px;
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* Subtle Animation for New Posts */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.posts .card.new-post {
+  animation: slideInUp 0.6s ease-out;
+}

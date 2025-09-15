@@ -1,23 +1,21 @@
-import React, { useState, useEffect } from "react";
+// filepath: src/components/profile/ChangePassword.js
+import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { GLOBALTYPES } from "../../redux/actions/globalTypes";
 import { changePassword } from "../../redux/actions/authAction";
-
-import { checkImage } from "../../utils/imageUpload";
 
 const ChangePassword = ({ setChangePassword }) => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [cnfNewPassword, setCnfNewPassword] = useState("");
-  const { auth, theme } = useSelector((state) => state);
+
+  const { auth } = useSelector((state) => state);
   const dispatch = useDispatch();
 
-
-
-
-  const handleSubmit = e => {
-      e.preventDefault();
-      dispatch(changePassword( {oldPassword, newPassword, cnfNewPassword, auth} ) );
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    dispatch(
+      changePassword({ oldPassword, newPassword, cnfNewPassword, auth })
+    );
   };
 
   return (
@@ -30,13 +28,10 @@ const ChangePassword = ({ setChangePassword }) => {
       </button>
 
       <form onSubmit={handleSubmit}>
-        
-        
         <div className="form_group">
-          <label htmlFor="oldPassword">old password</label>
-
+          <label htmlFor="oldPassword">Old Password</label>
           <input
-            type="text"
+            type="password"
             className="form-control"
             id="oldPassword"
             name="oldPassword"
@@ -45,12 +40,10 @@ const ChangePassword = ({ setChangePassword }) => {
           />
         </div>
 
-
         <div className="form_group">
-          <label htmlFor="newPassword">new password</label>
-
+          <label htmlFor="newPassword">New Password</label>
           <input
-            type="text"
+            type="password"
             className="form-control"
             id="newPassword"
             name="newPassword"
@@ -59,12 +52,10 @@ const ChangePassword = ({ setChangePassword }) => {
           />
         </div>
 
-
         <div className="form_group">
-          <label htmlFor="cnfNewPassword">confirm new password</label>
-
+          <label htmlFor="cnfNewPassword">Confirm New Password</label>
           <input
-            type="text"
+            type="password"
             className="form-control"
             id="cnfNewPassword"
             name="cnfNewPassword"
@@ -73,9 +64,8 @@ const ChangePassword = ({ setChangePassword }) => {
           />
         </div>
 
-        
         <button className="btn btn-info w-100" type="submit">
-          update
+          Update
         </button>
       </form>
     </div>

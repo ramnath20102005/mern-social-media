@@ -37,7 +37,6 @@ function App() {
     return () => socket.close()
   }, [dispatch]);
 
-
   useEffect(() => {
     if (auth.token) {
       dispatch(getPosts(auth.token));
@@ -59,15 +58,15 @@ function App() {
     }
   }, [])
 
-   
-
   return (
     <Router>
       <Alert />
       <input type="checkbox" id="theme" />
       <div className={`App ${(status || modal) && "mode"}`}>
-        <div className="main">
-          {userType === "user" && auth.token && <Header />}
+        <div className="main" style={{ paddingTop: "90px" }}>
+          {userType === "user" && auth.token && (
+            <Header style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }} />
+          )}
           {status && <StatusModal />}
           {auth.token && <SocketClient /> }
           <Route

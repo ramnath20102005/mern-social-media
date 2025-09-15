@@ -1,36 +1,141 @@
-.spam{
-    width: 100%;
-    background: white;
-    max-width: 800px;
-    height: 78vh;
-    margin: 0 auto;
-    border-radius: 10px;
-    border: 2px solid var(--c1);
-    padding: 3px;
+:root {
+    --c1: #3b82f6;
 }
 
-.admin_content_display{
+.spam {
+    width: 100%;
+    max-width: 850px;
+    height: 80vh;
+    margin: 20px auto;
+    background: linear-gradient(145deg, #ffffff, #f8fafc);
+    border-radius: 16px;
+    border: 2px solid var(--c1);
+    padding: 10px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(8px);
+    font-family: 'Inter', sans-serif;
+    overflow-y: auto;
+    transition: transform 0.3s ease;
+}
+
+.spam:hover {
+    transform: translateY(-5px);
+}
+
+.admin_content_display {
     width: 100%;
     display: flex;
-    background: #eff0f4;
-    margin: 4px 0;
-    border-radius: 5px;
-}
-.spam .spam_report{
-    font-size: 1.3rem;
-    font-weight: 500;
-    margin: 0 9px;
-}
-.spam .spam_time{
-    font-size: 1rem;
-    margin-left: 10px
-}
-.spam .spam_username{
-    font-size: 1.3rem;
-    font-weight: 500;
+    align-items: center;
+    background: linear-gradient(90deg, #eff0f4, #e2e8f0);
+    margin: 8px 0;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
 }
 
-.spam .spam_email{
-    font-size: 1rem;
+.admin_content_display:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+}
+
+.spam .spam_report {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 12px;
+    flex: 3;
+    transition: color 0.3s ease;
+}
+
+.spam .spam_report:hover {
     color: var(--c1);
+}
+
+.spam .spam_time {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #475569;
+    margin-left: 15px;
+    flex: 1;
+}
+
+.spam .spam_username {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 12px;
+    flex: 2;
+    transition: color 0.3s ease;
+}
+
+.spam .spam_username:hover {
+    color: var(--c1);
+}
+
+.spam .spam_email {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--c1);
+    margin: 0 12px;
+    flex: 2;
+    text-decoration: none;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.spam .spam_email:hover {
+    color: #1d4ed8;
+    transform: translateX(5px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .spam {
+        max-width: 95%;
+        height: auto;
+        min-height: 60vh;
+        padding: 8px;
+        margin: 15px auto;
+    }
+
+    .admin_content_display {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .spam .spam_report,
+    .spam .spam_username {
+        font-size: 1.2rem;
+        margin: 0 8px;
+    }
+
+    .spam .spam_time,
+    .spam .spam_email {
+        font-size: 0.9rem;
+        margin: 0 8px;
+    }
+}
+
+@media (max-width: 576px) {
+    .spam {
+        max-width: 90%;
+        padding: 6px;
+        border-radius: 12px;
+    }
+
+    .admin_content_display {
+        padding: 10px;
+    }
+
+    .spam .spam_report,
+    .spam .spam_username {
+        font-size: 1.1rem;
+    }
+
+    .spam .spam_time,
+    .spam .spam_email {
+        font-size: 0.85rem;
+    }
 }

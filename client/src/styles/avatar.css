@@ -1,32 +1,179 @@
-.supper-avatar{
-  height: 150px;   
-  width: 150px;   
-  border-radius: 50%
+/* Enhanced Avatar Styles for Modern UI */
+.supper-avatar {
+  height: 150px;
+  width: 150px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
 }
 
-.big-avatar{
-  height: 50px;   
-  width: 50px;   
-  border-radius: 50%
+.supper-avatar:hover {
+  transform: scale(1.05) rotate(2deg);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.3);
+  z-index: 10;
 }
 
-.medium-avatar{
-  height: 30px;   
-  width: 30px;   
-  border-radius: 50%
+.supper-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  transition: transform 0.3s ease;
 }
 
-.small-avatar{
-  height: 20px;   
-  width: 20px;   
-  border-radius: 50%
+.supper-avatar:hover img {
+  transform: scale(1.1);
 }
 
-.big-avatar-cover{
+.big-avatar {
+  height: 50px;
+  width: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.big-avatar:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.big-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.medium-avatar {
+  height: 30px;
+  width: 30px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.8);
+  transition: all 0.2s ease;
+  background: #f8f9fa;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.medium-avatar:hover {
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 1);
+}
+
+.medium-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.small-avatar {
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  background: #f1f3f4;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+}
+
+.small-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.big-avatar-cover {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 60px;
   width: 60px;
   border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12), 0 0 0 2px rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+}
+
+.big-avatar-cover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: inherit;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.big-avatar-cover:hover::before {
+  opacity: 1;
+}
+
+.big-avatar-cover:hover {
+  transform: scale(1.08) rotate(5deg);
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+.big-avatar-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  z-index: 2;
+}
+
+/* Online Status Indicator (Optional Enhancement) */
+.avatar-online {
+  position: relative;
+}
+
+.avatar-online::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  background: #4ade80;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px #f1f5f9;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .supper-avatar {
+    height: 120px;
+    width: 120px;
+  }
+  
+  .big-avatar-cover {
+    height: 50px;
+    width: 50px;
+  }
+}
+
+/* Subtle Pulse Animation for Active Avatars */
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(102, 126, 234, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0); }
+}
+
+.avatar-active {
+  animation: pulse 2s infinite;
 }

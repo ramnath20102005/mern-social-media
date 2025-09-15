@@ -1,74 +1,238 @@
-.auth_page{
-    width: 100%;
-    min-height: 100vh;
-    background: #eff0f4;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+/* Enhanced Authentication Page Styles */
+:root {
+  --blue: #007bff;
+  --violet: #8b5cf6;
+  --pink: #ec4899;
+  --outer-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.1);
+  --inner-shadow: 0 0 0.5rem rgba(255, 255, 255, 0.2);
+  --gradient-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --form-gradient: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
 }
 
-.auth_page form{
-    background: #eff0f4;
-    max-width: 400px;
-    width: 100%;
-    border: 1px solid #ddd;
-    padding: 50px 25px;
-    border-radius: 12px;
-}
-
-.auth_page form input{
-    border: none;
-    outline: none;
-    background-color: transparent;
-}
-.form-input-wrap{
-    border-radius: 30px;
-}
-
-.form-input-wrap::after{
-    border-radius: 30px;
-}
-
-.auth_page form .auth-btn{
+.auth_page {
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #eff0f4 0%, #e2e8f0 100%);
+  display: flex;
   justify-content: center;
   align-items: center;
-  background: none;
-  border-radius: 5px;
-  color: var(--blue);
-  border: 2px solid;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth_page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.auth_page form {
+  background: var(--form-gradient);
+  max-width: 400px;
+  width: 100%;
+  border: none;
+  padding: 50px 30px;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.auth_page form:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.auth_page form input {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  width: 100%;
+  padding: 15px 0;
+  font-size: 16px;
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+.auth_page form input::placeholder {
+  color: #a0a0a0;
+  opacity: 0.7;
+}
+
+.auth_page form input:focus::placeholder {
+  opacity: 0;
+}
+
+.form-input-wrap {
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid rgba(0, 123, 255, 0.1);
+  padding: 5px;
+  margin-bottom: 20px;
+  position: relative;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-input-wrap:focus-within {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.form-input-wrap::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--gradient-bg);
+  border-radius: 0 0 30px 30px;
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.form-input-wrap:focus-within::after {
+  transform: scaleX(1);
+}
+
+.auth_page form .auth-btn {
+  justify-content: center;
+  align-items: center;
+  background: var(--gradient-bg);
+  border: none;
+  border-radius: 12px;
+  color: white;
   max-height: 50px;
-  padding: 1em 1em;
-  font-size: 1.3em;
-  transition: color 0.4s, border-color 0.25s, box-shadow 0.25s,transform 0.25s;
+  padding: 1em 2em;
+  font-size: 1.1em;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 20px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth_page form .auth-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.auth_page form .auth-btn:hover::before {
+  left: 100%;
 }
 
 .auth_page form .auth-btn:hover {
-  border-color: var(--violet);
-  color: var(--violet);
-  box-shadow: 0 0.7em 0.9em -0.1em #bc6ff1;
-  transform: translateY(-0.4em);
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+}
+
+.auth_page form .pass {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.auth_page form .pass small {
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
   cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  font-size: 18px;
+  color: #666;
 }
 
-.auth_page form .pass{
-    position: relative;
+.auth_page form .pass small:hover {
+  opacity: 1;
+  transform: translateY(-50%) scale(1.1);
 }
 
-.auth_page form .pass small{
-    position: absolute;
-    top: 50%;
-    right: 5px;
-    transform: translateY(-50%);
-    cursor: pointer;
-    opacity: 0.5;
+.auth_page .auth-heading {
+  width: 100%;
+  background: none;
+  max-width: 400px;
+  color: var(--pink);
+  border-radius: 4px;
+  text-shadow: var(--outer-shadow);
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 30px;
+  letter-spacing: -0.5px;
+  position: relative;
 }
 
-.auth_page .auth-heading{
-    width: 100%;
-    background: none;
-    max-width: 400px;
-    color: var(--pink);
-    border-radius: 4px;
-    text-shadow: var(--outer-shadow);
-    font-size: 2.2rem;
+.auth_page .auth-heading::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: var(--gradient-bg);
+  border-radius: 2px;
+}
+
+/* Responsive Enhancements */
+@media (max-width: 480px) {
+  .auth_page form {
+    padding: 40px 20px;
+    margin: 20px;
+    border-radius: 16px;
+  }
+
+  .auth_page .auth-heading {
+    font-size: 2rem;
+  }
+
+  .auth_page form .auth-btn {
+    font-size: 1em;
+    padding: 1em;
+  }
+}
+
+/* Additional Utility for Labels (if used) */
+.auth_page form label {
+  display: block;
+  margin-bottom: 8px;
+  color: #555;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* Subtle Animation for Form Entry */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth_page form {
+  animation: fadeInUp 0.6s ease-out;
 }
