@@ -118,6 +118,21 @@ const SocketServer = (socket) => {
     user && socket.to(`${user.socketId}`).emit("addMessageToClient", msg);
   });
 
+  // typing indicators
+  socket.on('typing', ({ from, to }) => {
+    const user = users.find(u => u.id === to);
+    if (user) {
+      socket.to(`${user.socketId}`).emit('typingToClient', { from });
+    }
+  });
+
+  socket.on('stopTyping', ({ from, to }) => {
+    const user = users.find(u => u.id === to);
+    if (user) {
+      socket.to(`${user.socketId}`).emit('stopTypingToClient', { from });
+    }
+  });
+
   //#endregion
 }
 

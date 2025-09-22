@@ -7,6 +7,8 @@ export const MESSAGE_TYPES = {
   ADD_MESSAGE: "ADD_MESSAGE",
   GET_CONVERSATIONS: "GET_CONVERSATIONS",
   GET_MESSAGES: "GET_MESSAGES",
+  TYPING_START: "TYPING_START",
+  TYPING_STOP: "TYPING_STOP",
 };
 
 export const addUser = ({ user, message }) => async (dispatch) => {

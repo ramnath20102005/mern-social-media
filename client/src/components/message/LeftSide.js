@@ -102,7 +102,7 @@ const LeftSide = () => {
               {message.users.map((user) => (
                 <div
                   key={user._id}
-                  cclassName={`message_user ${isActive(user)}`}
+                  className={`message_user ${isActive(user)}`}
                   onClick={() => handleAddUser(user)}
                 >
                   <UserCard user={user} msg={true}>

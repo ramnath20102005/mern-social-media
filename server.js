@@ -66,8 +66,21 @@ app.use('/api', require('./routes/commentRouter'));
 app.use('/api', require('./routes/adminRouter'));
 app.use('/api', require('./routes/notifyRouter'));
 app.use('/api', require('./routes/messageRouter'));
+app.use('/api', require('./routes/seedRouter'));
+app.use('/api', require('./routes/storyRouter'));
 //#endregion
 
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', time: new Date().toISOString() });
+});
+
+// Basic error handler
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ msg: 'Internal server error' });
+});
 
 const URI = process.env.MONGODB_URL;
 mongoose.connect(URI, {

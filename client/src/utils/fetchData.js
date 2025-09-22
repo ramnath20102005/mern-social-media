@@ -4,7 +4,8 @@ import axios from 'axios';
 const api = axios.create({
     baseURL: process.env.NODE_ENV === 'production' 
         ? 'https://mysocial-lvsn.onrender.com/api'
-        : 'http://localhost:8080/api'
+        : '/api',
+    withCredentials: true
 });
 
 export const getDataAPI = async (url,token) => {

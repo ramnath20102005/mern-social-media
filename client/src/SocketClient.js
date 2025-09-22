@@ -127,6 +127,21 @@ const SocketClient = () => {
     return () => socket.off("addMessageToClient");
   }, [dispatch,socket]);
 
+  // typing indicators
+  useEffect(() => {
+    socket.on('typingToClient', ({ from }) => {
+      dispatch({ type: MESSAGE_TYPES.TYPING_START, payload: from });
+    });
+    return () => socket.off('typingToClient');
+  }, [socket, dispatch]);
+
+  useEffect(() => {
+    socket.on('stopTypingToClient', ({ from }) => {
+      dispatch({ type: MESSAGE_TYPES.TYPING_STOP, payload: from });
+    });
+    return () => socket.off('stopTypingToClient');
+  }, [socket, dispatch]);
+
   return (
     <>
       <audio controls ref={audioRef} style={{ display: "none" }}>

@@ -13,6 +13,7 @@ router.route("/post/:id")
 
 router.patch("/post/:id/like", auth, postCtrl.likePost);
 router.patch("/post/:id/unlike", auth, postCtrl.unLikePost);
+router.post("/post/:id/repost", auth, postCtrl.repostPost);
 
 router.patch("/post/:id/report", auth, postCtrl.reportPost);
 

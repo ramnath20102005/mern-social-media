@@ -7,7 +7,7 @@ import InputComment from "./home/InputComment";
 
 const PostCard = ({ post, theme }) => {
   return (
-    <div className="card my-22 outer-shadow">
+    <div className="card my-22 outer-shadow" style={{ maxWidth: '600px', margin: 'auto' }}>
       <CardHeader post={post} />
       <CardBody post={post} theme={theme} />
       <CardFooter post={post} />

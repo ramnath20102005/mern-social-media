@@ -15,6 +15,23 @@ export const POST_TYPES = {
   SAVE_POST: "SAVE_POST",
 };
 
+// Repost an existing post
+export const repostPost = ({ post, auth }) => async (dispatch) => {
+  try {
+    const res = await postDataAPI(`post/${post._id}/repost`, null, auth.token);
+    // Prepend the repost to the feed
+    dispatch({ type: POST_TYPES.CREATE_POST, payload: res.data.newPost });
+    dispatch({ type: GLOBALTYPES.ALERT, payload: { success: res.data.msg } });
+  } catch (err) {
+    dispatch({
+      type: GLOBALTYPES.ALERT,
+      payload: {
+        error: err.response?.data?.msg || 'Failed to repost',
+      },
+    });
+  }
+};
+
 export const createPost = ({content, images, auth, socket}) => async dispatch => {
     let media = [];
 

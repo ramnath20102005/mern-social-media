@@ -64,6 +64,21 @@ const RightSide = () => {
       setMedia(newArr);
     };
 
+    // typing indicator debounce
+    const typingTimeout = useRef();
+
+    const handleInputChange = (e) => {
+      const value = e.target.value;
+      setText(value);
+      if (!id) return;
+      // emit typing start
+      socket.emit('typing', { from: auth.user._id, to: id });
+      if (typingTimeout.current) clearTimeout(typingTimeout.current);
+      typingTimeout.current = setTimeout(() => {
+        socket.emit('stopTyping', { from: auth.user._id, to: id });
+      }, 1200);
+    };
+
     const handleSubmit = async e => {
       e.preventDefault();
       if(!text.trim() && media.length === 0) return;
@@ -149,6 +164,11 @@ const RightSide = () => {
             </UserCard>
           )}
         </div>
+        {message.typingUsers.includes(id) && (
+          <div className="px-3 text-muted" style={{fontSize: '0.9rem'}}>
+            {user.username || 'User'} is typing...
+          </div>
+        )}
 
         <div
           className="chat_container"
@@ -198,7 +218,7 @@ const RightSide = () => {
             placeholder="Type a message."
             type="text"
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={handleInputChange}
             style={{ filter: theme ? "invert(1)" : "invert(0)" , background: theme ? '#040404' : '', color: theme ? 'white' : ''}}
           />
           <Icons setContent={setText} content={text} theme={theme} />

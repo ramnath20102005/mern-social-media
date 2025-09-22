@@ -21,7 +21,7 @@ import { GLOBALTYPES } from "./redux/actions/globalTypes";
 import SocketClient from "./SocketClient";
 
 function App() {
-  const { auth, status, modal, userType } = useSelector((state) => state);
+  const { auth, status, modal } = useSelector((state) => state);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -58,13 +58,17 @@ function App() {
     }
   }, [])
 
+  useEffect(() => {
+    document.title = 'Mesme';
+  }, []);
+
   return (
     <Router>
       <Alert />
       <input type="checkbox" id="theme" />
       <div className={`App ${(status || modal) && "mode"}`}>
         <div className="main" style={{ paddingTop: "90px" }}>
-          {userType === "user" && auth.token && (
+          {auth.token && (
             <Header style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }} />
           )}
           {status && <StatusModal />}
@@ -72,26 +76,16 @@ function App() {
           <Route
             exact
             path="/"
-            component={
-              userType === "user"
-                ? auth.token
-                  ? Home
-                  : Login
-                : auth.token
-                ? AdminDashboard
-                : Login
-            }
+            component={ auth.token ? Home : Login }
           />
 
-          {userType === "user" && (
-            <>
-              <Route exact path="/register" component={Register} />
-              <div className="wrap_page">
-                <PrivateRouter exact path="/:page" component={PageRender} />
-                <PrivateRouter exact path="/:page/:id" component={PageRender} />
-              </div>
-            </>
-          )}
+          <>
+            <Route exact path="/register" component={Register} />
+            <div className="wrap_page">
+              <PrivateRouter exact path="/:page" component={PageRender} />
+              <PrivateRouter exact path="/:page/:id" component={PageRender} />
+            </div>
+          </>
         </div>
       </div>
     </Router>

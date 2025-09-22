@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import Posts from "../components/home/Posts";
 import Status from "../components/home/Status";
 import RightSideBar from "../components/home/RightSideBar";
+import StoriesBar from "../components/home/StoriesBar";
 
 import LoadIcon from "../images/loading.gif";
 
@@ -19,6 +20,9 @@ const Home = () => {
     <div className="home row mx-0 p-3">
       {/* Main Feed */}
       <div className="col-md-8 mb-3" style={{ marginTop: "50px" }}>
+        <div className="card shadow-sm rounded-3 p-3 mb-3">
+          <StoriesBar />
+        </div>
         {showStatus && (
           <div className="card shadow-sm rounded-3 p-3 mb-4" style={{ marginTop: "20px" }}>
             <Status onClose={handleCloseStatus} />

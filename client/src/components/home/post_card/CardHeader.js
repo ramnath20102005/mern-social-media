@@ -18,13 +18,11 @@ const CardHeader = ({ post }) => {
   };
 
   const handleDeletePost = () => {
-    if(window.confirm("Are you sure?")){
-      dispatch(deletePost({ post, auth, socket }));
-      return history.push("/");
+    if(window.confirm('Are you sure you want to delete this post?')){
+        dispatch(deletePost({post, auth, socket}))
+        return history.push("/")
     }
-    
-  };
-
+  }
 
   const handleReportPost = () => {
     dispatch(reportPost({post, auth}));
@@ -53,6 +51,16 @@ const CardHeader = ({ post }) => {
       </div>
 
       <div className="nav-item dropdown">
+        {auth.user._id === post.user._id && (
+          <span
+            className="material-icons text-danger me-2"
+            style={{ cursor: 'pointer' }}
+            onClick={handleDeletePost}
+            title="Delete Post"
+          >
+            delete
+          </span>
+        )}
         <span
           className="material-icons"
           id="moreLink"
@@ -65,12 +73,10 @@ const CardHeader = ({ post }) => {
           {auth.user._id === post.user._id && (
             <>
               <div className="dropdown-item" onClick={handleEditPost}>
-                <span className="material-icons text-info"> create</span>Edit
-                Post
+                <span className="material-icons text-info">create</span> Edit Post
               </div>
               <div className="dropdown-item" onClick={handleDeletePost}>
-                <span className="material-icons text-red"> delete</span>Delete
-                Post
+                  <span className="material-icons text-danger">delete</span> <span className="text-danger">Delete Post</span>
               </div>
             </>
           )}

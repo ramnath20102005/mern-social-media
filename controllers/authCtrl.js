@@ -234,7 +234,11 @@ const authCtrl = {
         process.env.REFRESH_TOKEN_SECRET,
         async (err, result) => {
           if (err) {
-            res.status(400).json({ msg: "Please login again." });
+            return res.status(400).json({ msg: "Please login again." });
+          }
+
+          if (!result || !result.id) {
+            return res.status(400).json({ msg: "Invalid token. Please login again." });
           }
 
           const user = await Users.findById(result.id)
@@ -242,7 +246,7 @@ const authCtrl = {
             .populate("followers following", "-password");
 
           if (!user) {
-            res.status(400).json({ msg: "User does not exist." });
+            return res.status(400).json({ msg: "User does not exist." });
           }
 
           const access_token = createAccessToken({ id: result.id });

@@ -161,6 +161,36 @@ const postCtrl = {
     }
   },
 
+  // Create a repost of an existing post
+  repostPost: async (req, res) => {
+    try {
+      const original = await Posts.findById(req.params.id);
+      if (!original) {
+        return res.status(404).json({ msg: 'Original post not found.' });
+      }
+
+      const repost = new Posts({
+        content: original.content,
+        images: original.images,
+        repostOf: original._id,
+        user: req.user._id,
+      });
+
+      await repost.save();
+
+      const populated = await Posts.findById(repost._id)
+        .populate('user likes', 'avatar username fullname followers')
+        .populate({
+          path: 'comments',
+          populate: { path: 'user likes', select: '-password' }
+        });
+
+      return res.json({ msg: 'Reposted successfully.', newPost: populated });
+    } catch (err) {
+      return res.status(500).json({ msg: err.message });
+    }
+  },
+
   getUserPosts: async (req, res) => {
     try {
       const features = new APIfeatures(

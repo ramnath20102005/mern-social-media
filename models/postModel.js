@@ -9,6 +9,7 @@ const postSchema = new Schema(
       type: Array,
       required: true,
     },
+    repostOf: { type: mongoose.Types.ObjectId, ref: 'post' },
     likes: [
       {
         type: mongoose.Types.ObjectId,

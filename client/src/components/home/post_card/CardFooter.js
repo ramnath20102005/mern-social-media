@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link } from "react-router-dom";
 import LikeButton from '../../LikeButton';
 import { useSelector, useDispatch } from "react-redux";
-import { likePost, savePost, unLikePost, unSavePost } from "../../../redux/actions/postAction";
+import { likePost, savePost, unLikePost, unSavePost, repostPost } from "../../../redux/actions/postAction";
 import ShareModal from '../../ShareModal';
 // import { BASE_URL } from '../../../utils/config';
 
@@ -73,6 +73,11 @@ const CardFooter = ({post}) => {
             <Link to={`/post/${post._id}`} className="text-dark">
               <i className="far fa-comments" />
             </Link>
+            <i
+              className="fas fa-retweet"
+              title="Repost"
+              onClick={() => dispatch(repostPost({ post, auth }))}
+            />
             <i
               className="fa fa-share"
               alt="Send"
