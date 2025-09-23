@@ -16,9 +16,9 @@ import { getPosts } from "./redux/actions/postAction";
 import { getSuggestions } from "./redux/actions/suggestionsAction";
 import { getNotifies } from "./redux/actions/notifyAction";
 
-import AdminDashboard from "./pages/adminDashboard";
 import { GLOBALTYPES } from "./redux/actions/globalTypes";
 import SocketClient from "./SocketClient";
+import './styles/modern-layout.css';
 
 function App() {
   const { auth, status, modal } = useSelector((state) => state);
@@ -66,26 +66,21 @@ function App() {
     <Router>
       <Alert />
       <input type="checkbox" id="theme" />
-      <div className={`App ${(status || modal) && "mode"}`}>
-        <div className="main" style={{ paddingTop: "90px" }}>
-          {auth.token && (
-            <Header style={{ position: "fixed", top: 0, width: "100%", zIndex: 1000 }} />
-          )}
-          {status && <StatusModal />}
-          {auth.token && <SocketClient /> }
-          <Route
-            exact
-            path="/"
-            component={ auth.token ? Home : Login }
-          />
-
-          <>
-            <Route exact path="/register" component={Register} />
-            <div className="wrap_page">
-              <PrivateRouter exact path="/:page" component={PageRender} />
-              <PrivateRouter exact path="/:page/:id" component={PageRender} />
-            </div>
-          </>
+      <div className={`app-container ${(status || modal) && "mode"}`} data-theme={auth.user?.theme || 'light'}>
+        {auth.token && <Header />}
+        {status && <StatusModal />}
+        {auth.token && <SocketClient />}
+        
+        <Route
+          exact
+          path="/"
+          component={auth.token ? Home : Login}
+        />
+        
+        <Route exact path="/register" component={Register} />
+        <div className="wrap_page">
+          <PrivateRouter exact path="/:page" component={PageRender} />
+          <PrivateRouter exact path="/:page/:id" component={PageRender} />
         </div>
       </div>
     </Router>

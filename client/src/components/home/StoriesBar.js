@@ -78,7 +78,7 @@ const StoriesBar = () => {
   }, [auth.token]);
 
   return (
-    <div className="d-flex align-items-center" style={{ overflowX: 'auto', gap: '12px' }}>
+    <div className="stories-carousel">
       <input
         ref={fileRef}
         type="file"
@@ -87,40 +87,46 @@ const StoriesBar = () => {
         onChange={onFilesSelected}
         style={{ display: 'none' }}
       />
-      <button className="btn-1 outer-shadow hover-in-shadow" onClick={onPickFiles} disabled={loading}>
-        + Add Story
-      </button>
-      {loading && <span className="text-muted">Loading stories...</span>}
-      {stories.map(story => (
-        <div key={story._id} className="d-flex flex-column align-items-center story-item" style={{ position: 'relative' }}>
-          {auth.user._id === story.user._id &&
-            <span className="material-icons text-danger" 
-              style={{ position: 'absolute', top: 0, right: 0, cursor: 'pointer', zIndex: 1, backgroundColor: 'white', borderRadius: '50%' }}
-              onClick={() => handleDeleteStory(story._id)}>
-              remove_circle
-            </span>
-          }
-          <div
-            className="outer-shadow"
-            style={{
-              width: 64,
-              height: 64,
-              borderRadius: '50%',
-              overflow: 'hidden',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <img
-              src={(story.media && story.media[0] && story.media[0].url) || auth.user.avatar}
-              alt="story"
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          </div>
-          <small className="mt-1">{story.user?.username || 'story'}</small>
+      
+      <div className="add-story-btn" onClick={onPickFiles} disabled={loading}>
+        <div className="add-story-icon">
+          <i className="fas fa-plus"></i>
         </div>
-      ))}
+        <span className="add-story-text">Add Story</span>
+      </div>
+      
+      {loading && (
+        <div className="stories-loading">
+          <div className="loading-spinner-small"></div>
+          <span>Loading...</span>
+        </div>
+      )}
+      
+      <div className="stories-scroll">
+        {stories.map(story => (
+          <div key={story._id} className="story-item">
+            {auth.user._id === story.user._id && (
+              <button 
+                className="story-delete-btn"
+                onClick={() => handleDeleteStory(story._id)}
+                title="Delete story"
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            )}
+            <div className="story-avatar">
+              <div className="story-ring">
+                <img
+                  src={(story.media && story.media[0] && story.media[0].url) || auth.user.avatar}
+                  alt="story"
+                  className="story-image"
+                />
+              </div>
+            </div>
+            <span className="story-username">{story.user?.username || 'story'}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

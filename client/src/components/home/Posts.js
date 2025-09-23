@@ -19,13 +19,22 @@ const Posts = () => {
     setLoad(false);
   };
   return (
-    <div className="posts">
+    <>
       {homePosts.posts.map((post) => (
-        <PostCard key={post._id} post={post} theme={theme} />
+        <div key={post._id} className="feed-card">
+          <PostCard post={post} theme={theme} />
+        </div>
       ))}
 
       {load && (
-        <img src={LoadIcon} alt="Loading..." className="d-block mx-auto" />
+        <div className="feed-card">
+          <div className="loading-container">
+            <div className="loading-spinner">
+              <img src={LoadIcon} alt="Loading..." className="loading-icon" />
+              <p className="loading-text">Loading more posts...</p>
+            </div>
+          </div>
+        </div>
       )}
 
       <LoadMoreBtn
@@ -34,7 +43,7 @@ const Posts = () => {
         load={load}
         handleLoadMore={handleLoadMore}
       />
-    </div>
+    </>
   );
 };
 

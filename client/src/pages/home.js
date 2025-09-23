@@ -1,59 +1,122 @@
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { Link, useLocation } from "react-router-dom";
 
 import Posts from "../components/home/Posts";
 import Status from "../components/home/Status";
 import RightSideBar from "../components/home/RightSideBar";
 import StoriesBar from "../components/home/StoriesBar";
+import LeftSidebar from "../components/layout/LeftSidebar";
+import RightSidebar from "../components/layout/RightSidebar";
+import { GLOBALTYPES } from "../redux/actions/globalTypes";
 
 import LoadIcon from "../images/loading.gif";
 
 const Home = () => {
-  const { homePosts } = useSelector((state) => state);
-  const [showStatus, setShowStatus] = useState(true); // Control modal visibility
+  const { homePosts, auth } = useSelector((state) => state);
+  const dispatch = useDispatch();
+  const { pathname } = useLocation();
+  const [showStatus, setShowStatus] = useState(true);
 
   const handleCloseStatus = () => {
-    setShowStatus(false); // Hide the status card/modal
+    setShowStatus(false);
+  };
+
+  const handleFabClick = () => {
+    dispatch({ type: GLOBALTYPES.STATUS, payload: true });
+  };
+
+  const mobileNavItems = [
+    { label: 'Home', icon: 'fas fa-home', path: '/' },
+    { label: 'Explore', icon: 'fas fa-compass', path: '/discover' },
+    { label: 'Messages', icon: 'fas fa-envelope', path: '/message' },
+    { label: 'Profile', icon: 'fas fa-user', path: `/profile/${auth.user?._id}` },
+  ];
+
+  const isActive = (path) => {
+    return pathname === path;
   };
 
   return (
-    <div className="home row mx-0 p-3">
-      {/* Main Feed */}
-      <div className="col-md-8 mb-3" style={{ marginTop: "50px" }}>
-        <div className="card shadow-sm rounded-3 p-3 mb-3">
-          <StoriesBar />
-        </div>
-        {showStatus && (
-          <div className="card shadow-sm rounded-3 p-3 mb-4" style={{ marginTop: "20px" }}>
-            <Status onClose={handleCloseStatus} />
+    <>
+      <div className="main-layout">
+        {/* Left Sidebar */}
+        <LeftSidebar />
+        
+        {/* Center Feed */}
+        <div className="center-feed">
+          {/* Stories Section */}
+          <div className="feed-card">
+            <div className="stories-section">
+              <div className="stories-header">
+                <h3 className="stories-title">Stories</h3>
+                <button className="stories-add-btn">
+                  <i className="fas fa-plus"></i>
+                </button>
+              </div>
+              <StoriesBar />
+            </div>
           </div>
-        )}
 
-        {homePosts.loading ? (
-          <div className="text-center my-5">
-            <img
-              src={LoadIcon}
-              alt="loading"
-              style={{ width: "60px", height: "60px" }}
-            />
-            <p className="mt-2 text-muted">Loading posts...</p>
-          </div>
-        ) : homePosts.result === 0 ? (
-          <h4 className="text-center text-muted mt-5">🚀 No posts yet!</h4>
-        ) : (
-          <div className="card shadow-sm rounded-3 p-3" style={{ marginTop: "40px" }}>
+          {/* Post Creation Section */}
+          {showStatus && (
+            <div className="feed-card">
+              <div className="post-composer">
+                <Status onClose={handleCloseStatus} />
+              </div>
+            </div>
+          )}
+
+          {/* Posts Feed */}
+          {homePosts.loading ? (
+            <div className="feed-card">
+              <div className="loading-container">
+                <div className="loading-spinner">
+                  <img src={LoadIcon} alt="loading" className="loading-icon" />
+                  <p className="loading-text">Loading amazing posts...</p>
+                </div>
+              </div>
+            </div>
+          ) : homePosts.result === 0 ? (
+            <div className="feed-card">
+              <div className="empty-feed">
+                <div className="empty-icon">🚀</div>
+                <h3 className="empty-title">No posts yet!</h3>
+                <p className="empty-subtitle">Be the first to share something amazing</p>
+              </div>
+            </div>
+          ) : (
             <Posts />
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      {/* Right Sidebar */}
-      <div className="col-md-4">
-        <div className="card shadow-sm rounded-3 p-3 sticky-top" style={{ top: "80px" }}>
-          <RightSideBar />
+        {/* Right Sidebar */}
+        <RightSidebar />
+      </div>
+      
+      {/* Mobile Bottom Navigation */}
+      <div className="mobile-bottom-nav">
+        <div className="mobile-nav-items">
+          {mobileNavItems.map((item, index) => (
+            <Link
+              key={index}
+              to={item.path}
+              className={`mobile-nav-item ${isActive(item.path) ? 'active' : ''}`}
+            >
+              <i className={`mobile-nav-icon ${item.icon}`}></i>
+              <span className="mobile-nav-label">{item.label}</span>
+            </Link>
+          ))}
         </div>
       </div>
-    </div>
+      
+      {/* Floating Action Button */}
+      <div className="fab-container">
+        <button className="fab-button" onClick={handleFabClick} title="Create Post">
+          <i className="fas fa-plus"></i>
+        </button>
+      </div>
+    </>
   );
 };
 

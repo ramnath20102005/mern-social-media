@@ -38,48 +38,73 @@ const Search = () => {
   };
 
   return (
-    <form className="search_form" onSubmit={handleSearch}>
-      <input
-        type="text"
-        title="Enter to Search"
-        name="search"
-        value={search}
-        id="search"
-        onChange={(e) =>
-          setSearch(e.target.value.toLowerCase().replace(/ /g, " "))
-        }
-      />
-      <div className="search_icon" style={{ opacity: search ? 0 : 0.3 }}>
-        <span className="material-icons">search</span>
-        <span>Enter to Search</span>
-      </div>
+    <div className="modern-search-wrapper">
+      <form className="modern-search-form" onSubmit={handleSearch}>
+        <input
+          type="text"
+          placeholder="Search people, posts, or topics..."
+          name="search"
+          value={search}
+          className="search-input"
+          onChange={(e) =>
+            setSearch(e.target.value.toLowerCase().replace(/ /g, " "))
+          }
+        />
+        
+        {search && (
+          <button
+            type="button"
+            onClick={handleClose}
+            className="search-clear-btn"
+          >
+            <i className="fas fa-times"></i>
+          </button>
+        )}
+        
+        <button type="submit" className="search-submit-btn">
+          <i className="fas fa-search"></i>
+        </button>
+      </form>
 
-      <div
-        onClick={handleClose}
-        className="close_search"
-        style={{ opacity: users.length === 0 ? 0 : 1 }}
-      >
-        &times;
-      </div>
-
-      <button type="submit" style={{ display: "none" }}>
-        Search
-      </button>
-
-      {load && <img className="loading" src={LoadIcon} alt="Loading" />}
-
-      <div className="users">
-        {search &&
-          users.map((user) => (
-            <UserCard
-              key={user._id}
-              user={user}
-              border="border"
-              handleClose={handleClose}
-            />
-          ))}
-      </div>
-    </form>
+      {/* Search Results Dropdown */}
+      {(search || users.length > 0) && (
+        <div className="search-results-dropdown">
+          {load ? (
+            <div className="search-loading">
+              <img src={LoadIcon} alt="Loading" className="loading-spinner" />
+              <span>Searching...</span>
+            </div>
+          ) : (
+            <>
+              {users.length > 0 ? (
+                <>
+                  <div className="search-results-header">
+                    <span>People</span>
+                    <span className="results-count">{users.length} results</span>
+                  </div>
+                  <div className="search-results-list">
+                    {users.map((user) => (
+                      <UserCard
+                        key={user._id}
+                        user={user}
+                        border="border"
+                        handleClose={handleClose}
+                      />
+                    ))}
+                  </div>
+                </>
+              ) : search ? (
+                <div className="no-results">
+                  <i className="fas fa-search"></i>
+                  <span>No results found for "{search}"</span>
+                  <small>Try searching for something else</small>
+                </div>
+              ) : null}
+            </>
+          )}
+        </div>
+      )}
+    </div>
   );
 };
 
