@@ -1,11 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { GLOBALTYPES } from '../redux/actions/globalTypes';
+import {
+  getUserSettings,
+  updateGeneralSettings,
+  updatePrivacySettings,
+  updateNotificationSettings,
+  changePassword,
+  toggleTwoFactorAuth,
+  downloadUserData,
+  deleteAccount
+} from '../redux/actions/settingsAction';
 
 const Settings = () => {
-  const { auth, theme } = useSelector(state => state);
+  const { auth, theme, settings, alert } = useSelector(state => state);
   const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState('general');
+  const [loading, setLoading] = useState(false);
+  
+  // Form states
+  const [generalSettings, setGeneralSettings] = useState({
+    theme: settings.theme || 'light',
+    language: settings.language || 'en',
+    autoPlayVideos: settings.autoPlayVideos !== undefined ? settings.autoPlayVideos : true
+  });
+  
+  const [privacySettings, setPrivacySettings] = useState({
+    profileVisibility: settings.profileVisibility || 'public',
+    showOnlineStatus: settings.showOnlineStatus !== undefined ? settings.showOnlineStatus : true
+  });
+  
+  const [notificationSettings, setNotificationSettings] = useState({
+    pushNotifications: settings.pushNotifications !== undefined ? settings.pushNotifications : true,
+    emailNotifications: settings.emailNotifications !== undefined ? settings.emailNotifications : false,
+    soundEffects: settings.soundEffects !== undefined ? settings.soundEffects : true
+  });
+  
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  
+  const [deleteData, setDeleteData] = useState({
+    password: '',
+    confirmDelete: ''
+  });
 
   const settingsTabs = [
     { id: 'general', label: 'General', icon: 'fas fa-cog' },
@@ -14,8 +54,116 @@ const Settings = () => {
     { id: 'account', label: 'Account', icon: 'fas fa-user-cog' },
   ];
 
-  const handleThemeToggle = () => {
-    dispatch({ type: GLOBALTYPES.THEME, payload: !theme });
+  // Load settings on component mount
+  useEffect(() => {
+    if (auth.token) {
+      dispatch(getUserSettings(auth));
+    }
+  }, [dispatch, auth]);
+  
+  // Update local state when settings change
+  useEffect(() => {
+    setGeneralSettings({
+      theme: settings.theme || auth.user?.theme || 'light',
+      language: settings.language || 'en',
+      autoPlayVideos: settings.autoPlayVideos !== undefined ? settings.autoPlayVideos : true
+    });
+    
+    setPrivacySettings({
+      profileVisibility: settings.profileVisibility || 'public',
+      showOnlineStatus: settings.showOnlineStatus !== undefined ? settings.showOnlineStatus : true
+    });
+    
+    setNotificationSettings({
+      pushNotifications: settings.pushNotifications !== undefined ? settings.pushNotifications : true,
+      emailNotifications: settings.emailNotifications !== undefined ? settings.emailNotifications : false,
+      soundEffects: settings.soundEffects !== undefined ? settings.soundEffects : true
+    });
+  }, [settings, auth.user]);
+
+  const handleGeneralSettingsChange = (field, value) => {
+    setGeneralSettings(prev => ({ ...prev, [field]: value }));
+    
+    // Auto-save general settings
+    const updatedSettings = { ...generalSettings, [field]: value };
+    dispatch(updateGeneralSettings(updatedSettings, auth));
+    
+    // Update theme globally if theme changed
+    if (field === 'theme') {
+      dispatch({ type: GLOBALTYPES.THEME, payload: value === 'dark' });
+    }
+  };
+  
+  const handlePrivacySettingsChange = (field, value) => {
+    setPrivacySettings(prev => ({ ...prev, [field]: value }));
+    
+    // Auto-save privacy settings
+    const updatedSettings = { ...privacySettings, [field]: value };
+    dispatch(updatePrivacySettings(updatedSettings, auth));
+  };
+  
+  const handleNotificationSettingsChange = (field, value) => {
+    setNotificationSettings(prev => ({ ...prev, [field]: value }));
+    
+    // Auto-save notification settings
+    const updatedSettings = { ...notificationSettings, [field]: value };
+    dispatch(updateNotificationSettings(updatedSettings, auth));
+  };
+  
+  const handlePasswordChange = (e) => {
+    e.preventDefault();
+    
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      dispatch({
+        type: GLOBALTYPES.ALERT,
+        payload: { error: 'New passwords do not match.' }
+      });
+      return;
+    }
+    
+    if (passwordData.newPassword.length < 6) {
+      dispatch({
+        type: GLOBALTYPES.ALERT,
+        payload: { error: 'Password must be at least 6 characters long.' }
+      });
+      return;
+    }
+    
+    dispatch(changePassword({
+      currentPassword: passwordData.currentPassword,
+      newPassword: passwordData.newPassword
+    }, auth));
+    
+    // Clear form
+    setPasswordData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
+  };
+  
+  const handleToggle2FA = () => {
+    dispatch(toggleTwoFactorAuth(!settings.twoFactorAuth, auth));
+  };
+  
+  const handleDownloadData = () => {
+    dispatch(downloadUserData(auth));
+  };
+  
+  const handleDeleteAccount = (e) => {
+    e.preventDefault();
+    
+    if (deleteData.confirmDelete !== 'DELETE') {
+      dispatch({
+        type: GLOBALTYPES.ALERT,
+        payload: { error: 'Please type DELETE to confirm account deletion.' }
+      });
+      return;
+    }
+    
+    if (window.confirm('Are you absolutely sure you want to delete your account? This action cannot be undone.')) {
+      dispatch(deleteAccount(deleteData, auth));
+    }
   };
 
   return (
@@ -54,11 +202,11 @@ const Settings = () => {
                   </div>
                   <div className="setting-control">
                     <button 
-                      className={`theme-toggle ${theme ? 'dark' : 'light'}`}
-                      onClick={handleThemeToggle}
+                      className={`theme-toggle ${generalSettings.theme === 'dark' ? 'dark' : 'light'}`}
+                      onClick={() => handleGeneralSettingsChange('theme', generalSettings.theme === 'light' ? 'dark' : 'light')}
                     >
                       <div className="toggle-slider">
-                        <i className={theme ? 'fas fa-moon' : 'fas fa-sun'}></i>
+                        <i className={generalSettings.theme === 'dark' ? 'fas fa-moon' : 'fas fa-sun'}></i>
                       </div>
                     </button>
                   </div>
@@ -70,7 +218,11 @@ const Settings = () => {
                     <p>Select your preferred language</p>
                   </div>
                   <div className="setting-control">
-                    <select className="setting-select">
+                    <select 
+                      className="setting-select"
+                      value={generalSettings.language}
+                      onChange={(e) => handleGeneralSettingsChange('language', e.target.value)}
+                    >
                       <option value="en">English</option>
                       <option value="es">Spanish</option>
                       <option value="fr">French</option>
@@ -86,7 +238,11 @@ const Settings = () => {
                   </div>
                   <div className="setting-control">
                     <label className="setting-switch">
-                      <input type="checkbox" defaultChecked />
+                      <input 
+                        type="checkbox" 
+                        checked={generalSettings.autoPlayVideos}
+                        onChange={(e) => handleGeneralSettingsChange('autoPlayVideos', e.target.checked)}
+                      />
                       <span className="switch-slider"></span>
                     </label>
                   </div>
@@ -104,7 +260,11 @@ const Settings = () => {
                     <p>Who can see your profile</p>
                   </div>
                   <div className="setting-control">
-                    <select className="setting-select">
+                    <select 
+                      className="setting-select"
+                      value={privacySettings.profileVisibility}
+                      onChange={(e) => handlePrivacySettingsChange('profileVisibility', e.target.value)}
+                    >
                       <option value="public">Everyone</option>
                       <option value="friends">Friends only</option>
                       <option value="private">Only me</option>
@@ -119,7 +279,11 @@ const Settings = () => {
                   </div>
                   <div className="setting-control">
                     <label className="setting-switch">
-                      <input type="checkbox" defaultChecked />
+                      <input 
+                        type="checkbox" 
+                        checked={privacySettings.showOnlineStatus}
+                        onChange={(e) => handlePrivacySettingsChange('showOnlineStatus', e.target.checked)}
+                      />
                       <span className="switch-slider"></span>
                     </label>
                   </div>
@@ -131,9 +295,13 @@ const Settings = () => {
                     <p>Download a copy of your data</p>
                   </div>
                   <div className="setting-control">
-                    <button className="setting-button secondary">
+                    <button 
+                      className="setting-button secondary"
+                      onClick={handleDownloadData}
+                      disabled={alert.loading}
+                    >
                       <i className="fas fa-download"></i>
-                      Download Data
+                      {alert.loading ? 'Preparing...' : 'Download Data'}
                     </button>
                   </div>
                 </div>
@@ -151,7 +319,11 @@ const Settings = () => {
                   </div>
                   <div className="setting-control">
                     <label className="setting-switch">
-                      <input type="checkbox" defaultChecked />
+                      <input 
+                        type="checkbox" 
+                        checked={notificationSettings.pushNotifications}
+                        onChange={(e) => handleNotificationSettingsChange('pushNotifications', e.target.checked)}
+                      />
                       <span className="switch-slider"></span>
                     </label>
                   </div>
@@ -164,7 +336,11 @@ const Settings = () => {
                   </div>
                   <div className="setting-control">
                     <label className="setting-switch">
-                      <input type="checkbox" />
+                      <input 
+                        type="checkbox" 
+                        checked={notificationSettings.emailNotifications}
+                        onChange={(e) => handleNotificationSettingsChange('emailNotifications', e.target.checked)}
+                      />
                       <span className="switch-slider"></span>
                     </label>
                   </div>
@@ -177,7 +353,11 @@ const Settings = () => {
                   </div>
                   <div className="setting-control">
                     <label className="setting-switch">
-                      <input type="checkbox" defaultChecked />
+                      <input 
+                        type="checkbox" 
+                        checked={notificationSettings.soundEffects}
+                        onChange={(e) => handleNotificationSettingsChange('soundEffects', e.target.checked)}
+                      />
                       <span className="switch-slider"></span>
                     </label>
                   </div>
@@ -189,18 +369,46 @@ const Settings = () => {
               <div className="settings-section">
                 <h2 className="section-title">Account Settings</h2>
                 
-                <div className="setting-item">
-                  <div className="setting-info">
-                    <h3>Change Password</h3>
-                    <p>Update your account password</p>
+                <form onSubmit={handlePasswordChange}>
+                  <div className="setting-item">
+                    <div className="setting-info">
+                      <h3>Change Password</h3>
+                      <p>Update your account password</p>
+                    </div>
+                    <div className="setting-control">
+                      <div className="password-form">
+                        <input
+                          type="password"
+                          placeholder="Current Password"
+                          value={passwordData.currentPassword}
+                          onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                          className="setting-input"
+                          required
+                        />
+                        <input
+                          type="password"
+                          placeholder="New Password"
+                          value={passwordData.newPassword}
+                          onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                          className="setting-input"
+                          required
+                        />
+                        <input
+                          type="password"
+                          placeholder="Confirm New Password"
+                          value={passwordData.confirmPassword}
+                          onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                          className="setting-input"
+                          required
+                        />
+                        <button type="submit" className="setting-button primary" disabled={alert.loading}>
+                          <i className="fas fa-key"></i>
+                          {alert.loading ? 'Changing...' : 'Change Password'}
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <div className="setting-control">
-                    <button className="setting-button primary">
-                      <i className="fas fa-key"></i>
-                      Change Password
-                    </button>
-                  </div>
-                </div>
+                </form>
 
                 <div className="setting-item">
                   <div className="setting-info">
@@ -208,25 +416,49 @@ const Settings = () => {
                     <p>Add an extra layer of security</p>
                   </div>
                   <div className="setting-control">
-                    <button className="setting-button secondary">
+                    <button 
+                      className={`setting-button ${settings.twoFactorAuth ? 'danger' : 'secondary'}`}
+                      onClick={handleToggle2FA}
+                      disabled={alert.loading}
+                    >
                       <i className="fas fa-shield-alt"></i>
-                      Enable 2FA
+                      {alert.loading ? 'Processing...' : (settings.twoFactorAuth ? 'Disable 2FA' : 'Enable 2FA')}
                     </button>
                   </div>
                 </div>
 
-                <div className="setting-item danger">
-                  <div className="setting-info">
-                    <h3>Delete Account</h3>
-                    <p>Permanently delete your account and data</p>
+                <form onSubmit={handleDeleteAccount}>
+                  <div className="setting-item danger">
+                    <div className="setting-info">
+                      <h3>Delete Account</h3>
+                      <p>Permanently delete your account and data</p>
+                    </div>
+                    <div className="setting-control">
+                      <div className="delete-form">
+                        <input
+                          type="password"
+                          placeholder="Enter your password"
+                          value={deleteData.password}
+                          onChange={(e) => setDeleteData({...deleteData, password: e.target.value})}
+                          className="setting-input"
+                          required
+                        />
+                        <input
+                          type="text"
+                          placeholder='Type "DELETE" to confirm'
+                          value={deleteData.confirmDelete}
+                          onChange={(e) => setDeleteData({...deleteData, confirmDelete: e.target.value})}
+                          className="setting-input"
+                          required
+                        />
+                        <button type="submit" className="setting-button danger" disabled={alert.loading}>
+                          <i className="fas fa-trash"></i>
+                          {alert.loading ? 'Deleting...' : 'Delete Account'}
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <div className="setting-control">
-                    <button className="setting-button danger">
-                      <i className="fas fa-trash"></i>
-                      Delete Account
-                    </button>
-                  </div>
-                </div>
+                </form>
               </div>
             )}
           </div>

@@ -68,6 +68,7 @@ app.use('/api', require('./routes/notifyRouter'));
 app.use('/api', require('./routes/messageRouter'));
 app.use('/api', require('./routes/seedRouter'));
 app.use('/api', require('./routes/storyRouter'));
+app.use('/api/settings', require('./routes/settingsRouter'));
 //#endregion
 
 // Health check

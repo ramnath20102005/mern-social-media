@@ -74,6 +74,45 @@ const userSchema = new Schema(
         ref: "user",
       },
     ],
+    // Settings fields
+    theme: {
+      type: String,
+      default: "light",
+      enum: ["light", "dark"]
+    },
+    language: {
+      type: String,
+      default: "en"
+    },
+    autoPlayVideos: {
+      type: Boolean,
+      default: true
+    },
+    profileVisibility: {
+      type: String,
+      default: "public",
+      enum: ["public", "friends", "private"]
+    },
+    showOnlineStatus: {
+      type: Boolean,
+      default: true
+    },
+    pushNotifications: {
+      type: Boolean,
+      default: true
+    },
+    emailNotifications: {
+      type: Boolean,
+      default: false
+    },
+    soundEffects: {
+      type: Boolean,
+      default: true
+    },
+    twoFactorAuth: {
+      type: Boolean,
+      default: false
+    }
   },
   {
     timestamps: true,
