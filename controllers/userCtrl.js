@@ -59,34 +59,52 @@ const userCtrl = {
 
   follow: async (req, res) => {
     try {
+      // Prevent self-follow
+      if (String(req.user._id) === String(req.params.id)) {
+        const self = await Users.findById(req.user._id)
+          .select("-password")
+          .populate("followers following", "-password");
+        return res.json({ newUser: self, authUser: self, followingCount: self.following?.length || 0 });
+      }
+
       const user = await Users.find({
         _id: req.params.id,
         followers: req.user._id,
       });
-      if (user.length > 0)
-        return res
-          .status(500)
-          .json({ msg: "You are already following this user." });
+      if (user.length > 0) {
+        // Idempotent: already following, return current state with 200
+        const target = await Users.findById(req.params.id)
+          .select("-password")
+          .populate("followers following", "-password");
+        const authUser = await Users.findById(req.user._id)
+          .select("-password")
+          .populate("followers following", "-password");
+        const followingCount = authUser.following?.length || 0;
+        return res.json({ newUser: target, authUser, followingCount });
+      }
 
 
 
       const newUser = await Users.findOneAndUpdate(
         { _id: req.params.id },
-        {
-          $push: {
-            followers: req.user._id
-          },
-        },
+        { $addToSet: { followers: req.user._id } },
         { new: true }
       ).populate("followers following", "-password");
 
       await Users.findOneAndUpdate(
         { _id: req.user._id },
-        { $push: { following: req.params.id } },
+        { $addToSet: { following: req.params.id } },
         { new: true }
       );
 
-      res.json({ newUser });
+      // Fetch updated auth user to compute following count
+      const authUser = await Users.findById(req.user._id)
+        .select("-password")
+        .populate("followers following", "-password");
+
+      const followingCount = authUser.following?.length || 0;
+
+      res.json({ newUser, authUser, followingCount });
     } catch (err) {
       return res.status(500).json({ msg: err.message });
     }
@@ -94,7 +112,18 @@ const userCtrl = {
 
   unfollow: async (req, res) => {
     try {
-      
+      // Idempotent: if not currently following, just return current state
+      const relation = await Users.find({ _id: req.user._id, following: req.params.id });
+      if (relation.length === 0) {
+        const target = await Users.findById(req.params.id)
+          .select('-password')
+          .populate('followers following', '-password');
+        const authUser = await Users.findById(req.user._id)
+          .select('-password')
+          .populate('followers following', '-password');
+        const followingCount = authUser.following?.length || 0;
+        return res.json({ newUser: target, authUser, followingCount });
+      }
 
       const newUser = await Users.findOneAndUpdate(
         { _id: req.params.id },
@@ -110,7 +139,14 @@ const userCtrl = {
         { new: true }
       );
 
-      res.json({ newUser });
+      // Fetch updated auth user to compute following count
+      const authUser = await Users.findById(req.user._id)
+        .select('-password')
+        .populate('followers following', '-password');
+
+      const followingCount = authUser.following?.length || 0;
+
+      res.json({ newUser, authUser, followingCount });
     } catch (err) {
       return res.status(500).json({ msg: err.message });
     }
