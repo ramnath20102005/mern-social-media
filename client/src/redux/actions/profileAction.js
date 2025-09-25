@@ -11,6 +11,7 @@ export const PROFILE_TYPES = {
   GET_ID: "GET_PROFILE_ID",
   GET_POSTS: "GET_PROFILE_POSTS",
   UPDATE_POST: "UPDATE_PROFILE_POSTS",
+  UPDATE_USER: "UPDATE_PROFILE_USER",
 };
 
 // get user + posts
@@ -106,20 +107,12 @@ export const updateProfileUser = ({ userData, avatar, auth }) => async (dispatch
 };
 
 // follow user
-export const follow = ({ users, user, auth, socket }) => async (dispatch) => {
-  let newUser;
-  if (users.every((item) => item._id !== user._id)) {
-    newUser = { ...user, followers: [...user.followers, auth.user] };
-  } else {
-    users.forEach((item) => {
-      if (item._id === user._id) {
-        newUser = { ...item, followers: [...item.followers, auth.user] };
-      }
-    });
-  }
+export const follow = ({ users, user, socket }) => async (dispatch, getState) => {
+  const { auth } = getState();
+  const newUser = { ...user, followers: [...user.followers, auth.user] };
 
+  // Optimistic updates based on the latest state
   dispatch({ type: PROFILE_TYPES.FOLLOW, payload: newUser });
-
   dispatch({
     type: GLOBALTYPES.AUTH,
     payload: {
@@ -129,22 +122,38 @@ export const follow = ({ users, user, auth, socket }) => async (dispatch) => {
   });
 
   try {
-    const res = await patchDataAPI(
-      `/user/${user._id}/follow`,
-      null,
-      auth.token
-    );
+    const res = await patchDataAPI(`/user/${user._id}/follow`, null, auth.token);
 
-    socket.emit("follow", res.data.newUser);
+    // Final sync from server
+    if (res?.data?.authUser) {
+      const freshAuth = { ...getState().auth, user: res.data.authUser };
+      dispatch({ type: GLOBALTYPES.AUTH, payload: freshAuth });
+      dispatch({ type: PROFILE_TYPES.UPDATE_USER, payload: res.data.authUser });
+    }
+    if (res?.data?.newUser) {
+      dispatch({ type: PROFILE_TYPES.FOLLOW, payload: res.data.newUser });
+    }
+
+    socket?.emit && socket.emit("follow", res.data.newUser);
 
     const msg = {
       id: auth.user._id,
       text: "started following you",
-      recipients: [newUser._id],
+      recipients: [user._id],
       url: `/profile/${auth.user._id}`,
     };
+    dispatch(createNotify({ msg, auth: getState().auth, socket }));
 
-    dispatch(createNotify({ msg, auth, socket }));
+    // Fetch latest self profile to keep counts and modals in sync (followers/following & posts)
+    try {
+      const state = getState();
+      const selfRes = await getDataAPI(`/user/${state.auth.user._id}`, state.auth.token);
+      if (selfRes?.data?.user) {
+        dispatch({ type: GLOBALTYPES.AUTH, payload: { ...state.auth, user: selfRes.data.user } });
+        dispatch({ type: PROFILE_TYPES.UPDATE_USER, payload: selfRes.data.user });
+      }
+    } catch (_) {}
+
   } catch (err) {
     dispatch({
       type: GLOBALTYPES.ALERT,
@@ -154,26 +163,15 @@ export const follow = ({ users, user, auth, socket }) => async (dispatch) => {
 };
 
 // unfollow user
-export const unfollow = ({ users, user, auth, socket }) => async (dispatch) => {
-  let newUser;
-  if (users.every((item) => item._id !== user._id)) {
-    newUser = {
-      ...user,
-      followers: DeleteData(user.followers, auth.user._id),
-    };
-  } else {
-    users.forEach((item) => {
-      if (item._id === user._id) {
-        newUser = {
-          ...item,
-          followers: DeleteData(item.followers, auth.user._id),
-        };
-      }
-    });
-  }
+export const unfollow = ({ users, user, socket }) => async (dispatch, getState) => {
+  const { auth } = getState();
+  const newUser = {
+    ...user,
+    followers: DeleteData(user.followers, auth.user._id),
+  };
 
+  // Optimistic updates based on the latest state
   dispatch({ type: PROFILE_TYPES.UNFOLLOW, payload: newUser });
-
   dispatch({
     type: GLOBALTYPES.AUTH,
     payload: {
@@ -186,22 +184,38 @@ export const unfollow = ({ users, user, auth, socket }) => async (dispatch) => {
   });
 
   try {
-    const res = await patchDataAPI(
-      `/user/${user._id}/unfollow`,
-      null,
-      auth.token
-    );
+    const res = await patchDataAPI(`/user/${user._id}/unfollow`, null, auth.token);
 
-    socket.emit("unFollow", res.data.newUser);
+    // Final sync from server
+    if (res?.data?.authUser) {
+      const freshAuth = { ...getState().auth, user: res.data.authUser };
+      dispatch({ type: GLOBALTYPES.AUTH, payload: freshAuth });
+    }
+    if (res?.data?.newUser) {
+      dispatch({ type: PROFILE_TYPES.UNFOLLOW, payload: res.data.newUser });
+    }
+
+    socket?.emit && socket.emit("unFollow", res.data.newUser);
 
     const msg = {
       id: auth.user._id,
       text: "stopped following you",
-      recipients: [newUser._id],
+      recipients: [user._id],
       url: `/profile/${auth.user._id}`,
     };
 
-    dispatch(removeNotify({ msg, auth, socket }));
+    dispatch(removeNotify({ msg, auth: getState().auth, socket }));
+
+    // Fetch latest self profile to keep counts and modals in sync
+    try {
+      const state = getState();
+      const selfRes = await getDataAPI(`/user/${state.auth.user._id}`, state.auth.token);
+      if (selfRes?.data?.user) {
+        dispatch({ type: GLOBALTYPES.AUTH, payload: { ...state.auth, user: selfRes.data.user } });
+        dispatch({ type: PROFILE_TYPES.UPDATE_USER, payload: selfRes.data.user });
+      }
+    } catch (_) {}
+
   } catch (err) {
     dispatch({
       type: GLOBALTYPES.ALERT,

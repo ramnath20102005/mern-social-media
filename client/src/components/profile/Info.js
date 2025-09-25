@@ -6,6 +6,7 @@ import Following from './Following';
 import Followers from './Followers';
 import ChangePassword from './ChangePassword';
 import { GLOBALTYPES } from '../../redux/actions/globalTypes';
+import { getProfileUsers } from '../../redux/actions/profileAction';
 
 const Info = ({id, auth, profile, dispatch}) => {
     const [userData, setUserData] = useState([]);
@@ -17,9 +18,27 @@ const Info = ({id, auth, profile, dispatch}) => {
 
     useEffect(() => {
       if (id === auth.user._id) {
+        // Prefer populated user from profile store if available, but
+        // always merge in freshest counts from auth.user to avoid stale lengths
+        const populated = profile.users.find(u => u._id === id);
+        if (populated) {
+          const merged = {
+            ...populated,
+            followers: Array.isArray(auth.user.followers) ? auth.user.followers : populated.followers,
+            following: Array.isArray(auth.user.following) ? auth.user.following : populated.following
+          };
+          setUserData([merged]);
+        } else {
+          // Fallback to auth.user but also trigger fetch to populate followers/following
           setUserData([auth.user]);
-      }else{
+          dispatch(getProfileUsers({ id, auth }));
+        }
+      } else {
         const newData = profile.users.filter(user => user._id === id);
+        if (newData.length === 0) {
+          // Ensure target profile data is loaded
+          dispatch(getProfileUsers({ id, auth }));
+        }
         setUserData(newData);
       }
     }, [id, auth, dispatch, profile.users]);

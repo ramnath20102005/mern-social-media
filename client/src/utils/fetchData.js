@@ -2,9 +2,9 @@ import axios from 'axios';
 
 // Create axios instance with base URL
 const api = axios.create({
-    baseURL: process.env.NODE_ENV === 'production' 
+    baseURL: process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' 
         ? 'https://mysocial-lvsn.onrender.com/api'
-        : '/api',
+        : '/api'),
     withCredentials: true
 });
 

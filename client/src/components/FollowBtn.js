@@ -11,39 +11,45 @@ const FollowBtn = ({user}) => {
     const [load, setLoad] = useState(false);
 
     useEffect(() => {
-      if (auth.user.following.find((item) => item._id === user._id)) {
-        setFollowed(true);
-      }
+      const isFollowing = (auth.user?.following || []).some((item) => {
+        const id = item && typeof item === 'object' ? item._id : item;
+        return String(id) === String(user._id);
+      });
+      setFollowed(isFollowing);
       return () => setFollowed(false);
     }, [auth.user.following, user._id]);
 
     const handleFollow = async () => {
-        if(load) return;
-
+        if (load) return;
         setFollowed(true);
         setLoad(true);
-        await dispatch(follow({ users: profile.users, user, auth, socket }));
-        setLoad(false);
+        try {
+          await dispatch(follow({ users: profile.users, user, auth, socket }));
+        } finally {
+          setLoad(false);
+        }
     };
 
     const handleUnFollow = async () => {
       if (load) return;
-
       setFollowed(false);
       setLoad(true);
-      await dispatch(unfollow({ users: profile.users, user, auth, socket }));
-      setLoad(false);
+      try {
+        await dispatch(unfollow({ users: profile.users, user, auth, socket }));
+      } finally {
+        setLoad(false);
+      }
     };
 
 
     return (
       <>
         {followed ? (
-          <button className="btn-1 hover-in-shadow outer-shadow" onClick={handleUnFollow}>
+          <button className="btn-1 follow-button hover-in-shadow outer-shadow" onClick={handleUnFollow} disabled={load} aria-busy={load}>
             Unfollow
           </button>
         ) : (
-          <button className="btn-1 hover-in-shadow outer-shadow" onClick={handleFollow}>
+          <button className="btn-1 follow-button hover-in-shadow outer-shadow" onClick={handleFollow} disabled={load} aria-busy={load}>
             Follow
           </button>
         )}

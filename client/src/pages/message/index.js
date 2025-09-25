@@ -10,7 +10,7 @@ const Message = () => {
 
         <div className="col-md-8 px-0">
           <div className="d-flex justify-content-center align-items-center flex-column h-100">
-            <i className="fa fa-bolt color-c1" style={{fontSize: '5rem'}} />  
+            <i className="fa fa-bolt color-c1" style={{fontSize: '5rem'}} /> 
             <h4>Messenger</h4>
           </div>
         </div>

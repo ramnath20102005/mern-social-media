@@ -1,8 +1,9 @@
 .message {
     width: 100%;
-    height: calc(100vh - 100px);
+    height: calc(100vh - var(--header-height) - 32px);
     border: none;
-    margin-top: 15px;
+    /* Ensure the message box sits below the fixed header */
+    margin-top: calc(var(--header-height) + 16px);
     border-radius: 12px;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 242, 245, 0.95));
     backdrop-filter: blur(10px); /* Glassmorphism effect */

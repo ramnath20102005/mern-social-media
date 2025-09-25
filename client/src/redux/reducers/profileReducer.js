@@ -52,6 +52,16 @@ const profileReducer = (state = initialState, action) => {
         posts: EditData(state.posts, action.payload._id, action.payload)
       };
 
+    case PROFILE_TYPES.UPDATE_USER: {
+      const exists = state.users.some(u => u._id === action.payload._id);
+      return {
+        ...state,
+        users: exists
+          ? EditData(state.users, action.payload._id, action.payload)
+          : [...state.users, action.payload]
+      };
+    }
+
     default:
       return state;
   }

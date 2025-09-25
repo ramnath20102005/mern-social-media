@@ -1390,10 +1390,17 @@ body {
   background: var(--primary-500);
   color: white;
   border: none;
-  padding: var(--space-2) var(--space-4);
+  /* Enforce consistent sizing across the app */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  min-width: 108px;
+  padding: 0 var(--space-4) !important;
   border-radius: var(--radius-full);
-  font-size: var(--text-sm);
+  font-size: 14px !important;
   font-weight: var(--font-semibold);
+  line-height: 1 !important;
   cursor: pointer;
   transition: all var(--transition-fast);
 }
@@ -1401,6 +1408,74 @@ body {
 .follow-button:hover {
   background: var(--primary-600);
   transform: scale(1.05);
+}
+
+/* When used together with .btn-1, ensure .follow-button rules take precedence */
+.btn-1.follow-button {
+  padding: 0 var(--space-4) !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+  height: 36px;
+  min-width: 108px;
+}
+
+/* Variant when already following */
+.follow-button.following {
+  background: var(--gray-200);
+  color: var(--gray-700);
+}
+
+.follow-button.following:hover {
+  background: var(--gray-300);
+}
+
+/* People to Follow: enforce consistent alignment per row */
+.suggestions-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+}
+
+.suggestion-link {
+  flex: 1;
+  min-width: 0; /* allow text truncation */
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Avatar size used in suggestions */
+.suggestion-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+/* Ensure texts don’t push the row height unexpectedly */
+.suggestion-name {
+  line-height: 1.2;
+}
+
+.suggestion-meta,
+.mutual-connections {
+  line-height: 1.2;
+}
+
+/* Keep button on one line and aligned */
+.suggestion-item .follow-button {
+  white-space: nowrap;
+  align-self: center;
 }
 
 /* Animations */

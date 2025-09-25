@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import Avatar from '../Avatar';
@@ -9,19 +9,34 @@ const RightSidebar = () => {
   const dispatch = useDispatch();
   const [followingUsers, setFollowingUsers] = useState(new Set());
 
+  // Guard: only allow follow calls for real users (Mongo ObjectId)
+  const isValidObjectId = (id) => typeof id === 'string' && /^[a-f\d]{24}$/i.test(id);
+
   const handleFollow = async (user) => {
+    if (!isValidObjectId(user?._id)) {
+      // Placeholder entry; do nothing to avoid 500/Network Error
+      return;
+    }
     if (followingUsers.has(user._id)) {
       setFollowingUsers(prev => {
         const newSet = new Set(prev);
         newSet.delete(user._id);
         return newSet;
       });
-      dispatch(unfollow({ users: [user], user: auth.user, auth }));
+      // IMPORTANT: The `user` to pass is the TARGET being (un)followed, not the auth user
+      dispatch(unfollow({ users: [user], user, auth }));
     } else {
       setFollowingUsers(prev => new Set(prev).add(user._id));
-      dispatch(follow({ users: [user], user: auth.user, auth }));
+      // Follow the TARGET suggested user
+      dispatch(follow({ users: [user], user, auth }));
     }
   };
+
+  // Initialize following button states from auth on mount/refresh
+  useEffect(() => {
+    const ids = new Set((auth.user?.following || []).map(u => (u && typeof u === 'object' ? u._id : u)));
+    setFollowingUsers(ids);
+  }, [auth.user?.following]);
 
   const suggestedUsers = suggestions.users?.slice(0, 5) || [
     { _id: '1', fullname: 'Sarah Wilson', username: 'sarahw', avatar: '/api/placeholder/48/48', followers: ['1', '2'] },
@@ -82,6 +97,7 @@ const RightSidebar = () => {
               <button
                 className={`follow-button ${followingUsers.has(user._id) ? 'following' : ''}`}
                 onClick={() => handleFollow(user)}
+                disabled={!isValidObjectId(user?._id)}
               >
                 {followingUsers.has(user._id) ? (
                   <>

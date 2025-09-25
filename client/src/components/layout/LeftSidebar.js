@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import Avatar from '../Avatar';
 
 const LeftSidebar = () => {
-  const { auth } = useSelector(state => state);
+  const { auth, profile } = useSelector(state => state);
   const { pathname } = useLocation();
 
   const navigationItems = [
@@ -56,18 +56,30 @@ const LeftSidebar = () => {
         {/* User Stats */}
         <div className="user-stats">
           <div className="stats-grid">
-            <div className="stat-item">
-              <span className="stat-number">127</span>
-              <span className="stat-label">Posts</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-number">1.2K</span>
-              <span className="stat-label">Followers</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-number">892</span>
-              <span className="stat-label">Following</span>
-            </div>
+            {(() => {
+              // Prefer fully populated user from the profile store when available
+              const populatedMe = profile?.users?.find(u => String(u._id) === String(auth.user?._id));
+              const followersCount = (populatedMe?.followers?.length) ?? (auth.user?.followers?.length) ?? 0;
+              const followingCount = (populatedMe?.following?.length) ?? (auth.user?.following?.length) ?? 0;
+              const postsEntry = profile?.posts?.find(p => String(p._id) === String(auth.user?._id));
+              const postsCount = postsEntry?.result ?? 0;
+              return (
+                <>
+                  <div className="stat-item">
+                    <span className="stat-number">{postsCount}</span>
+                    <span className="stat-label">Posts</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-number">{followersCount}</span>
+                    <span className="stat-label">Followers</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-number">{followingCount}</span>
+                    <span className="stat-label">Following</span>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       </div>

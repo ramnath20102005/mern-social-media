@@ -119,10 +119,11 @@ export const refreshToken = () => async (dispatch) => {
 
       dispatch({ type: GLOBALTYPES.ALERT, payload: {} });
     } catch (err) {
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: { error: err.response.data.msg },
-      });
+      // Clear persisted auth if refresh fails
+      try { localStorage.removeItem('auth_state'); } catch (_) {}
+      try { localStorage.removeItem('firstLogin'); } catch (_) {}
+      dispatch({ type: GLOBALTYPES.AUTH, payload: {} });
+      dispatch({ type: GLOBALTYPES.ALERT, payload: { error: err.response?.data?.msg || 'Session expired. Please login again.' } });
     }
   }
 };
@@ -178,16 +179,28 @@ export const registerAdmin = (data) => async (dispatch) => {
   }
 };
 
-export const logout = () => async (dispatch) => {
+export const logout = () => async (dispatch, getState) => {
   try {
-    localStorage.removeItem("firstLogin");
+    // Disconnect socket if present
+    const { socket } = getState();
+    if (socket && typeof socket.close === 'function') {
+      try { socket.close(); } catch (_) {}
+    }
+
+    // Clear persisted auth
+    try { localStorage.removeItem('auth_state'); } catch (_) {}
+    try { localStorage.removeItem('firstLogin'); } catch (_) {}
+
+    // Clear redux auth and socket slices immediately
+    dispatch({ type: GLOBALTYPES.AUTH, payload: {} });
+    dispatch({ type: GLOBALTYPES.SOCKET, payload: null });
 
     await postDataAPI("logout");
     window.location.href = "/";
   } catch (err) {
     dispatch({
       type: GLOBALTYPES.ALERT,
-      payload: { error: err.response.data.msg },
+      payload: { error: err.response?.data?.msg || 'Logout failed' },
     });
   }
 };

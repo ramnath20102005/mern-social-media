@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Route } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+
 import io from 'socket.io-client'
 
 import PageRender from "./customRouter/PageRender";
@@ -13,6 +14,7 @@ import Header from "./components/header/Header";
 import StatusModal from "./components/StatusModal";
 import { refreshToken } from "./redux/actions/authAction";
 import { getPosts } from "./redux/actions/postAction";
+import { getProfileUsers } from "./redux/actions/profileAction";
 import { getSuggestions } from "./redux/actions/suggestionsAction";
 import { getNotifies } from "./redux/actions/notifyAction";
 
@@ -23,9 +25,19 @@ import './styles/modern-layout.css';
 function App() {
   const { auth, status, modal } = useSelector((state) => state);
   const dispatch = useDispatch();
+  const [bootstrapped, setBootstrapped] = useState(() => {
+    // If we have persisted auth, we can render immediately while refreshToken runs
+    try { return !!localStorage.getItem('auth_state'); } catch { return false; }
+  });
 
   useEffect(() => {
-    dispatch(refreshToken());
+    (async () => {
+      try {
+        await dispatch(refreshToken());
+      } finally {
+        setBootstrapped(true);
+      }
+    })();
 
     const socket = io(process.env.NODE_ENV === 'production' 
       ? 'https://mysocial-lvsn.onrender.com' 
@@ -42,6 +54,10 @@ function App() {
       dispatch(getPosts(auth.token));
       dispatch(getSuggestions(auth.token));
       dispatch(getNotifies(auth.token));
+      // Ensure own profile data & posts are loaded so counts render after refresh
+      if (auth.user?._id) {
+        dispatch(getProfileUsers({ id: auth.user._id, auth }));
+      }
     }
   }, [dispatch, auth.token]);
 
@@ -67,21 +83,29 @@ function App() {
       <Alert />
       <input type="checkbox" id="theme" />
       <div className={`app-container ${(status || modal) && "mode"}`} data-theme={auth.user?.theme || 'light'}>
-        {auth.token && <Header />}
-        {status && <StatusModal />}
-        {auth.token && <SocketClient />}
-        
-        <Route
-          exact
-          path="/"
-          component={auth.token ? Home : Login}
-        />
-        
-        <Route exact path="/register" component={Register} />
-        <div className="wrap_page">
-          <PrivateRouter exact path="/:page" component={PageRender} />
-          <PrivateRouter exact path="/:page/:id" component={PageRender} />
-        </div>
+        {!bootstrapped ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+            <div className="loading-spinner" />
+          </div>
+        ) : (
+        <>
+          {auth.token && <Header />}
+          {status && <StatusModal />}
+          {auth.token && <SocketClient />}
+          
+          <Route
+            exact
+            path="/"
+            component={auth.token ? Home : Login}
+          />
+          
+          <Route exact path="/register" component={Register} />
+          <div className="wrap_page">
+            <PrivateRouter exact path="/:page" component={PageRender} />
+            <PrivateRouter exact path="/:page/:id" component={PageRender} />
+          </div>
+        </>
+        )}
       </div>
     </Router>
   );

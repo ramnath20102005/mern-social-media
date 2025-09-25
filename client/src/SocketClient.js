@@ -27,6 +27,7 @@ const SocketClient = () => {
 
   //!connection
   useEffect(() => {
+    if (!socket || typeof socket.emit !== 'function') return;
     if (auth.user.role === "user") {
       socket.emit("joinUser", auth.user._id);
     } else if (auth.user.role === "admin") {
@@ -35,6 +36,7 @@ const SocketClient = () => {
   }, [socket, auth.user.role, auth.user._id]);
 
   useEffect(() => {
+    if (!socket || typeof socket.on !== 'function' || typeof socket.off !== 'function') return;
     socket.on("getActiveUsersToClient", (totalActiveUsers) => {
       dispatch({
         type: ADMIN_TYPES.GET_TOTAL_ACTIVE_USERS,
@@ -46,6 +48,7 @@ const SocketClient = () => {
 
   //!like Post
   useEffect(() => {
+    if (!socket || typeof socket.on !== 'function' || typeof socket.off !== 'function') return;
     socket.on("likeToClient", (newPost) => {
       dispatch({ type: POST_TYPES.UPDATE_POST, payload: newPost });
     });
@@ -54,6 +57,7 @@ const SocketClient = () => {
 
   //!Unlike Post
   useEffect(() => {
+    if (!socket || typeof socket.on !== 'function' || typeof socket.off !== 'function') return;
     socket.on("unLikeToClient", (newPost) => {
       dispatch({ type: POST_TYPES.UPDATE_POST, payload: newPost });
     });
@@ -62,6 +66,7 @@ const SocketClient = () => {
 
   //!Comments
   useEffect(() => {
+    if (!socket || typeof socket.on !== 'function' || typeof socket.off !== 'function') return;
     socket.on("createCommentToClient", (newPost) => {
       dispatch({ type: POST_TYPES.UPDATE_POST, payload: newPost });
     });
@@ -69,6 +74,7 @@ const SocketClient = () => {
   }, [socket, dispatch]);
 
   useEffect(() => {
+    if (!socket || typeof socket.on !== 'function' || typeof socket.off !== 'function') return;
     socket.on("deleteCommentToClient", (newPost) => {
       dispatch({ type: POST_TYPES.UPDATE_POST, payload: newPost });
     });
@@ -77,6 +83,7 @@ const SocketClient = () => {
 
   //!Follow
   useEffect(() => {
+    if (!socket || typeof socket.on !== 'function' || typeof socket.off !== 'function') return;
     socket.on("followToClient", (newUser) => {
       dispatch({ type: GLOBALTYPES.AUTH, payload: { ...auth, user: newUser } });
     });
@@ -84,6 +91,7 @@ const SocketClient = () => {
   }, [socket, dispatch, auth]);
 
   useEffect(() => {
+    if (!socket || typeof socket.on !== 'function' || typeof socket.off !== 'function') return;
     socket.on("unFollowToClient", (newUser) => {
       dispatch({
         type: GLOBALTYPES.AUTH,
@@ -95,6 +103,7 @@ const SocketClient = () => {
 
   //!Notifications
   useEffect(() => {
+    if (!socket || typeof socket.on !== 'function' || typeof socket.off !== 'function') return;
     socket.on("createNotifyToClient", (msg) => {
       dispatch({ type: NOTIFY_TYPES.CREATE_NOTIFY, payload: msg });
 
@@ -112,6 +121,7 @@ const SocketClient = () => {
   }, [socket, dispatch, notify.sound]);
 
   useEffect(() => {
+    if (!socket || typeof socket.on !== 'function' || typeof socket.off !== 'function') return;
     socket.on("removeNotifyToClient", (msg) => {
       dispatch({ type: NOTIFY_TYPES.REMOVE_NOTIFY, payload: msg });
     });
@@ -120,6 +130,7 @@ const SocketClient = () => {
 
   //!Messages
   useEffect(() => {
+    if (!socket || typeof socket.on !== 'function' || typeof socket.off !== 'function') return;
     socket.on("addMessageToClient", (msg) => {
       dispatch({ type: MESSAGE_TYPES.ADD_MESSAGE, payload: msg });
 
@@ -129,6 +140,7 @@ const SocketClient = () => {
 
   // typing indicators
   useEffect(() => {
+    if (!socket || typeof socket.on !== 'function' || typeof socket.off !== 'function') return;
     socket.on('typingToClient', ({ from }) => {
       dispatch({ type: MESSAGE_TYPES.TYPING_START, payload: from });
     });
@@ -136,6 +148,7 @@ const SocketClient = () => {
   }, [socket, dispatch]);
 
   useEffect(() => {
+    if (!socket || typeof socket.on !== 'function' || typeof socket.off !== 'function') return;
     socket.on('stopTypingToClient', ({ from }) => {
       dispatch({ type: MESSAGE_TYPES.TYPING_STOP, payload: from });
     });
