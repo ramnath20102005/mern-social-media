@@ -3,15 +3,36 @@ import LeftSide from '../../components/message/LeftSide'
 
 const Message = () => {
     return (
-      <div className="message d-flex">
-        <div className="col-md-4 px-0" style={{borderRight: '1px solid #ddd'}}>
+      <div className="whatsapp-messenger">
+        <div className="messenger-sidebar">
           <LeftSide />
         </div>
 
-        <div className="col-md-8 px-0">
-          <div className="d-flex justify-content-center align-items-center flex-column h-100">
-            <i className="fa fa-bolt color-c1" style={{fontSize: '5rem'}} />  
-            <h4>Messenger</h4>
+        <div className="messenger-main">
+          <div className="messenger-welcome">
+            <div className="welcome-content">
+              <div className="welcome-icon">
+                <i className="fas fa-comments"></i>
+              </div>
+              <h2 className="welcome-title">MESME Chat</h2>
+              <p className="welcome-subtitle">
+                Connect with your friends and share moments instantly on our social platform.
+              </p>
+              <div className="welcome-features">
+                <div className="feature-item">
+                  <i className="fas fa-users"></i>
+                  <span>Connect with friends</span>
+                </div>
+                <div className="feature-item">
+                  <i className="fas fa-heart"></i>
+                  <span>Share your moments</span>
+                </div>
+                <div className="feature-item">
+                  <i className="fas fa-comments"></i>
+                  <span>Real-time messaging</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

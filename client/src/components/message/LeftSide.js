@@ -1,40 +1,24 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useHistory, useParams } from 'react-router-dom';
-import { GLOBALTYPES } from '../../redux/actions/globalTypes';
-import { addUser, getConversations } from "../../redux/actions/messageAction";
-import { getDataAPI } from '../../utils/fetchData';
-import UserCard from "../UserCard";
+import React, { useState, useEffect, useRef } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
+import { getDataAPI } from '../../utils/fetchData'
+import { GLOBALTYPES } from '../../redux/actions/globalTypes'
+import { useParams, useHistory } from 'react-router-dom'
+import { MESS_TYPES, getConversations, addUser } from '../../redux/actions/messageAction'
+import { getUserGroups } from '../../redux/actions/groupAction'
+import MessageSearch from './MessageSearch'
+import CreateGroupModal from '../groups/CreateGroupModal'
+import GroupInvites from '../groups/GroupInvites';
 
 const LeftSide = () => {
-    const { auth, message } = useSelector((state) => state);
+    const { auth, message, theme, online = { users: [] }, groups } = useSelector(state => state);
     const dispatch = useDispatch();
     const history = useHistory();
     const { id } = useParams();
     const pageEnd = useRef();
     const [page, setPage] = useState(0);
-
-    const [search, setSearch] = useState('');
-    const [searchUsers, setSearchUsers] = useState([]);
-
-    const handleSearch = async e => {
-        e.preventDefault();
-        if (!search) return setSearchUsers([]);
-
-    try {
-      const res = await getDataAPI(`search?username=${search}`, auth.token);
-      setSearchUsers(res.data.users);
-    } catch (err) {
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: { error: err.response.data.msg },
-      });
-    }
-    };
-
+    const [activeTab, setActiveTab] = useState('chats'); // 'chats', 'groups', 'invites'
+    const [showCreateGroup, setShowCreateGroup] = useState(false);
     const handleAddUser = (user) => {
-        setSearch('');
-        setSearchUsers([]);
         dispatch(addUser({user, message}));
         return history.push(`/message/${user._id}`);
     };
@@ -45,9 +29,16 @@ const LeftSide = () => {
     }
 
     useEffect(() => {
-      if (message.firstLoad) return;
-      dispatch(getConversations({ auth }));
-    }, [dispatch, auth, message.firstLoad]);
+      console.log('LeftSide useEffect - Loading conversations...');
+      // Always load conversations when component mounts and user is authenticated
+      if(auth.token && !message.firstLoad){
+          dispatch(getConversations({auth}));
+      }
+      // Load groups when component mounts
+      if(auth.token){
+          dispatch(getUserGroups(auth));
+      }
+    },[dispatch, auth.token, message.firstLoad]);
 
      useEffect(() => {
        const observer = new IntersectionObserver(
@@ -70,52 +61,192 @@ const LeftSide = () => {
      }, [message.resultUsers, page, auth, dispatch]);
 
     return (
-      <>
-        <form className="message_header" onSubmit={handleSearch}>
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="search..."
+      <div className="whatsapp-sidebar-container">
+        {/* Sidebar Header */}
+        <div className="whatsapp-sidebar-header">
+          <div className="sidebar-header-content">
+            <h2 className="sidebar-title">
+              {activeTab === 'chats' ? 'Chats' : 
+               activeTab === 'groups' ? 'Groups' : 'Invites'}
+            </h2>
+            <div className="sidebar-header-actions">
+              {activeTab === 'groups' && (
+                <button 
+                  className="sidebar-action-btn create-group-btn"
+                  onClick={() => setShowCreateGroup(true)}
+                  title="Create Group"
+                >
+                  <i className="fas fa-users-plus"></i>
+                </button>
+              )}
+              <button className="sidebar-action-btn">
+                <i className="fas fa-comment-alt"></i>
+              </button>
+              <button className="sidebar-action-btn">
+                <i className="fas fa-ellipsis-v"></i>
+              </button>
+            </div>
+          </div>
+          
+          {/* Navigation Tabs */}
+          <div className="sidebar-tabs">
+            <button 
+              className={`tab-btn ${activeTab === 'chats' ? 'active' : ''}`}
+              onClick={() => setActiveTab('chats')}
+            >
+              <i className="fas fa-comment"></i>
+              <span>Chats</span>
+            </button>
+            <button 
+              className={`tab-btn ${activeTab === 'groups' ? 'active' : ''}`}
+              onClick={() => setActiveTab('groups')}
+            >
+              <i className="fas fa-users"></i>
+              <span>Groups</span>
+              {groups.groups && groups.groups.length > 0 && (
+                <span className="tab-count">{groups.groups.length}</span>
+              )}
+            </button>
+            <button 
+              className={`tab-btn ${activeTab === 'invites' ? 'active' : ''}`}
+              onClick={() => setActiveTab('invites')}
+            >
+              <i className="fas fa-envelope"></i>
+              <span>Invites</span>
+              {groups.invites && groups.invites.length > 0 && (
+                <span className="tab-count">{groups.invites.length}</span>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Advanced Search Bar */}
+        <div className="whatsapp-search-container">
+          <MessageSearch 
+            onUserSelect={handleAddUser}
           />
+        </div>
 
-          <button style={{ display: "none" }} type="submit" id="search">
-            Search
-          </button>
-        </form>
-
-        <div className="message_chat_list">
-          {searchUsers.length !== 0 ? (
-            <>
-              {searchUsers.map((user) => (
-                <div
-                  key={user._id}
-                  className={`message_user ${isActive(user)}`}
-                  onClick={() => handleAddUser(user)}
-                >
-                  <UserCard user={user} />
+        {/* Content Area */}
+        <div className="whatsapp-chat-list">
+          {/* Chats Tab */}
+          {activeTab === 'chats' && (
+            <div className="conversations-list">
+              {message.users.length === 0 ? (
+                <div className="empty-chats">
+                  <div className="empty-chats-icon">
+                    <i className="fas fa-comments"></i>
+                  </div>
+                  <h3>No conversations yet</h3>
+                  <p>Start a conversation by searching for users above</p>
                 </div>
-              ))}
-            </>
-          ) : (
-            <>
-              {message.users.map((user) => (
-                <div
-                  key={user._id}
-                  className={`message_user ${isActive(user)}`}
-                  onClick={() => handleAddUser(user)}
-                >
-                  <UserCard user={user} msg={true}>
-                    <i className="fas fa-circle" />
-                  </UserCard>
-                </div>
-              ))}
-            </>
+              ) : (
+                <>
+                  {message.users.map((user) => (
+                    <div
+                      key={user._id}
+                      className={`whatsapp-chat-item ${isActive(user)}`}
+                      onClick={() => handleAddUser(user)}
+                    >
+                      <div className="chat-item-avatar">
+                        <img src={user.avatar} alt={user.username} className="avatar-image" />
+                        <div className={`online-status ${online.users.includes(user._id) ? 'online' : 'offline'}`}></div>
+                      </div>
+                      <div className="chat-item-content">
+                        <div className="chat-item-header">
+                          <h4 className="chat-user-name">{user.fullname}</h4>
+                          <span className="chat-time">
+                            {user.updatedAt ? new Date(user.updatedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'now'}
+                          </span>
+                        </div>
+                        <div className="chat-preview-container">
+                          <p className="chat-preview">
+                            {user.text || 'Start a conversation...'}
+                          </p>
+                          {user.unreadCount > 0 && (
+                            <span className="unread-count">{user.unreadCount}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+              <button style={{opacity: 0}} ref={pageEnd}>Load more..</button>
+            </div>
           )}
 
-          <button style={{opacity: 0}} ref={pageEnd}>Load more..</button>
+          {/* Groups Tab */}
+          {activeTab === 'groups' && (
+            <div className="groups-list">
+              {!groups.groups || groups.groups.length === 0 ? (
+                <div className="empty-groups">
+                  <div className="empty-groups-icon">
+                    <i className="fas fa-users"></i>
+                  </div>
+                  <h3>No groups yet</h3>
+                  <p>Create a group to start chatting with multiple people</p>
+                  <button 
+                    className="create-group-cta"
+                    onClick={() => setShowCreateGroup(true)}
+                  >
+                    <i className="fas fa-plus"></i>
+                    Create Group
+                  </button>
+                </div>
+              ) : (
+                groups.groups.map((group) => (
+                  <div
+                    key={group._id}
+                    className="whatsapp-chat-item group-item"
+                    onClick={() => history.push(`/group/${group._id}`)}
+                  >
+                    <div className="chat-item-avatar">
+                      <img src={group.avatar} alt={group.name} className="avatar-image" />
+                      <div className="group-indicator">
+                        <i className="fas fa-users"></i>
+                      </div>
+                    </div>
+                    <div className="chat-item-content">
+                      <div className="chat-item-header">
+                        <h4 className="chat-user-name">{group.name}</h4>
+                        <span className="chat-time">
+                          {group.conversation?.lastMessage?.timestamp 
+                            ? new Date(group.conversation.lastMessage.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                            : 'now'
+                          }
+                        </span>
+                      </div>
+                      <div className="chat-preview-container">
+                        <p className="chat-preview">
+                          {group.conversation?.lastMessage?.text || 'No messages yet'}
+                        </p>
+                        <div className="group-meta">
+                          <span className="member-count">{group.memberCount} members</span>
+                          {group.isExpired && <span className="expired-badge">Expired</span>}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
+          {/* Invites Tab */}
+          {activeTab === 'invites' && (
+            <div className="invites-container">
+              <GroupInvites />
+            </div>
+          )}
         </div>
-      </>
+
+        {/* Create Group Modal */}
+        <CreateGroupModal 
+          isOpen={showCreateGroup}
+          onClose={() => setShowCreateGroup(false)}
+        />
+      </div>
     );
 }
 

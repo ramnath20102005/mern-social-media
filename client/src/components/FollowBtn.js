@@ -11,10 +11,12 @@ const FollowBtn = ({user}) => {
     const [load, setLoad] = useState(false);
 
     useEffect(() => {
-      if (auth.user.following.find((item) => item._id === user._id)) {
+      // Check if user._id is in the following array (array of ObjectIds)
+      if (auth.user.following.includes(user._id)) {
         setFollowed(true);
+      } else {
+        setFollowed(false);
       }
-      return () => setFollowed(false);
     }, [auth.user.following, user._id]);
 
     const handleFollow = async () => {
@@ -39,12 +41,39 @@ const FollowBtn = ({user}) => {
     return (
       <>
         {followed ? (
-          <button className="btn-1 hover-in-shadow outer-shadow" onClick={handleUnFollow}>
-            Unfollow
+          <button 
+            className="modern-follow-btn following-btn" 
+            onClick={handleUnFollow}
+            disabled={load}
+          >
+            {load ? (
+              <div className="btn-loading">
+                <div className="loading-spinner-btn"></div>
+              </div>
+            ) : (
+              <>
+                <i className="fas fa-user-check"></i>
+                <span className="btn-text">Following</span>
+                <span className="btn-hover-text">Unfollow</span>
+              </>
+            )}
           </button>
         ) : (
-          <button className="btn-1 hover-in-shadow outer-shadow" onClick={handleFollow}>
-            Follow
+          <button 
+            className="modern-follow-btn follow-btn" 
+            onClick={handleFollow}
+            disabled={load}
+          >
+            {load ? (
+              <div className="btn-loading">
+                <div className="loading-spinner-btn"></div>
+              </div>
+            ) : (
+              <>
+                <i className="fas fa-user-plus"></i>
+                <span className="btn-text">Follow</span>
+              </>
+            )}
           </button>
         )}
       </>

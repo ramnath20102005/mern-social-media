@@ -28,8 +28,10 @@ const SocketClient = () => {
   //!connection
   useEffect(() => {
     if (auth.user.role === "user") {
+      console.log('🔌 User joining socket:', auth.user.username, auth.user._id);
       socket.emit("joinUser", auth.user._id);
     } else if (auth.user.role === "admin") {
+      console.log('🔌 Admin joining socket:', auth.user.username, auth.user._id);
       socket.emit("joinAdmin", auth.user._id);
     }
   }, [socket, auth.user.role, auth.user._id]);
@@ -121,8 +123,8 @@ const SocketClient = () => {
   //!Messages
   useEffect(() => {
     socket.on("addMessageToClient", (msg) => {
+      console.log('💬 Received message via socket:', msg);
       dispatch({ type: MESSAGE_TYPES.ADD_MESSAGE, payload: msg });
-
     });
     return () => socket.off("addMessageToClient");
   }, [dispatch,socket]);
@@ -140,6 +142,15 @@ const SocketClient = () => {
       dispatch({ type: MESSAGE_TYPES.TYPING_STOP, payload: from });
     });
     return () => socket.off('stopTypingToClient');
+  }, [socket, dispatch]);
+
+  // Online Users Updates
+  useEffect(() => {
+    socket.on('onlineUsersUpdate', (onlineUserIds) => {
+      console.log('🟢 Online users updated:', onlineUserIds);
+      dispatch({ type: GLOBALTYPES.ONLINE_USERS, payload: onlineUserIds });
+    });
+    return () => socket.off('onlineUsersUpdate');
   }, [socket, dispatch]);
 
   return (

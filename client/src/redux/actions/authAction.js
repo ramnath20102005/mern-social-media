@@ -22,11 +22,12 @@ export const login = (data) => async (dispatch) => {
     });
 
     localStorage.setItem("firstLogin", true);
-    dispatch({ type: GLOBALTYPES.ALERT, payload: { success: res.data.msg } });
+    // Don't show success message for login - just clear any existing alerts
+    dispatch({ type: GLOBALTYPES.ALERT, payload: {} });
   } catch (err) {
     dispatch({
       type: GLOBALTYPES.ALERT,
-      payload: { error: err.response.data.msg },
+      payload: { error: err.response?.data?.msg || 'An error occurred' },
     });
   }
 };
@@ -71,7 +72,7 @@ export const changePassword = ({oldPassword, newPassword, cnfNewPassword, auth})
   } catch (err) {
     dispatch({
       type: GLOBALTYPES.ALERT,
-      payload: { error: err.response.data.msg },
+      payload: { error: err.response?.data?.msg || 'An error occurred' },
     });
   }
 };
@@ -96,7 +97,7 @@ export const adminLogin = (data) => async (dispatch) => {
   } catch (err) {
     dispatch({
       type: GLOBALTYPES.ALERT,
-      payload: { error: err.response.data.msg },
+      payload: { error: err.response?.data?.msg || 'An error occurred' },
     });
   }
 };
@@ -104,7 +105,6 @@ export const adminLogin = (data) => async (dispatch) => {
 export const refreshToken = () => async (dispatch) => {
   const firstLogin = localStorage.getItem("firstLogin");
   if (firstLogin) {
-    dispatch({ type: GLOBALTYPES.ALERT, payload: { loading: true } });
     try {
       const res = await postDataAPI("refresh_token");
       dispatch({
@@ -119,10 +119,35 @@ export const refreshToken = () => async (dispatch) => {
 
       dispatch({ type: GLOBALTYPES.ALERT, payload: {} });
     } catch (err) {
+      // Silently handle refresh token failure - don't show persistent error
+      console.log('Refresh token failed:', err.response?.data?.msg || 'Authentication failed');
+      
+      // Clear the firstLogin flag if refresh fails
+      localStorage.removeItem("firstLogin");
+      
+      // Clear any existing auth state
       dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: { error: err.response.data.msg },
+        type: GLOBALTYPES.AUTH,
+        payload: { token: null, user: null },
       });
+      
+      // Clear user type as well
+      dispatch({
+        type: GLOBALTYPES.USER_TYPE,
+        payload: null,
+      });
+      
+      // Don't show error alerts for authentication failures
+      const errorMsg = err.response?.data?.msg || 'Authentication failed';
+      if (errorMsg && 
+          !errorMsg.includes('login again') && 
+          !errorMsg.includes('Authentication failed') &&
+          !errorMsg.includes('Please login')) {
+        dispatch({
+          type: GLOBALTYPES.ALERT,
+          payload: { error: errorMsg },
+        });
+      }
     }
   }
 };
@@ -153,7 +178,7 @@ export const register = (data) => async (dispatch) => {
   } catch (err) {
     dispatch({
       type: GLOBALTYPES.ALERT,
-      payload: { error: err.response.data.msg },
+      payload: { error: err.response?.data?.msg || 'An error occurred' },
     });
   }
 };
@@ -173,7 +198,7 @@ export const registerAdmin = (data) => async (dispatch) => {
   } catch (err) {
     dispatch({
       type: GLOBALTYPES.ALERT,
-      payload: { error: err.response.data.msg },
+      payload: { error: err.response?.data?.msg || 'An error occurred' },
     });
   }
 };
@@ -187,7 +212,7 @@ export const logout = () => async (dispatch) => {
   } catch (err) {
     dispatch({
       type: GLOBALTYPES.ALERT,
-      payload: { error: err.response.data.msg },
+      payload: { error: err.response?.data?.msg || 'An error occurred' },
     });
   }
 };

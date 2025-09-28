@@ -16,6 +16,8 @@ import socket from "./socketReducer";
 import notify from "./notifyReducer";
 import message from "./messageReducer";
 import settings from "./settingsReducer";
+import online from "./onlineReducer";
+import groups from "./groupReducer";
 
 export default combineReducers({
   auth,
@@ -34,4 +36,6 @@ export default combineReducers({
   notify,
   message,
   settings,
+  online,
+  groups,
 });

@@ -1,56 +1,90 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import Avatar from '../Avatar';
 import { follow, unfollow } from '../../redux/actions/profileAction';
+import { getDataAPI } from '../../utils/fetchData';
 
 const RightSidebar = () => {
-  const { auth, suggestions } = useSelector(state => state);
+  const { auth, suggestions, socket, online = { users: [] } } = useSelector(state => state);
   const dispatch = useDispatch();
   const [followingUsers, setFollowingUsers] = useState(new Set());
+  const [topFollowers, setTopFollowers] = useState([]);
 
-  const handleFollow = async (user) => {
+  // Initialize following state based on auth.user.following
+  useEffect(() => {
+    if (auth.user && auth.user.following) {
+      setFollowingUsers(new Set(auth.user.following));
+    }
+  }, [auth.user.following]);
+
+  // Random last seen generator
+  const getRandomLastSeen = () => {
+    const options = ['2m ago', '5m ago', '1h ago', '3h ago', 'yesterday'];
+    return options[Math.floor(Math.random() * options.length)];
+  };
+
+  // Fetch top 5 followers with their real online status
+  useEffect(() => {
+    const fetchTopFollowers = async () => {
+      if (auth.user && auth.user.followers && auth.token) {
+        try {
+          // Get top 5 followers
+          const followerIds = auth.user.followers.slice(0, 5);
+          if (followerIds.length > 0) {
+            const promises = followerIds.map(id => 
+              getDataAPI(`user/${typeof id === 'object' ? id._id : id}`, auth.token).catch(() => null)
+            );
+            const results = await Promise.all(promises);
+            const validFollowers = results
+              .filter(result => result && result.data && result.data.user)
+              .map(result => ({
+                ...result.data.user,
+                isOnline: online.users.includes(result.data.user._id), // Real online status
+                lastSeen: getRandomLastSeen()
+              }));
+            setTopFollowers(validFollowers);
+          }
+        } catch (error) {
+          console.error('Error fetching top followers:', error);
+        }
+      }
+    };
+
+    fetchTopFollowers();
+  }, [auth.user.followers, auth.token, online.users]);
+
+  const handleFollow = (user) => {
     if (followingUsers.has(user._id)) {
       setFollowingUsers(prev => {
         const newSet = new Set(prev);
         newSet.delete(user._id);
         return newSet;
       });
-      dispatch(unfollow({ users: [user], user: auth.user, auth }));
+      dispatch(unfollow({ users: suggestions.users, user, auth, socket }));
     } else {
       setFollowingUsers(prev => new Set(prev).add(user._id));
-      dispatch(follow({ users: [user], user: auth.user, auth }));
+      dispatch(follow({ users: suggestions.users, user, auth, socket }));
     }
   };
 
   const suggestedUsers = suggestions.users?.slice(0, 5) || [
-    { _id: '1', fullname: 'Sarah Wilson', username: 'sarahw', avatar: '/api/placeholder/48/48', followers: ['1', '2'] },
-    { _id: '2', fullname: 'David Chen', username: 'davidc', avatar: '/api/placeholder/48/48', followers: ['1'] },
-    { _id: '3', fullname: 'Emma Davis', username: 'emmad', avatar: '/api/placeholder/48/48', followers: ['2', '3'] },
-    { _id: '4', fullname: 'Alex Johnson', username: 'alexj', avatar: '/api/placeholder/48/48', followers: ['1', '2', '3'] },
-    { _id: '5', fullname: 'Lisa Brown', username: 'lisab', avatar: '/api/placeholder/48/48', followers: ['2'] },
+    { _id: '1', fullname: 'Sarah Wilson', username: 'sarahw', avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face', followers: ['1', '2'] },
+    { _id: '3', fullname: 'Emma Davis', username: 'emmad', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face', followers: ['2', '3'] },
+    { _id: '4', fullname: 'Alex Johnson', username: 'alexj', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face', followers: ['1', '2', '3'] },
+    { _id: '5', fullname: 'Lisa Brown', username: 'lisab', avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face', followers: ['2'] },
   ];
 
-  const trendingHashtags = [
-    { tag: '#TechTrends2024', posts: '45.2K', growth: '+12%' },
-    { tag: '#WebDev', posts: '32.1K', growth: '+8%' },
-    { tag: '#AI', posts: '28.7K', growth: '+15%' },
-    { tag: '#React', posts: '19.3K', growth: '+5%' },
-    { tag: '#JavaScript', posts: '41.8K', growth: '+7%' },
-  ];
 
-  const activeFriends = [
-    { name: 'John Doe', avatar: '/api/placeholder/32/32', status: 'online', lastSeen: 'now' },
-    { name: 'Jane Smith', avatar: '/api/placeholder/32/32', status: 'online', lastSeen: '2m ago' },
-    { name: 'Mike Johnson', avatar: '/api/placeholder/32/32', status: 'away', lastSeen: '5m ago' },
-    { name: 'Sarah Wilson', avatar: '/api/placeholder/32/32', status: 'online', lastSeen: 'now' },
-    { name: 'Tom Brown', avatar: '/api/placeholder/32/32', status: 'offline', lastSeen: '1h ago' },
+  // Show message if no followers
+  const displayFollowers = topFollowers.length > 0 ? topFollowers : [
+    { fullname: 'No followers yet', username: 'empty', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face', isOnline: false, lastSeen: 'not active' }
   ];
 
   const recommendedGroups = [
-    { name: 'React Developers', members: '12.5K', category: 'Technology', image: '/api/placeholder/40/40' },
-    { name: 'UI/UX Designers', members: '8.2K', category: 'Design', image: '/api/placeholder/40/40' },
-    { name: 'Startup Founders', members: '15.7K', category: 'Business', image: '/api/placeholder/40/40' },
+    { name: 'React Developers', members: '12.5K', category: 'Technology', image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=80&h=80&fit=crop' },
+    { name: 'UI/UX Designers', members: '8.2K', category: 'Design', image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=80&h=80&fit=crop' },
+    { name: 'Startup Founders', members: '15.7K', category: 'Business', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop' },
   ];
 
   return (
@@ -100,48 +134,23 @@ const RightSidebar = () => {
         </div>
       </div>
 
-      {/* Trending Hashtags */}
-      <div className="sidebar-card">
-        <div className="section-header">
-          <h3 className="section-title">Trending Topics</h3>
-          <button className="section-action">
-            <i className="fas fa-hashtag"></i>
-          </button>
-        </div>
-        <div className="trending-hashtags">
-          {trendingHashtags.map((item, index) => (
-            <div key={index} className="hashtag-item">
-              <div className="hashtag-content">
-                <span className="hashtag-tag">{item.tag}</span>
-                <span className="hashtag-posts">{item.posts} posts</span>
-              </div>
-              <div className="hashtag-growth">
-                <span className="growth-indicator positive">
-                  <i className="fas fa-arrow-up"></i>
-                  {item.growth}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* Active Friends */}
       <div className="sidebar-card">
         <div className="section-header">
           <h3 className="section-title">Active Now</h3>
-          <span className="active-count">{activeFriends.filter(f => f.status === 'online').length} online</span>
+          <span className="active-count">{topFollowers.filter(f => f.isOnline).length} online</span>
         </div>
         <div className="active-friends">
-          {activeFriends.map((friend, index) => (
+          {displayFollowers.map((friend, index) => (
             <div key={index} className="friend-item">
               <div className="friend-avatar-wrapper">
                 <Avatar src={friend.avatar} size="small-avatar" />
-                <div className={`status-indicator ${friend.status}`}></div>
+                <div className={`status-indicator ${friend.isOnline ? 'online' : 'offline'}`}></div>
               </div>
               <div className="friend-info">
-                <span className="friend-name">{friend.name}</span>
-                <span className="friend-status">{friend.lastSeen}</span>
+                <span className="friend-name">{friend.fullname}</span>
+                <span className="friend-status">{friend.isOnline ? 'Active now' : friend.lastSeen}</span>
               </div>
               <button className="message-btn">
                 <i className="fas fa-comment"></i>

@@ -1,4 +1,5 @@
 import { MESSAGE_TYPES } from "../actions/messageAction";
+import { GLOBALTYPES } from "../actions/globalTypes";
 
 const initialState = {
     users: [],
@@ -12,12 +13,18 @@ const initialState = {
 const messageReducer = (state = initialState, action) => {
   switch (action.type) {
     case MESSAGE_TYPES.ADD_USER:
+      // Check if user already exists to prevent duplicates
+      const userExists = state.users.some(user => user._id === action.payload._id);
+      if (userExists) {
+        return state;
+      }
       return {
         ...state,
-        users: [...state.data, action.payload],
+        users: [action.payload, ...state.users],
       };
 
     case MESSAGE_TYPES.ADD_MESSAGE:
+      console.log('ADD_MESSAGE reducer called with:', action.payload);
       return {
         ...state,
         data: [...state.data, action.payload],
@@ -42,10 +49,11 @@ const messageReducer = (state = initialState, action) => {
       };
 
     case MESSAGE_TYPES.GET_MESSAGES:
+      console.log('GET_MESSAGES reducer called with:', action.payload);
       return {
         ...state,
-        data: action.payload.messages.reverse(),
-        resultData: action.payload.result,
+        data: action.payload.messages ? action.payload.messages.reverse() : [],
+        resultData: action.payload.result || 0,
       };
 
     case MESSAGE_TYPES.TYPING_START:
@@ -61,6 +69,14 @@ const messageReducer = (state = initialState, action) => {
         ...state,
         typingUsers: state.typingUsers.filter(id => id !== action.payload)
       };
+
+    // Reset message state when user logs out
+    case GLOBALTYPES.AUTH:
+      // If user is logging out (token becomes null), reset message state
+      if (!action.payload.token) {
+        return initialState;
+      }
+      return state;
 
     default:
       return state;

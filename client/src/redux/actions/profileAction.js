@@ -20,8 +20,8 @@ export const getProfileUsers = ({ id, auth }) => async (dispatch) => {
   try {
     dispatch({ type: PROFILE_TYPES.LOADING, payload: true });
 
-    const users = await getDataAPI(`/user/${id}`, auth.token);
-    const posts = await getDataAPI(`/user_posts/${id}`, auth.token);
+    const users = await getDataAPI(`user/${id}`, auth.token);
+    const posts = await getDataAPI(`user_posts/${id}`, auth.token);
 
     dispatch({ type: PROFILE_TYPES.GET_USER, payload: users.data });
     dispatch({
@@ -120,17 +120,18 @@ export const follow = ({ users, user, auth, socket }) => async (dispatch) => {
 
   dispatch({ type: PROFILE_TYPES.FOLLOW, payload: newUser });
 
+  // Optimistic update
   dispatch({
     type: GLOBALTYPES.AUTH,
     payload: {
       ...auth,
-      user: { ...auth.user, following: [...auth.user.following, newUser] },
+      user: { ...auth.user, following: [...auth.user.following, user._id] },
     },
   });
 
   try {
     const res = await patchDataAPI(
-      `/user/${user._id}/follow`,
+      `user/${user._id}/follow`,
       null,
       auth.token
     );
@@ -146,6 +147,18 @@ export const follow = ({ users, user, auth, socket }) => async (dispatch) => {
 
     dispatch(createNotify({ msg, auth, socket }));
   } catch (err) {
+    // Revert the optimistic update on error
+    dispatch({
+      type: GLOBALTYPES.AUTH,
+      payload: {
+        ...auth,
+        user: { 
+          ...auth.user, 
+          following: auth.user.following.filter(id => id !== user._id)
+        },
+      },
+    });
+    
     dispatch({
       type: GLOBALTYPES.ALERT,
       payload: { error: err.response?.data?.msg || err.message },
@@ -180,14 +193,14 @@ export const unfollow = ({ users, user, auth, socket }) => async (dispatch) => {
       ...auth,
       user: {
         ...auth.user,
-        following: DeleteData(auth.user.following, newUser._id),
+        following: auth.user.following.filter(id => id !== user._id),
       },
     },
   });
 
   try {
     const res = await patchDataAPI(
-      `/user/${user._id}/unfollow`,
+      `user/${user._id}/unfollow`,
       null,
       auth.token
     );

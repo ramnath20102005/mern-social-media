@@ -64,7 +64,7 @@ export const createPost = ({content, images, auth, socket}) => async dispatch =>
         dispatch({
             type: GLOBALTYPES.ALERT,
             payload: {
-                error: err.response.data.msg
+                error: err.response?.data?.msg || 'An error occurred'
             }
         })
     }
@@ -82,7 +82,7 @@ export const getPosts = (token) => async dispatch => {
         dispatch({
           type: GLOBALTYPES.ALERT,
           payload: {
-            error: err.response.data.msg,
+            error: err.response?.data?.msg || 'An error occurred',
           },
         });
     }
@@ -113,7 +113,7 @@ export const updatePost = ({ content, images, auth, status }) => async (dispatch
     dispatch({
       type: GLOBALTYPES.ALERT,
       payload: {
-        error: err.response.data.msg,
+        error: err.response?.data?.msg || 'An error occurred',
       },
     });
   }
@@ -144,7 +144,7 @@ export const likePost = ({ post, auth, socket }) => async (dispatch) => {
     dispatch({
       type: GLOBALTYPES.ALERT,
       payload: {
-        error: err.response.data.msg,
+        error: err.response?.data?.msg || 'An error occurred',
       },
     });
   }
@@ -174,7 +174,7 @@ export const unLikePost = ({ post, auth, socket }) => async (dispatch) => {
     dispatch({
       type: GLOBALTYPES.ALERT,
       payload: {
-        error: err.response.data.msg,
+        error: err.response?.data?.msg || 'An error occurred',
       },
     });
   }
@@ -192,7 +192,7 @@ export const getPost = ({ detailPost, id, auth }) => async (dispatch) => {
       dispatch({
         type: GLOBALTYPES.ALERT,
         payload: {
-          error: err.response.data.msg,
+          error: err.response?.data?.msg || 'An error occurred',
         },
       });
     }
@@ -219,7 +219,7 @@ export const deletePost = ({ post, auth, socket }) => async (dispatch) => {
     dispatch({
       type: GLOBALTYPES.ALERT,
       payload: {
-        error: err.response.data.msg,
+        error: err.response?.data?.msg || 'An error occurred',
       },
     });
   }
@@ -242,17 +242,14 @@ export const reportPost = ({ post, auth }) => async (dispatch) => {
   dispatch({ type: POST_TYPES.REPORT_POST, payload: newPost });
   
 
-try {
-  const res = await patchDataAPI(`post/${post._id}/report`, null, auth.token);
-  dispatch({ type: GLOBALTYPES.ALERT, payload: { success: res.data.msg } });
-} catch (err) {
-  dispatch({
-    type: GLOBALTYPES.ALERT,
-    payload: {
-      error: err.response.data.msg,
-    },
-  });
-}
+  try {
+    await patchDataAPI(`reportPost/${post._id}`, null, auth.token);
+  } catch (err) {
+    dispatch({
+      type: GLOBALTYPES.ALERT,
+      payload: { error: err.response?.data?.msg || 'An error occurred' },
+    });
+  }
 };
 
 export const savePost = ({ post, auth }) => async (dispatch) => {
@@ -267,7 +264,7 @@ export const savePost = ({ post, auth }) => async (dispatch) => {
     dispatch({
       type: GLOBALTYPES.ALERT,
       payload: {
-        error: err.response.data.msg,
+        error: err.response?.data?.msg || 'An error occurred',
       },
     });
   }
@@ -284,7 +281,7 @@ export const unSavePost = ({ post, auth }) => async (dispatch) => {
     dispatch({
       type: GLOBALTYPES.ALERT,
       payload: {
-        error: err.response.data.msg,
+        error: err.response?.data?.msg || 'An error occurred',
       },
     });
   }

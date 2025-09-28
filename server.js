@@ -69,6 +69,7 @@ app.use('/api', require('./routes/messageRouter'));
 app.use('/api', require('./routes/seedRouter'));
 app.use('/api', require('./routes/storyRouter'));
 app.use('/api/settings', require('./routes/settingsRouter'));
+app.use('/api/groups', require('./routes/groupRouter'));
 //#endregion
 
 // Health check

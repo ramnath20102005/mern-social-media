@@ -4,8 +4,8 @@ export const GLOBALTYPES = {
   THEME: "THEME",
   STATUS: "STATUS",
   MODAL: "MODAL",
-  USER_TYPE: "USER_TYPE",
   SOCKET: "SOCKET",
+  ONLINE_USERS: "ONLINE_USERS",
 };
 
 export const EditData = (data, id, post) => {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect} from 'react';
+import { Link } from 'react-router-dom';
 import Avatar from '../Avatar';
 import EditProfile from './EditProfile';
 import FollowBtn from '../FollowBtn';
@@ -33,67 +34,135 @@ const Info = ({id, auth, profile, dispatch}) => {
     }, [showFollowers, showFollowing, onEdit, dispatch]);
 
     return (
-      <div className="info">
+      <div className="modern-profile-info">
         {userData.map((user) => (
-          <div key={user._id} className="info_container">
-            <div
-              className="outer-shadow d-flex justify-content-center align-items-center"
-              style={{ borderRadius: "50%", height: "170px", width: "170px" }}
-            >
-              <Avatar src={user.avatar} size="supper-avatar" />
-            </div>
-
-            <div className="info_content">
-              <div className="info_content_title">
-                <h2>{user.username}</h2>
-                {user._id === auth.user._id ? (
-                  <button
-                    className="btn-1 outer-shadow hover-in-shadow"
-                    onClick={() => setOnEdit(true)}
-                  >
-                    Edit Profile
-                  </button>
-                ) : (
-                  <FollowBtn user={user} />
-                )}
-                {user._id === auth.user._id ? (
-                  <button
-                    className="btn-1 outer-shadow hover-in-shadow"
-                    onClick={() => setChangePassword(true)}
-                  >
-                    change password
-                  </button>
-                ) : (
-                  <FollowBtn user={user} />
-                )}
+          <div key={user._id} className="profile-info-container">
+            {/* Profile Cover Background */}
+            <div className="profile-cover-bg"></div>
+            
+            {/* Main Profile Content */}
+            <div className="profile-main-content">
+              {/* Avatar Section */}
+              <div className="modern-avatar-section">
+                <div className="avatar-container-modern">
+                  <div className="avatar-ring-gradient">
+                    <Avatar src={user.avatar} size="profile-avatar" />
+                  </div>
+                  <div className="avatar-status-dot"></div>
+                </div>
               </div>
 
-              <div className="follow_btn">
-                <span className="mr-4" onClick={() => setShowFollowers(true)}>
-                  {user.followers.length} Followers
-                </span>
-                <span className="ml-4" onClick={() => setShowFollowing(true)}>
-                  {user.following.length} Following
-                </span>
-              </div>
+              {/* Profile Details */}
+              <div className="profile-details-section">
+                {/* Header Row */}
+                <div className="profile-header-modern">
+                  <div className="profile-name-section">
+                    <h1 className="modern-username">{user.username}</h1>
+                    <h2 className="modern-fullname">{user.fullname}</h2>
+                  </div>
+                  
+                  <div className="profile-actions-modern">
+                    {user._id === auth.user._id ? (
+                      <div className="owner-actions">
+                        <button
+                          className="modern-btn edit-profile-btn"
+                          onClick={() => setOnEdit(true)}
+                        >
+                          <i className="fas fa-edit"></i>
+                          <span>Edit Profile</span>
+                        </button>
+                        <button
+                          className="modern-btn settings-btn"
+                          onClick={() => setChangePassword(true)}
+                        >
+                          <i className="fas fa-cog"></i>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="visitor-actions">
+                        <FollowBtn user={user} />
+                        <Link to={`/message/${user._id}`} className="modern-btn message-btn">
+                          <i className="fas fa-paper-plane"></i>
+                          <span>Message</span>
+                        </Link>
+                        <button className="modern-btn more-btn">
+                          <i className="fas fa-ellipsis-h"></i>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
 
-              <h6>
-                {user.fullname}{" "}
-                <span className="color-violet">{user.mobile}</span>
-              </h6>
-              <p className="m-0">{user.address}</p>
-              <h6>{user.email}</h6>
-              <a
-                style={{ textDecoration: "none" }}
-                href={user.website}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {user.website}
-              </a>
-              <p>{user.story}</p>
+                {/* Stats Section */}
+                <div className="modern-stats-section">
+                  <div className="stats-container">
+                    <div className="stat-card">
+                      <div className="stat-number">{user.posts?.length || 0}</div>
+                      <div className="stat-label">Posts</div>
+                    </div>
+                    <div 
+                      className="stat-card clickable" 
+                      onClick={() => setShowFollowers(true)}
+                    >
+                      <div className="stat-number">{user.followers.length}</div>
+                      <div className="stat-label">Followers</div>
+                    </div>
+                    <div 
+                      className="stat-card clickable" 
+                      onClick={() => setShowFollowing(true)}
+                    >
+                      <div className="stat-number">{user.following.length}</div>
+                      <div className="stat-label">Following</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bio Section */}
+                <div className="modern-bio-section">
+                  {user.story && (
+                    <div className="bio-text">
+                      <p>{user.story}</p>
+                    </div>
+                  )}
+                  
+                  <div className="profile-details-grid">
+                    {user.website && (
+                      <div className="detail-item">
+                        <i className="fas fa-link"></i>
+                        <a 
+                          href={user.website} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="detail-link"
+                        >
+                          {user.website}
+                        </a>
+                      </div>
+                    )}
+                    {user.address && (
+                      <div className="detail-item">
+                        <i className="fas fa-map-marker-alt"></i>
+                        <span>{user.address}</span>
+                      </div>
+                    )}
+                    {user.email && (
+                      <div className="detail-item">
+                        <i className="fas fa-envelope"></i>
+                        <span>{user.email}</span>
+                      </div>
+                    )}
+                    {user.mobile && (
+                      <div className="detail-item">
+                        <i className="fas fa-phone"></i>
+                        <span>{user.mobile}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
 
+            {/* Modals */}
             {onEdit && <EditProfile setOnEdit={setOnEdit} />}
             {changePassword && <ChangePassword setChangePassword={setChangePassword} />}
 

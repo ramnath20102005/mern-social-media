@@ -20,14 +20,42 @@ const RightSide = () => {
     const { id } = useParams();
     const [media, setMedia] = useState([]);
     const [loadMedia, setLoadMedia] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [showMessageSearch, setShowMessageSearch] = useState(false);
+    const [messageSearchQuery, setMessageSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
 
     const refDisplay = useRef();
     const pageEnd = useRef();
 
     useEffect(() => {
+      if (id) {
+        console.log('Conversation changed to:', id);
+        // Clear previous messages first
+        dispatch({ type: MESSAGE_TYPES.GET_MESSAGES, payload: { messages: [], result: 0 } });
+        // Then fetch messages for this conversation
+        dispatch(getMessages({ auth, id, page: 1 }));
+      }
+    }, [id, auth, dispatch]);
+
+    useEffect(() => {
+      console.log('Filtering messages for conversation:', id);
+      console.log('All messages in state:', message.data);
+      console.log('Current user ID:', auth.user._id);
+      
       const newData = message.data.filter(
-        (item) => item.sender === auth.user._id || item.sender === id
+        (item) => {
+          const isMyMessage = item.sender._id === auth.user._id && item.recipient._id === id;
+          const isTheirMessage = item.sender._id === id && item.recipient._id === auth.user._id;
+          const isMyMessageAlt = item.sender === auth.user._id && item.recipient === id;
+          const isTheirMessageAlt = item.sender === id && item.recipient === auth.user._id;
+          
+          return isMyMessage || isTheirMessage || isMyMessageAlt || isTheirMessageAlt;
+        }
       );
+      
+      console.log('Filtered messages:', newData);
       setData(newData);
     }, [message.data, auth.user._id, id]);
 
@@ -79,24 +107,100 @@ const RightSide = () => {
       }, 1200);
     };
 
+    const handleEmojiClick = (emoji) => {
+      setText(prev => prev + emoji);
+      setShowEmojiPicker(false);
+    };
+
+    const toggleEmojiPicker = () => {
+      setShowEmojiPicker(!showEmojiPicker);
+    };
+
+    const handleMessageSearch = (query) => {
+      setMessageSearchQuery(query);
+      if (!query.trim()) {
+        setSearchResults([]);
+        setCurrentSearchIndex(0);
+        return;
+      }
+
+      const results = data.filter((msg, index) => 
+        msg.text && msg.text.toLowerCase().includes(query.toLowerCase())
+      ).map((msg, resultIndex) => {
+        const originalIndex = data.findIndex(m => m._id === msg._id || 
+          (m.text === msg.text && m.createdAt === msg.createdAt));
+        return { ...msg, originalIndex, resultIndex };
+      });
+
+      setSearchResults(results);
+      setCurrentSearchIndex(0);
+      
+      if (results.length > 0) {
+        scrollToMessage(results[0].originalIndex);
+      }
+    };
+
+    const scrollToMessage = (messageIndex) => {
+      const messageElements = document.querySelectorAll('.message-wrapper');
+      if (messageElements[messageIndex]) {
+        messageElements[messageIndex].scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+        // Highlight the message temporarily
+        messageElements[messageIndex].classList.add('search-highlight');
+        setTimeout(() => {
+          messageElements[messageIndex].classList.remove('search-highlight');
+        }, 2000);
+      }
+    };
+
+    const navigateSearchResults = (direction) => {
+      if (searchResults.length === 0) return;
+      
+      let newIndex;
+      if (direction === 'next') {
+        newIndex = currentSearchIndex < searchResults.length - 1 ? currentSearchIndex + 1 : 0;
+      } else {
+        newIndex = currentSearchIndex > 0 ? currentSearchIndex - 1 : searchResults.length - 1;
+      }
+      
+      setCurrentSearchIndex(newIndex);
+      scrollToMessage(searchResults[newIndex].originalIndex);
+    };
+
+    const toggleMessageSearch = () => {
+      setShowMessageSearch(!showMessageSearch);
+      if (!showMessageSearch) {
+        setMessageSearchQuery('');
+        setSearchResults([]);
+        setCurrentSearchIndex(0);
+      }
+    };
+
     const handleSubmit = async e => {
       e.preventDefault();
       if(!text.trim() && media.length === 0) return;
+      
+      const messageText = text;
+      const messageMedia = [...media];
+      
       setText('');
       setMedia([]);
-
       setLoadMedia(true);
 
       let newArr = [];
-      if(media.length > 0) newArr = await imageUpload(media);
+      if(messageMedia.length > 0) newArr = await imageUpload(messageMedia);
 
       const msg = {
         sender: auth.user._id,
         recipient: id,
-        text,
+        text: messageText,
         media: newArr,
         createdAt: new Date().toISOString()
       }
+      
+      console.log('Sending message:', msg);
       setLoadMedia(false);
       await dispatch(addMessage({msg, auth, socket}));
       if (refDisplay.current) {
@@ -156,92 +260,247 @@ const RightSide = () => {
     }, [text])
 
     return (
-      <>
-        <div className="message_header">
-          {user.length !== 0 && (
-            <UserCard user={user}>
-              <i className="fas fa-trash text-danger" />
-            </UserCard>
+      <div className="whatsapp-chat-container">
+        {/* Chat Header */}
+        <div className="whatsapp-chat-header">
+          {user.length !== 0 ? (
+            <div className="chat-header-content">
+              <div className="chat-user-info">
+                <div className="chat-avatar-container">
+                  <img 
+                    src={user.avatar} 
+                    alt={user.username}
+                    className="chat-user-avatar"
+                  />
+                  <div className="online-status-dot"></div>
+                </div>
+                <div className="chat-user-details">
+                  <h3 className="chat-user-name">{user.fullname}</h3>
+                  <p className="chat-user-status">
+                    {message.typingUsers.includes(id) ? 'typing...' : 'last seen recently'}
+                  </p>
+                </div>
+              </div>
+              <div className="chat-header-actions">
+                <button 
+                  className="chat-action-btn" 
+                  title="Search in conversation"
+                  onClick={toggleMessageSearch}
+                >
+                  <i className="fas fa-search"></i>
+                </button>
+                <button className="chat-action-btn" title="More options">
+                  <i className="fas fa-ellipsis-v"></i>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="chat-header-loading">
+              <div className="loading-skeleton"></div>
+            </div>
           )}
         </div>
-        {message.typingUsers.includes(id) && (
-          <div className="px-3 text-muted" style={{fontSize: '0.9rem'}}>
-            {user.username || 'User'} is typing...
-          </div>
-        )}
 
-        <div
-          className="chat_container"
-          style={{ height: media.length > 0 ? "calc(100% - 180px)" : "" }}
-        >
-          <div className="chat_display" ref={refDisplay}>
-            <button style={{marginTop: '-25px', opacity: 0}} ref={pageEnd}>Load..</button>
-
-            {data.map((msg, index) => (
-              <div key={index}>
-                {msg.sender !== auth.user._id && (
-                  <div className="chat_row other_message">
-                    <MsgDisplay user={user} msg={msg} theme={theme} />
+        {/* Message Search Bar */}
+        {showMessageSearch && (
+          <div className="message-search-bar">
+            <div className="search-input-container">
+              <input
+                type="text"
+                placeholder="Search messages..."
+                value={messageSearchQuery}
+                onChange={(e) => handleMessageSearch(e.target.value)}
+                className="message-search-input"
+                autoFocus
+              />
+              <button 
+                className="close-search-btn"
+                onClick={toggleMessageSearch}
+                title="Close search"
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            
+            {messageSearchQuery && (
+              <div className="search-results-info">
+                {searchResults.length > 0 ? (
+                  <div className="search-navigation">
+                    <span className="search-count">
+                      {currentSearchIndex + 1} of {searchResults.length}
+                    </span>
+                    <div className="search-nav-buttons">
+                      <button 
+                        className="search-nav-btn"
+                        onClick={() => navigateSearchResults('prev')}
+                        disabled={searchResults.length <= 1}
+                        title="Previous result"
+                      >
+                        <i className="fas fa-chevron-up"></i>
+                      </button>
+                      <button 
+                        className="search-nav-btn"
+                        onClick={() => navigateSearchResults('next')}
+                        disabled={searchResults.length <= 1}
+                        title="Next result"
+                      >
+                        <i className="fas fa-chevron-down"></i>
+                      </button>
+                    </div>
                   </div>
-                )}
-                {msg.sender === auth.user._id && (
-                  <div className="chat_row you_message">
-                    <MsgDisplay user={auth.user} msg={msg} theme={theme} />
+                ) : (
+                  <div className="no-results">
+                    <i className="fas fa-search"></i>
+                    <span>No results found</span>
                   </div>
                 )}
               </div>
-            ))}
-            {loadMedia && (
-              <div className="chat_row you_message">
-                <img src={LoadIcon} alt="Loading..." />
+            )}
+          </div>
+        )}
+
+        {/* Chat Messages Area */}
+        <div className="whatsapp-messages-container">
+          <div className="messages-background"></div>
+          <div className="messages-content">
+            <button style={{marginTop: '-25px', opacity: 0}} ref={pageEnd}>Load..</button>
+            
+            {data.length === 0 ? (
+              <div className="chat-empty-state">
+                <div className="empty-chat-icon">
+                  <i className="fas fa-comments"></i>
+                </div>
+                <h3>Start a conversation</h3>
+                <p>Send a message to {user.fullname || 'this user'} to begin chatting</p>
+              </div>
+            ) : (
+              <div className="messages-list" ref={refDisplay}>
+                {data.map((msg, index) => {
+                  console.log('Rendering message:', msg);
+                  console.log('Sender:', msg.sender, 'Auth user:', auth.user._id);
+                  console.log('Is sent message:', (msg.sender._id || msg.sender) === auth.user._id);
+                  return (
+                  <div key={index} className={`message-wrapper ${(msg.sender._id || msg.sender) === auth.user._id ? 'sent' : 'received'}`}>
+                    <div className="message-bubble">
+                      <MsgDisplay user={(msg.sender._id || msg.sender) === auth.user._id ? auth.user : user} msg={msg} theme={theme} />
+                      <div className="message-meta">
+                        <span className="message-time">
+                          {new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </span>
+                        {(msg.sender._id || msg.sender) === auth.user._id && (
+                          <div className="message-status">
+                            <i className={`fas fa-check${msg.messageStatus === 'read' ? '-double status-read' : msg.messageStatus === 'delivered' ? '-double status-delivered' : ' status-sent'}`}></i>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  );
+                })}
+                {loadMedia && (
+                  <div className="message-wrapper sent">
+                    <div className="message-bubble loading-message">
+                      <img src={LoadIcon} alt="Sending..." className="loading-icon" />
+                      <span>Sending...</span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
 
-        <div
-          className="show_media"
-          style={{ display: media.length > 0 ? "" : "none" }}
-        >
-          {media.map((item, index) => (
-            <div key={index} id="file_media">
-              {item.type.match(/video/i)
-                ? videoShow(URL.createObjectURL(item), theme)
-                : imageShow(URL.createObjectURL(item), theme)}
-              <span onClick={() => handleDeleteMedia(index)}>&times;</span>
+        {/* Media Preview */}
+        {media.length > 0 && (
+          <div className="media-preview-container">
+            <div className="media-preview-header">
+              <h4>Media to send</h4>
+              <button onClick={() => setMedia([])} className="clear-media-btn">
+                <i className="fas fa-times"></i>
+              </button>
             </div>
-          ))}
-        </div>
-
-        <form className="chat_input" onSubmit={handleSubmit}>
-          <input
-            placeholder="Type a message."
-            type="text"
-            value={text}
-            onChange={handleInputChange}
-            style={{ filter: theme ? "invert(1)" : "invert(0)" , background: theme ? '#040404' : '', color: theme ? 'white' : ''}}
-          />
-          <Icons setContent={setText} content={text} theme={theme} />
-          <div className="file_upload">
-            <i className="fas fa-image color-c1" />
-            <input
-              type="file"
-              name="file"
-              id="file"
-              multiple
-              accept="image/*,video/*"
-              onChange={handleChangeMedia}
-            />
+            <div className="media-preview-list">
+              {media.map((item, index) => (
+                <div key={index} className="media-preview-item">
+                  {item.type.match(/video/i) ? (
+                    <video src={URL.createObjectURL(item)} className="preview-video" />
+                  ) : (
+                    <img src={URL.createObjectURL(item)} alt="Preview" className="preview-image" />
+                  )}
+                  <button 
+                    onClick={() => handleDeleteMedia(index)}
+                    className="remove-media-btn"
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
-          <button
-            type="submit"
-            disabled={text || media.length > 0 ? false : true}
-            className="material-icons"
-          >
-            near_me
-          </button>
-        </form>
-      </>
+        )}
+        {/* Message Input */}
+        <div className="whatsapp-message-input">
+          <form onSubmit={handleSubmit} className="message-input-form">
+            <div className="input-container">
+              <div className="emoji-picker-container">
+                <button type="button" className="emoji-btn" onClick={toggleEmojiPicker}>
+                  <i className="far fa-smile"></i>
+                </button>
+                {showEmojiPicker && (
+                  <div className="emoji-picker">
+                    <div className="emoji-grid">
+                      {['😀', '😂', '😍', '🥰', '😊', '😎', '🤔', '😢', '😭', '😡', '👍', '👎', '❤️', '🔥', '💯', '🎉', '😴', '🤗', '🙄', '😬', '🤐', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '🥴', '😵', '🤯', '🤠', '🥳', '😇', '🤓'].map(emoji => (
+                        <button 
+                          key={emoji} 
+                          className="emoji-item" 
+                          onClick={() => handleEmojiClick(emoji)}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <div className="text-input-wrapper">
+                <input
+                  type="text"
+                  value={text}
+                  onChange={handleInputChange}
+                  placeholder="Type a message"
+                  className="message-text-input"
+                />
+              </div>
+
+              <div className="input-actions">
+                <label className="attach-btn" htmlFor="file">
+                  <i className="fas fa-paperclip"></i>
+                  <input
+                    type="file"
+                    name="file"
+                    id="file"
+                    multiple
+                    accept="image/*,video/*"
+                    onChange={handleChangeMedia}
+                    style={{ display: 'none' }}
+                  />
+                </label>
+                
+                {text.trim() || media.length > 0 ? (
+                  <button type="submit" className="send-btn">
+                    <i className="fas fa-paper-plane"></i>
+                  </button>
+                ) : (
+                  <button type="button" className="voice-btn">
+                    <i className="fas fa-microphone"></i>
+                  </button>
+                )}
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
     );
 }
 

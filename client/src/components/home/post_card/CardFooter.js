@@ -62,52 +62,59 @@ const CardFooter = ({post}) => {
     }, [post._id, auth.user.saved]);
 
     return (
-      <div className="card_footer">
-        <div className="card_icon_menu">
-          <div className="d-flex">
-            <LikeButton
-              isLike={isLike}
-              handleLike={handleLike}
-              handleUnLike={handleUnLike}
-            />
-            <Link to={`/post/${post._id}`} className="text-dark">
-              <i className="far fa-comments" />
+      <div className="modern-card-footer">
+        {/* Post Stats */}
+        <div className="post-stats">
+          <span className="stat-item">
+            <strong>{post.likes.length}</strong> likes
+          </span>
+          <span className="stat-item">
+            <strong>{post.comments.length}</strong> comments
+          </span>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="post-actions">
+          <div className="action-buttons">
+            <button className={`action-btn like-btn ${isLike ? 'active' : ''}`}>
+              <LikeButton
+                isLike={isLike}
+                handleLike={handleLike}
+                handleUnLike={handleUnLike}
+              />
+            </button>
+
+            <Link to={`/post/${post._id}`} className="action-btn comment-btn">
+              <i className="far fa-comment"></i>
             </Link>
-            <i
-              className="fas fa-retweet"
+
+            <button 
+              className="action-btn share-btn"
+              onClick={() => setIsShare(!isShare)}
+            >
+              <i className="fas fa-share"></i>
+            </button>
+
+            <button 
+              className="action-btn repost-btn"
               title="Repost"
               onClick={() => dispatch(repostPost({ post, auth }))}
-            />
-            <i
-              className="fa fa-share"
-              alt="Send"
-              onClick={() => setIsShare(!isShare)}
-            />
+            >
+              <i className="fas fa-retweet"></i>
+            </button>
           </div>
-          {saved ? (
-            <i
-              className="fas text-info fa-bookmark"
-              onClick={handleUnSavePost}
-            />
-          ) : (
-            <i
-              className="far fa-bookmark"
-              onClick={handleSavePost}
-            />
-          )}
-        </div>
-        <div className="d-flex justify-content-start">
-          <h6 style={{ padding: "0 25px", cursor: "pointer" }}>
-            {post.likes.length} likes
-          </h6>
-          <h6 style={{ padding: "0 25px", cursor: "pointer" }}>
-            {post.comments.length} comments
-          </h6>
+
+          <button className={`bookmark-btn ${saved ? 'saved' : ''}`}>
+            {saved ? (
+              <i className="fas fa-bookmark" onClick={handleUnSavePost} />
+            ) : (
+              <i className="far fa-bookmark" onClick={handleSavePost} />
+            )}
+          </button>
         </div>
 
         {isShare && (
           <ShareModal
-            // url={`${BASE_URL}/post/${post._id}`}
             url="http://google.com"
             theme={theme}
             setIsShare={setIsShare}

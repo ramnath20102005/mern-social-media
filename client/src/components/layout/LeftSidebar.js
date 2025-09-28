@@ -1,11 +1,17 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { getDataAPI } from '../../utils/fetchData';
 import Avatar from '../Avatar';
 
 const LeftSidebar = () => {
-  const { auth } = useSelector(state => state);
+  const { auth, homePosts } = useSelector(state => state);
   const { pathname } = useLocation();
+  const [userStats, setUserStats] = useState({
+    posts: 0,
+    followers: 0,
+    following: 0
+  });
 
   const navigationItems = [
     { label: 'Home', icon: 'fas fa-home', path: '/', color: '#3b82f6' },
@@ -16,19 +22,55 @@ const LeftSidebar = () => {
     { label: 'Settings', icon: 'fas fa-cog', path: '/settings', color: '#6b7280' },
   ];
 
-  const trendingTopics = [
-    { tag: '#ReactJS', posts: '12.5K posts' },
-    { tag: '#WebDevelopment', posts: '8.2K posts' },
-    { tag: '#JavaScript', posts: '15.7K posts' },
-    { tag: '#TechNews', posts: '6.1K posts' },
-    { tag: '#Programming', posts: '9.8K posts' },
-  ];
+  // Fetch user stats
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      if (auth.user && auth.token) {
+        try {
+          // Get user profile data
+          const res = await getDataAPI(`user/${auth.user._id}`, auth.token);
+          if (res.data.user) {
+            setUserStats({
+              posts: res.data.user.postCount || res.data.user.posts?.length || 0,
+              followers: res.data.user.followers?.length || 0,
+              following: res.data.user.following?.length || 0
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching user stats:', error);
+          // Fallback to auth user data
+          setUserStats({
+            posts: homePosts.posts?.filter(post => post.user._id === auth.user._id).length || 0,
+            followers: auth.user.followers?.length || 0,
+            following: auth.user.following?.length || 0
+          });
+        }
+      }
+    };
 
-  const recentlyVisited = [
-    { name: 'John Doe', username: 'johndoe', avatar: '/api/placeholder/32/32' },
-    { name: 'Jane Smith', username: 'janesmith', avatar: '/api/placeholder/32/32' },
-    { name: 'Mike Johnson', username: 'mikej', avatar: '/api/placeholder/32/32' },
-  ];
+    fetchUserStats();
+  }, [auth.user, auth.token, homePosts.posts]);
+
+  // Update stats when auth user changes (after follow/unfollow)
+  useEffect(() => {
+    if (auth.user) {
+      setUserStats(prevStats => ({
+        ...prevStats,
+        followers: auth.user.followers?.length || 0,
+        following: auth.user.following?.length || 0
+      }));
+    }
+  }, [auth.user.followers, auth.user.following]);
+
+  // Format number for display
+  const formatNumber = (num) => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + 'M';
+    } else if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'K';
+    }
+    return num.toString();
+  };
 
   const isActive = (path) => {
     return pathname === path;
@@ -57,65 +99,57 @@ const LeftSidebar = () => {
         <div className="user-stats">
           <div className="stats-grid">
             <div className="stat-item">
-              <span className="stat-number">127</span>
+              <span className="stat-number">{formatNumber(userStats.posts)}</span>
               <span className="stat-label">Posts</span>
             </div>
             <div className="stat-item">
-              <span className="stat-number">1.2K</span>
+              <span className="stat-number">{formatNumber(userStats.followers)}</span>
               <span className="stat-label">Followers</span>
             </div>
             <div className="stat-item">
-              <span className="stat-number">892</span>
+              <span className="stat-number">{formatNumber(userStats.following)}</span>
               <span className="stat-label">Following</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Trending Topics */}
+      {/* Recent Activity */}
       <div className="sidebar-card">
         <div className="section-header">
-          <h3 className="section-title">Trending</h3>
+          <h3 className="section-title">Your Activity</h3>
           <button className="section-action">
-            <i className="fas fa-fire"></i>
+            <i className="fas fa-chart-bar"></i>
           </button>
         </div>
-        <div className="trending-list">
-          {trendingTopics.map((topic, index) => (
-            <div key={index} className="trending-item">
-              <div className="trending-content">
-                <span className="trending-tag">{topic.tag}</span>
-                <span className="trending-count">{topic.posts}</span>
-              </div>
-              <div className="trending-chart">
-                <i className="fas fa-chart-line"></i>
-              </div>
+        <div className="activity-summary">
+          <div className="activity-item">
+            <div className="activity-icon">
+              <i className="fas fa-heart" style={{ color: '#e91e63' }}></i>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Recently Visited */}
-      <div className="sidebar-card">
-        <div className="section-header">
-          <h3 className="section-title">Recent</h3>
-          <button className="section-action">
-            <i className="fas fa-history"></i>
-          </button>
-        </div>
-        <div className="recent-list">
-          {recentlyVisited.map((user, index) => (
-            <Link key={index} to={`/profile/${user.username}`} className="recent-item">
-              <Avatar src={user.avatar} size="small-avatar" />
-              <div className="recent-info">
-                <span className="recent-name">{user.name}</span>
-                <span className="recent-username">@{user.username}</span>
-              </div>
-              <div className="recent-status">
-                <div className="status-dot online"></div>
-              </div>
-            </Link>
-          ))}
+            <div className="activity-info">
+              <span className="activity-label">Likes received</span>
+              <span className="activity-count">This week</span>
+            </div>
+          </div>
+          <div className="activity-item">
+            <div className="activity-icon">
+              <i className="fas fa-comment" style={{ color: '#2196f3' }}></i>
+            </div>
+            <div className="activity-info">
+              <span className="activity-label">Comments</span>
+              <span className="activity-count">This week</span>
+            </div>
+          </div>
+          <div className="activity-item">
+            <div className="activity-icon">
+              <i className="fas fa-share" style={{ color: '#4caf50' }}></i>
+            </div>
+            <div className="activity-info">
+              <span className="activity-label">Shares</span>
+              <span className="activity-count">This week</span>
+            </div>
+          </div>
         </div>
       </div>
 

@@ -1,6 +1,16 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 
 const Toast = ({ msg, handleShow, bgColor }) => {
+  // Auto-dismiss toast after 4 seconds for errors, 2 seconds for success
+  useEffect(() => {
+    const isError = bgColor.includes('danger');
+    const timeout = setTimeout(() => {
+      handleShow();
+    }, isError ? 4000 : 2000);
+
+    return () => clearTimeout(timeout);
+  }, [handleShow, bgColor]);
+
   return (
     <div
       className={`toast show position-fixed text-light ${bgColor} `}

@@ -22,7 +22,7 @@ export const getUserSettings = (auth) => async (dispatch) => {
     } catch (err) {
         dispatch({
             type: GLOBALTYPES.ALERT,
-            payload: { error: err.response.data.msg }
+            payload: { error: err.response?.data?.msg || 'An error occurred' }
         });
     }
 };
@@ -55,7 +55,7 @@ export const updateGeneralSettings = (settingsData, auth) => async (dispatch) =>
     } catch (err) {
         dispatch({
             type: GLOBALTYPES.ALERT,
-            payload: { error: err.response.data.msg }
+            payload: { error: err.response?.data?.msg || 'An error occurred' }
         });
     }
 };
@@ -87,7 +87,7 @@ export const updatePrivacySettings = (settingsData, auth) => async (dispatch) =>
     } catch (err) {
         dispatch({
             type: GLOBALTYPES.ALERT,
-            payload: { error: err.response.data.msg }
+            payload: { error: err.response?.data?.msg || 'An error occurred' }
         });
     }
 };
@@ -119,7 +119,7 @@ export const updateNotificationSettings = (settingsData, auth) => async (dispatc
     } catch (err) {
         dispatch({
             type: GLOBALTYPES.ALERT,
-            payload: { error: err.response.data.msg }
+            payload: { error: err.response?.data?.msg || 'An error occurred' }
         });
     }
 };
@@ -138,7 +138,7 @@ export const changePassword = (passwordData, auth) => async (dispatch) => {
     } catch (err) {
         dispatch({
             type: GLOBALTYPES.ALERT,
-            payload: { error: err.response.data.msg }
+            payload: { error: err.response?.data?.msg || 'An error occurred' }
         });
     }
 };
@@ -170,7 +170,7 @@ export const toggleTwoFactorAuth = (enable, auth) => async (dispatch) => {
     } catch (err) {
         dispatch({
             type: GLOBALTYPES.ALERT,
-            payload: { error: err.response.data.msg }
+            payload: { error: err.response?.data?.msg || 'An error occurred' }
         });
     }
 };
@@ -201,7 +201,7 @@ export const downloadUserData = (auth) => async (dispatch) => {
     } catch (err) {
         dispatch({
             type: GLOBALTYPES.ALERT,
-            payload: { error: err.response.data.msg }
+            payload: { error: err.response?.data?.msg || 'An error occurred' }
         });
     }
 };
@@ -227,7 +227,7 @@ export const deleteAccount = (deleteData, auth) => async (dispatch) => {
     } catch (err) {
         dispatch({
             type: GLOBALTYPES.ALERT,
-            payload: { error: err.response.data.msg }
+            payload: { error: err.response?.data?.msg || 'An error occurred' }
         });
     }
 };

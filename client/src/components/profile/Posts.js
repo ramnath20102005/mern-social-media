@@ -10,33 +10,64 @@ const Posts = ({ auth, profile, dispatch, id }) => {
   const [result, setResult] = useState(9);
   const [page, setPage] = useState(0);
   const [load, setLoad] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
+    let found = false;
     profile.posts.forEach((data) => {
       if (data._id === id) {
         setPosts(data.posts);
         setResult(data.result);
         setPage(data.page);
+        found = true;
       }
     });
+    
+    if (found) {
+      setIsInitialLoad(false);
+    }
   }, [profile.posts, id]);
 
   const handleLoadMore = async () => {
     setLoad(true);
-    const res = await getDataAPI(
-      `user_posts/${id}?limit=${page * 9}`,
-      auth.token
-    );
-    const newData = { ...res.data, page: page + 1, _id: id };
-    dispatch({ type: PROFILE_TYPES.UPDATE_POST, payload: newData });
+    try {
+      const res = await getDataAPI(
+        `user_posts/${id}?limit=${page * 9}`,
+        auth.token
+      );
+      const newData = { ...res.data, page: page + 1, _id: id };
+      dispatch({ type: PROFILE_TYPES.UPDATE_POST, payload: newData });
+    } catch (error) {
+      console.error('Error loading more posts:', error);
+    }
     setLoad(false);
   };
+
+  if (isInitialLoad && profile.loading) {
+    return (
+      <div className="posts-loading-container">
+        <div className="posts-loading-grid">
+          {[...Array(9)].map((_, index) => (
+            <div key={index} className="post-skeleton">
+              <div className="skeleton-shimmer"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div>
+    <div className="profile-posts-container">
       <PostThumb posts={posts} result={result} />
 
       {load && (
-        <img src={LoadIcon} alt="Loading..." className="d-block mx-auto" />
+        <div className="posts-load-more-container">
+          <div className="posts-loading-spinner">
+            <div className="spinner-gradient"></div>
+          </div>
+          <p>Loading more posts...</p>
+        </div>
       )}
 
       <LoadMoreBtn
