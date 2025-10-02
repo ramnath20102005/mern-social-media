@@ -25,6 +25,9 @@ function App() {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    // Clear any existing alerts before refresh token
+    dispatch({ type: GLOBALTYPES.ALERT, payload: {} });
+    
     dispatch(refreshToken());
 
     const socket = io(process.env.NODE_ENV === 'production' 

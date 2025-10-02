@@ -39,88 +39,115 @@ const GroupInvites = () => {
 
   if (!groups.invites || groups.invites.length === 0) {
     return (
-      <div className="group-invites-empty">
-        <div className="empty-icon">
-          <i className="fas fa-envelope"></i>
+      <div className="modern-empty-state">
+        <div className="empty-illustration">
+          <div className="empty-icon-wrapper">
+            <i className="fas fa-envelope-open"></i>
+          </div>
+          <div className="empty-sparkles">
+            <span className="sparkle sparkle-1">✨</span>
+            <span className="sparkle sparkle-2">✨</span>
+            <span className="sparkle sparkle-3">✨</span>
+          </div>
         </div>
-        <h3>No Group Invites</h3>
-        <p>You don't have any pending group invitations.</p>
+        <h3>No Invitations Yet</h3>
+        <p>When friends invite you to groups, they'll appear here</p>
       </div>
     );
   }
 
   return (
-    <div className="group-invites-container">
-      <div className="invites-header">
-        <h2>Group Invitations</h2>
-        <span className="invite-count">{groups.invites.length} pending</span>
+    <div className="modern-invites-container">
+      <div className="modern-invites-header">
+        <div className="header-content">
+          <h2>Group Invitations</h2>
+          <div className="invite-badge">
+            <span>{groups.invites.length}</span>
+          </div>
+        </div>
       </div>
 
-      <div className="invites-list">
+      <div className="modern-invites-list">
         {groups.invites.map(invite => (
-          <div key={invite._id} className="invite-card">
-            <div className="invite-header">
-              <div className="group-info">
-                <Avatar src={invite.group.avatar} size="medium-avatar" />
-                <div className="group-details">
-                  <h4 className="group-name">{invite.group.name}</h4>
-                  {invite.group.description && (
-                    <p className="group-description">{invite.group.description}</p>
-                  )}
-                </div>
+          <div key={invite._id} className="modern-invite-card">
+            <div className="invite-card-header">
+              <div className="group-avatar-wrapper">
+                {invite.group.avatar ? (
+                  <img src={invite.group.avatar} alt={invite.group.name} className="group-avatar" />
+                ) : (
+                  <div className="group-avatar-placeholder">
+                    {invite.group.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="online-indicator"></div>
               </div>
               
-              <div className="invite-meta">
-                <div className="expiry-info">
-                  <i className="fas fa-clock"></i>
-                  <span>{formatTimeRemaining(invite.group.expiryDate)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="invite-body">
-              <div className="inviter-info">
-                <Avatar src={invite.inviter.avatar} size="small-avatar" />
-                <div className="inviter-details">
-                  <span className="inviter-name">{invite.inviter.fullname}</span>
-                  <span className="invite-message">
-                    {invite.message || `invited you to join "${invite.group.name}"`}
+              <div className="group-info-modern">
+                <h4 className="group-name-modern">{invite.group.name}</h4>
+                <div className="group-meta-row">
+                  <span className="member-count">
+                    <i className="fas fa-users"></i>
+                    {invite.group.memberCount || 1} members
+                  </span>
+                  <span className="expiry-badge">
+                    <i className="fas fa-clock"></i>
+                    {formatTimeRemaining(invite.group.expiryDate)}
                   </span>
                 </div>
               </div>
-
-              <div className="group-stats">
-                <div className="stat-item">
-                  <i className="fas fa-users"></i>
-                  <span>{invite.group.creator.fullname} (Creator)</span>
-                </div>
-                <div className="stat-item">
-                  <i className="fas fa-calendar"></i>
-                  <span>Expires {formatTimeRemaining(invite.group.expiryDate)}</span>
-                </div>
-              </div>
             </div>
 
-            <div className="invite-actions">
+            <div className="invite-content">
+              <div className="inviter-section">
+                <div className="inviter-avatar-wrapper">
+                  {invite.inviter.avatar ? (
+                    <img src={invite.inviter.avatar} alt={invite.inviter.fullname} className="inviter-avatar" />
+                  ) : (
+                    <div className="inviter-avatar-placeholder">
+                      {invite.inviter.fullname.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                <div className="invite-text">
+                  <span className="inviter-name">{invite.inviter.fullname}</span>
+                  <span className="invite-message">invited you to join this group</span>
+                </div>
+              </div>
+
+              {invite.group.description && (
+                <div className="group-description-modern">
+                  <p>"{invite.group.description}"</p>
+                </div>
+              )}
+            </div>
+
+            <div className="modern-invite-actions">
               <button 
-                className="btn-decline"
+                className="modern-btn-decline"
                 onClick={() => handleInviteResponse(invite._id, 'reject')}
               >
                 <i className="fas fa-times"></i>
-                Decline
+                <span>Decline</span>
               </button>
               
               <button 
-                className="btn-accept"
+                className="modern-btn-accept"
                 onClick={() => handleInviteResponse(invite._id, 'accept')}
               >
                 <i className="fas fa-check"></i>
-                Accept
+                <span>Accept</span>
               </button>
             </div>
 
-            <div className="invite-timestamp">
-              <span>Invited {new Date(invite.createdAt).toLocaleDateString()}</span>
+            <div className="invite-footer">
+              <span className="invite-time">
+                {new Date(invite.createdAt).toLocaleDateString('en-US', { 
+                  month: 'short', 
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </span>
             </div>
           </div>
         ))}

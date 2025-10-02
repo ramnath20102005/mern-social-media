@@ -7,7 +7,8 @@ import { MESS_TYPES, getConversations, addUser } from '../../redux/actions/messa
 import { getUserGroups } from '../../redux/actions/groupAction'
 import MessageSearch from './MessageSearch'
 import CreateGroupModal from '../groups/CreateGroupModal'
-import GroupInvites from '../groups/GroupInvites';
+import GroupInvites from '../groups/GroupInvites'
+import QuickGroupCreate from './QuickGroupCreate';
 
 const LeftSide = () => {
     const { auth, message, theme, online = { users: [] }, groups } = useSelector(state => state);
@@ -18,9 +19,24 @@ const LeftSide = () => {
     const [page, setPage] = useState(0);
     const [activeTab, setActiveTab] = useState('chats'); // 'chats', 'groups', 'invites'
     const [showCreateGroup, setShowCreateGroup] = useState(false);
+    const [showQuickGroupCreate, setShowQuickGroupCreate] = useState(false);
+    const [showSearch, setShowSearch] = useState(false);
+    const [showMessagingMenu, setShowMessagingMenu] = useState(false);
+    
     const handleAddUser = (user) => {
         dispatch(addUser({user, message}));
         return history.push(`/message/${user._id}`);
+    };
+
+    const handleGroupCreated = (newGroup) => {
+        // Navigate to the new group chat
+        history.push(`/group/${newGroup._id}`);
+        
+        // Refresh groups list
+        dispatch(getUserGroups(auth));
+        
+        // Switch to groups tab
+        setActiveTab('groups');
     };
 
     const isActive = (user) => {
@@ -70,6 +86,15 @@ const LeftSide = () => {
                activeTab === 'groups' ? 'Groups' : 'Invites'}
             </h2>
             <div className="sidebar-header-actions">
+              {activeTab === 'chats' && (
+                <button 
+                  className="sidebar-action-btn quick-group-btn"
+                  onClick={() => setShowQuickGroupCreate(true)}
+                  title="Quick Group"
+                >
+                  <i className="fas fa-users-plus"></i>
+                </button>
+              )}
               {activeTab === 'groups' && (
                 <button 
                   className="sidebar-action-btn create-group-btn"
@@ -79,10 +104,18 @@ const LeftSide = () => {
                   <i className="fas fa-users-plus"></i>
                 </button>
               )}
-              <button className="sidebar-action-btn">
-                <i className="fas fa-comment-alt"></i>
+              <button 
+                className="sidebar-action-btn"
+                onClick={() => setShowSearch(!showSearch)}
+                title="Search Conversations"
+              >
+                <i className="fas fa-search"></i>
               </button>
-              <button className="sidebar-action-btn">
+              <button 
+                className="sidebar-action-btn"
+                onClick={() => setShowMessagingMenu(!showMessagingMenu)}
+                title="Messaging Options"
+              >
                 <i className="fas fa-ellipsis-v"></i>
               </button>
             </div>
@@ -219,7 +252,12 @@ const LeftSide = () => {
                       </div>
                       <div className="chat-preview-container">
                         <p className="chat-preview">
-                          {group.conversation?.lastMessage?.text || 'No messages yet'}
+                          {group.conversation?.lastMessage?.text 
+                            ? (group.creator._id === auth.user._id && group.conversation.lastMessage.text.includes('created the group'))
+                              ? 'Group created by you'
+                              : group.conversation.lastMessage.text
+                            : 'No messages yet'
+                          }
                         </p>
                         <div className="group-meta">
                           <span className="member-count">{group.memberCount} members</span>
@@ -246,6 +284,67 @@ const LeftSide = () => {
           isOpen={showCreateGroup}
           onClose={() => setShowCreateGroup(false)}
         />
+
+        {/* Quick Group Create Modal */}
+        <QuickGroupCreate
+          isOpen={showQuickGroupCreate}
+          onClose={() => setShowQuickGroupCreate(false)}
+          onGroupCreated={handleGroupCreated}
+        />
+
+        {/* Search Overlay */}
+        {showSearch && (
+          <div className="search-overlay">
+            <div className="search-overlay-content">
+              <div className="search-header">
+                <button 
+                  className="close-search-btn"
+                  onClick={() => setShowSearch(false)}
+                >
+                  <i className="fas fa-arrow-left"></i>
+                </button>
+                <h3>Search Conversations</h3>
+              </div>
+              <MessageSearch onClose={() => setShowSearch(false)} />
+            </div>
+          </div>
+        )}
+
+        {/* Messaging Menu */}
+        {showMessagingMenu && (
+          <div className="messaging-menu-overlay" onClick={() => setShowMessagingMenu(false)}>
+            <div className="messaging-menu" onClick={e => e.stopPropagation()}>
+              <div className="menu-item" onClick={() => {
+                setShowQuickGroupCreate(true);
+                setShowMessagingMenu(false);
+              }}>
+                <i className="fas fa-users-plus"></i>
+                <span>New Group</span>
+              </div>
+              <div className="menu-item" onClick={() => {
+                setShowSearch(true);
+                setShowMessagingMenu(false);
+              }}>
+                <i className="fas fa-search"></i>
+                <span>Search Messages</span>
+              </div>
+              <div className="menu-item" onClick={() => {
+                setActiveTab('invites');
+                setShowMessagingMenu(false);
+              }}>
+                <i className="fas fa-envelope"></i>
+                <span>Group Invites</span>
+              </div>
+              <div className="menu-item" onClick={() => {
+                history.push('/settings');
+                setShowMessagingMenu(false);
+              }}>
+                <i className="fas fa-cog"></i>
+                <span>Settings</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
 }

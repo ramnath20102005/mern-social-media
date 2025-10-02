@@ -26,9 +26,10 @@ const groupCtrl = {
         recipients: [req.user._id], // Start with creator
         isGroupConversation: true,
         lastMessage: {
-          text: `${req.user.fullname} created the group`,
+          text: `${req.user.fullname} created the group "${name.trim()}"`,
           sender: req.user._id,
-          messageType: 'system'
+          messageType: 'system',
+          timestamp: new Date()
         }
       });
       await conversation.save();
@@ -49,6 +50,13 @@ const groupCtrl = {
       });
 
       await newGroup.save();
+      
+      console.log('Group created:', {
+        groupId: newGroup._id,
+        creator: newGroup.creator,
+        members: newGroup.members,
+        memberCount: newGroup.members.length
+      });
 
       // Update conversation with group reference
       conversation.group = newGroup._id;
@@ -119,6 +127,37 @@ const groupCtrl = {
     }
   },
 
+  // Check group membership (for debugging)
+  checkMembership: async (req, res) => {
+    try {
+      const { id } = req.params; // group id
+      const group = await Groups.findById(id).populate('members.user');
+      
+      if (!group) {
+        return res.status(404).json({ msg: "Group not found" });
+      }
+
+      const isMember = group.members.some(m => m.user._id.toString() === req.user._id.toString());
+      const isCreator = group.creator.toString() === req.user._id.toString();
+
+      res.json({
+        groupId: id,
+        userId: req.user._id,
+        isMember,
+        isCreator,
+        members: group.members.map(m => ({
+          user: m.user._id,
+          fullname: m.user.fullname,
+          role: m.role,
+          joinedAt: m.joinedAt
+        })),
+        creator: group.creator
+      });
+    } catch (err) {
+      return res.status(500).json({ msg: err.message });
+    }
+  },
+
   // Get user's groups
   getUserGroups: async (req, res) => {
     try {
@@ -161,17 +200,31 @@ const groupCtrl = {
     try {
       const { id } = req.params;
       
+      console.log('getGroup called with id:', id, 'by user:', req.user._id);
+      
+      // Validate ObjectId
+      if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+        return res.status(400).json({ msg: "Invalid group ID" });
+      }
+      
       const group = await Groups.findById(id)
         .populate('creator', 'fullname username avatar')
         .populate('members.user', 'fullname username avatar')
         .populate('conversation');
 
+      console.log('Group found:', !!group);
+
       if (!group) {
         return res.status(404).json({ msg: "Group not found" });
       }
 
-      // Check if user is a member
-      if (!group.isMember(req.user._id) && group.creator.toString() !== req.user._id.toString()) {
+      // Check if user is a member or creator
+      const isMember = group.members.some(m => m.user._id.toString() === req.user._id.toString());
+      const isCreator = group.creator._id.toString() === req.user._id.toString();
+      
+      console.log('Access check - isMember:', isMember, 'isCreator:', isCreator);
+
+      if (!isMember && !isCreator) {
         return res.status(403).json({ msg: "Access denied" });
       }
 
@@ -181,6 +234,50 @@ const groupCtrl = {
       }
 
       res.json({ group });
+    } catch (err) {
+      console.error('getGroup error:', err);
+      return res.status(500).json({ msg: err.message });
+    }
+  },
+
+  // Debug: Check group membership
+  checkMembership: async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const group = await Groups.findById(id)
+        .populate('creator', 'fullname username avatar')
+        .populate('members.user', 'fullname username avatar');
+
+      if (!group) {
+        return res.status(404).json({ msg: "Group not found" });
+      }
+
+      const isMember = group.isMember(req.user._id);
+      const isCreator = group.creator._id.toString() === req.user._id.toString();
+      const isAdmin = group.isAdmin(req.user._id);
+
+      res.json({
+        groupId: group._id,
+        groupName: group.name,
+        userId: req.user._id,
+        userFullname: req.user.fullname,
+        creator: {
+          id: group.creator._id,
+          name: group.creator.fullname
+        },
+        members: group.members.map(m => ({
+          id: m.user._id,
+          name: m.user.fullname,
+          role: m.role
+        })),
+        permissions: {
+          isMember,
+          isCreator,
+          isAdmin,
+          canMessage: isMember || isCreator
+        }
+      });
     } catch (err) {
       return res.status(500).json({ msg: err.message });
     }
@@ -298,6 +395,15 @@ const groupCtrl = {
         }
 
         await group.save();
+
+        // Emit socket event to refresh group membership
+        if (req.io) {
+          req.io.emit('groupMembershipUpdated', {
+            groupId: group._id,
+            userId: req.user._id,
+            action: 'joined'
+          });
+        }
 
         // Create system message
         const systemMessage = new Messages({

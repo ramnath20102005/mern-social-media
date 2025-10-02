@@ -20,12 +20,10 @@ const messageSchema = new Schema(
     // System messages for group events
     systemMessageType: {
       type: String,
-      enum: ['member_joined', 'member_left', 'group_created', 'group_expired', 'member_promoted', 'member_demoted'],
-      default: null
+      enum: ['member_joined', 'member_left', 'group_created', 'group_expired', 'member_promoted', 'member_demoted']
     },
     systemMessageData: {
-      type: Schema.Types.Mixed,
-      default: null
+      type: Schema.Types.Mixed
     },
     // Message status tracking
     messageStatus: {
@@ -60,8 +58,25 @@ const messageSchema = new Schema(
     editedAt: { type: Date }
   },
   {
-    timestamps: true,
+    timestamps: true
   }
 );
+
+// Pre-save hook to remove null/undefined system fields for non-system messages
+messageSchema.pre('save', function(next) {
+  if (this.messageType !== 'system') {
+    // Remove system fields for non-system messages
+    this.systemMessageType = undefined;
+    this.systemMessageData = undefined;
+  }
+  // Clean up null values
+  if (this.systemMessageType === null) {
+    this.systemMessageType = undefined;
+  }
+  if (this.systemMessageData === null) {
+    this.systemMessageData = undefined;
+  }
+  next();
+});
 
 module.exports = mongoose.model("message", messageSchema);

@@ -107,6 +107,7 @@ export const refreshToken = () => async (dispatch) => {
   if (firstLogin) {
     try {
       const res = await postDataAPI("refresh_token");
+      
       dispatch({
         type: GLOBALTYPES.AUTH,
         payload: { token: res.data.access_token, user: res.data.user },
@@ -119,36 +120,28 @@ export const refreshToken = () => async (dispatch) => {
 
       dispatch({ type: GLOBALTYPES.ALERT, payload: {} });
     } catch (err) {
-      // Silently handle refresh token failure - don't show persistent error
       console.log('Refresh token failed:', err.response?.data?.msg || 'Authentication failed');
       
-      // Clear the firstLogin flag if refresh fails
       localStorage.removeItem("firstLogin");
       
-      // Clear any existing auth state
       dispatch({
         type: GLOBALTYPES.AUTH,
-        payload: { token: null, user: null },
+        payload: {},
       });
       
-      // Clear user type as well
       dispatch({
         type: GLOBALTYPES.USER_TYPE,
         payload: null,
       });
       
-      // Don't show error alerts for authentication failures
-      const errorMsg = err.response?.data?.msg || 'Authentication failed';
-      if (errorMsg && 
-          !errorMsg.includes('login again') && 
-          !errorMsg.includes('Authentication failed') &&
-          !errorMsg.includes('Please login')) {
-        dispatch({
-          type: GLOBALTYPES.ALERT,
-          payload: { error: errorMsg },
-        });
-      }
+      dispatch({ type: GLOBALTYPES.ALERT, payload: {} });
     }
+  } else {
+    dispatch({
+      type: GLOBALTYPES.AUTH,
+      payload: {},
+    });
+    dispatch({ type: GLOBALTYPES.ALERT, payload: {} });
   }
 };
 

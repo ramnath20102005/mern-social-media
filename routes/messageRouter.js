@@ -2,6 +2,11 @@ const router = require("express").Router();
 const auth = require("../middleware/auth");
 const messageCtrl = require("../controllers/messageCtrl");
 
+// Unified messaging API (handles both DMs and groups)
+router.post("/conversations/:conversationId/messages", auth, messageCtrl.createUnifiedMessage);
+router.get("/conversations/:conversationId/messages", auth, messageCtrl.getUnifiedMessages);
+
+// Legacy routes (for backward compatibility)
 router.post("/message", auth, messageCtrl.createMessage);
 
 router.get("/conversations", auth, messageCtrl.getConversations);

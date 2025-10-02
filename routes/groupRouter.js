@@ -6,6 +6,7 @@ const auth = require('../middleware/auth');
 router.post('/create', auth, groupCtrl.createGroup);
 router.get('/my-groups', auth, groupCtrl.getUserGroups);
 router.get('/:id', auth, groupCtrl.getGroup);
+router.get('/:id/membership', auth, groupCtrl.checkMembership);
 router.delete('/:id', auth, groupCtrl.deleteGroup);
 
 // Group invitation routes

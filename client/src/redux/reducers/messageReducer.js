@@ -70,6 +70,30 @@ const messageReducer = (state = initialState, action) => {
         typingUsers: state.typingUsers.filter(id => id !== action.payload)
       };
 
+    case MESSAGE_TYPES.UPDATE_MESSAGE:
+      return {
+        ...state,
+        data: state.data.map(message => 
+          message.tempId === action.payload.tempId 
+            ? { ...action.payload.message }
+            : message
+        )
+      };
+
+    case MESSAGE_TYPES.UPDATE_MESSAGE_STATUS:
+      return {
+        ...state,
+        data: state.data.map(message => 
+          message.tempId === action.payload.tempId 
+            ? { 
+                ...message, 
+                messageStatus: action.payload.status,
+                error: action.payload.error 
+              }
+            : message
+        )
+      };
+
     // Reset message state when user logs out
     case GLOBALTYPES.AUTH:
       // If user is logging out (token becomes null), reset message state

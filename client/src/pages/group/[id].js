@@ -1,8 +1,14 @@
 import React from 'react';
-import GroupChat from '../../components/groups/GroupChat';
+import GroupChatNew from '../../components/groups/GroupChatNew';
 
 const GroupChatPage = () => {
-  return <GroupChat />;
+  return (
+    <div className="whatsapp-messenger">
+      <div className="messenger-chat-area">
+        <GroupChatNew />
+      </div>
+    </div>
+  );
 };
 
 export default GroupChatPage;

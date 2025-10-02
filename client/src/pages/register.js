@@ -34,164 +34,220 @@ const Register = () => {
     };
 
     return (
-      <div className="auth_page">
-        <form onSubmit={handleSubmit} className="inner-shadow">
-          <h3 className="text-uppercase text-center mb-4 auth-heading">
-            Campus Connect
-          </h3>
-          <div className="mb-3">
-            <label htmlFor="fullname" className="form-label">
-              Full name
-            </label>
-            <div className="outer-shadow hover-in-shadow form-input-wrap">
-              <input
-                type="text"
-                className="form-control"
-                id="fullname"
-                onChange={handleChangeInput}
-                value={fullname}
-                name="fullname"
-                style={{ background: `${alert.fullname ? "#fd2d6a14" : ""} ` }}
-              />
-            </div>
-            <small className="form-text text-danger">
-              {alert.fullname ? alert.fullname : ""}
-            </small>
-          </div>
-
-          <div className="mb-3">
-            <label htmlFor="username" className="form-label">
-              User name
-            </label>
-            <div className="outer-shadow hover-in-shadow form-input-wrap">
-              <input
-                type="text"
-                className="form-control"
-                id="username"
-                onChange={handleChangeInput}
-                value={username.toLowerCase().replace(/ /g, "")}
-                name="username"
-                style={{ background: `${alert.username ? "#fd2d6a14" : ""} ` }}
-              />
-            </div>
-            <small className="form-text text-danger">
-              {alert.username ? alert.username : ""}
-            </small>
-          </div>
-
-          <div className="mb-3">
-            <label htmlFor="email" className="form-label">
-              Email address
-            </label>
-            <div className="outer-shadow hover-in-shadow form-input-wrap">
-              <input
-                type="email"
-                className="form-control"
-                id="email"
-                aria-describedby="emailHelp"
-                onChange={handleChangeInput}
-                value={email}
-                name="email"
-                style={{ background: `${alert.email ? "#fd2d6a14" : ""} ` }}
-              />
-            </div>
-            <small className="form-text text-danger">
-              {alert.email ? alert.email : ""}
-            </small>
-          </div>
-
-          <div className="mb-3">
-            <label htmlFor="password" className="form-label">
-              Password
-            </label>
-            <div className="pass">
-              <div className="outer-shadow hover-in-shadow form-input-wrap">
-                <input
-                  type={typePass ? "text" : "password"}
-                  className="form-control"
-                  id="password"
-                  onChange={handleChangeInput}
-                  value={password}
-                  name="password"
-                  style={{
-                    background: `${alert.password ? "#fd2d6a14" : ""} `,
-                  }}
-                />
-                <small onClick={() => setTypePass(!typePass)}>
-                  {typePass ? "Hide" : "Show"}
-                </small>
+      <div className="modern-auth-page">
+        <div className="auth-container">
+          <div className="auth-card">
+            {/* Brand Header */}
+            <div className="auth-brand">
+              <div className="brand-icon">
+                <i className="fas fa-comments"></i>
               </div>
+              <h1 className="brand-name">MESME</h1>
+              <p className="brand-tagline">Connect, Share, Engage</p>
             </div>
-            <small className="form-text text-danger">
-              {alert.password ? alert.password : ""}
-            </small>
-          </div>
 
-          <div className="mb-3">
-            <label htmlFor="cf_password" className="form-label">
-              Confirm Password
-            </label>
-            <div className="pass">
-              <div className="outer-shadow hover-in-shadow form-input-wrap">
-                <input
-                  type={typeCfPass ? "text" : "password"}
-                  className="form-control"
-                  id="cf_password"
-                  onChange={handleChangeInput}
-                  value={cf_password}
-                  name="cf_password"
-                  style={{
-                    background: `${alert.cf_password ? "#fd2d6a14" : ""} `,
-                  }}
-                />
-                <small onClick={() => setTypeCfPass(!typeCfPass)}>
-                  {typeCfPass ? "Hide" : "Show"}
-                </small>
+            {/* Register Form */}
+            <form onSubmit={handleSubmit} className="auth-form">
+              <h2 className="auth-title">Join MESME</h2>
+              <p className="auth-subtitle">Create your account to get started</p>
+
+              {/* Full Name Input */}
+              <div className="form-group">
+                <label htmlFor="fullname" className="form-label">
+                  <i className="fas fa-user"></i>
+                  Full Name
+                </label>
+                <div className="input-wrapper">
+                  <input
+                    type="text"
+                    className="modern-input"
+                    id="fullname"
+                    placeholder="Enter your full name"
+                    onChange={handleChangeInput}
+                    value={fullname}
+                    name="fullname"
+                    required
+                  />
+                </div>
+                {alert.fullname && (
+                  <small className="error-text">{alert.fullname}</small>
+                )}
               </div>
-            </div>
-            <small className="form-text text-danger">
-              {alert.cf_password ? alert.cf_password : ""}
-            </small>
+
+              {/* Username Input */}
+              <div className="form-group">
+                <label htmlFor="username" className="form-label">
+                  <i className="fas fa-at"></i>
+                  Username
+                </label>
+                <div className="input-wrapper">
+                  <input
+                    type="text"
+                    className="modern-input"
+                    id="username"
+                    placeholder="Choose a username"
+                    onChange={handleChangeInput}
+                    value={username.toLowerCase().replace(/ /g, "")}
+                    name="username"
+                    required
+                  />
+                </div>
+                {alert.username && (
+                  <small className="error-text">{alert.username}</small>
+                )}
+              </div>
+
+              {/* Email Input */}
+              <div className="form-group">
+                <label htmlFor="email" className="form-label">
+                  <i className="fas fa-envelope"></i>
+                  Email Address
+                </label>
+                <div className="input-wrapper">
+                  <input
+                    type="email"
+                    className="modern-input"
+                    id="email"
+                    placeholder="Enter your email"
+                    onChange={handleChangeInput}
+                    value={email}
+                    name="email"
+                    required
+                  />
+                </div>
+                {alert.email && (
+                  <small className="error-text">{alert.email}</small>
+                )}
+              </div>
+
+              {/* Password Input */}
+              <div className="form-group">
+                <label htmlFor="password" className="form-label">
+                  <i className="fas fa-lock"></i>
+                  Password
+                </label>
+                <div className="input-wrapper password-wrapper">
+                  <input
+                    type={typePass ? "text" : "password"}
+                    className="modern-input"
+                    id="password"
+                    placeholder="Create a password"
+                    onChange={handleChangeInput}
+                    value={password}
+                    name="password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setTypePass(!typePass)}
+                  >
+                    <i className={typePass ? "fas fa-eye-slash" : "fas fa-eye"}></i>
+                  </button>
+                </div>
+                {alert.password && (
+                  <small className="error-text">{alert.password}</small>
+                )}
+              </div>
+
+              {/* Confirm Password Input */}
+              <div className="form-group">
+                <label htmlFor="cf_password" className="form-label">
+                  <i className="fas fa-lock"></i>
+                  Confirm Password
+                </label>
+                <div className="input-wrapper password-wrapper">
+                  <input
+                    type={typeCfPass ? "text" : "password"}
+                    className="modern-input"
+                    id="cf_password"
+                    placeholder="Confirm your password"
+                    onChange={handleChangeInput}
+                    value={cf_password}
+                    name="cf_password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setTypeCfPass(!typeCfPass)}
+                  >
+                    <i className={typeCfPass ? "fas fa-eye-slash" : "fas fa-eye"}></i>
+                  </button>
+                </div>
+                {alert.cf_password && (
+                  <small className="error-text">{alert.cf_password}</small>
+                )}
+              </div>
+
+              {/* Gender Selection */}
+              <div className="form-group">
+                <label className="form-label">
+                  <i className="fas fa-venus-mars"></i>
+                  Gender
+                </label>
+                <div className="radio-group">
+                  <label className={`radio-option ${userData.gender === 'male' ? 'active' : ''}`}>
+                    <input
+                      type="radio"
+                      name="gender"
+                      value="male"
+                      checked={userData.gender === 'male'}
+                      onChange={handleChangeInput}
+                    />
+                    <span className="radio-custom"></span>
+                    <div className="radio-content">
+                      <i className="fas fa-mars"></i>
+                      <span>Male</span>
+                    </div>
+                  </label>
+
+                  <label className={`radio-option ${userData.gender === 'female' ? 'active' : ''}`}>
+                    <input
+                      type="radio"
+                      name="gender"
+                      value="female"
+                      checked={userData.gender === 'female'}
+                      onChange={handleChangeInput}
+                    />
+                    <span className="radio-custom"></span>
+                    <div className="radio-content">
+                      <i className="fas fa-venus"></i>
+                      <span>Female</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className="auth-submit-btn"
+                disabled={!fullname || !username || !email || !password || !cf_password}
+              >
+                <span>Create Account</span>
+                <i className="fas fa-arrow-right"></i>
+              </button>
+
+              {/* Login Link */}
+              <div className="auth-footer">
+                <p>
+                  Already have an account?{" "}
+                  <Link to="/" className="auth-link">
+                    Sign in here
+                  </Link>
+                </p>
+              </div>
+            </form>
           </div>
 
-          <div className="d-flex justify-content-evenly  mx-0 mb-1">
-            <label htmlFor="male">
-              Male:
-              <input
-                type="radio"
-                id="male"
-                name="gender"
-                value="male"
-                defaultChecked
-                onChange={handleChangeInput}
-              />
-            </label>
-
-            <label htmlFor="female">
-              Female:
-              <input
-                type="radio"
-                id="female"
-                name="gender"
-                value="female"
-                onChange={handleChangeInput}
-              />
-            </label>
+          {/* Background Elements */}
+          <div className="auth-bg-elements">
+            <div className="bg-circle bg-circle-1"></div>
+            <div className="bg-circle bg-circle-2"></div>
+            <div className="bg-circle bg-circle-3"></div>
           </div>
-
-          <button
-            type="submit"
-            className="btn-1 w-100 d-flex outer-shadow hover-in-shadow justify-content-center"
-          >
-            Register
-          </button>
-          <p className="my-2">
-            Already have an account?{" "}
-            <Link to="/" style={{ color: "crimson" }}>
-              Login Now.
-            </Link>
-          </p>
-        </form>
+        </div>
       </div>
     );
 }

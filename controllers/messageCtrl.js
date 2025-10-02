@@ -18,6 +18,180 @@ class APIfeatures {
 }
 
 const messageCtrl = {
+  // Unified message API - handles both DMs and groups
+  createUnifiedMessage: async (req, res) => {
+    try {
+      const { conversationId, text, media, messageType = 'text' } = req.body;
+      
+      if (!conversationId) {
+        return res.status(400).json({ msg: "Conversation ID is required" });
+      }
+      
+      if (!text?.trim() && (!media || media.length === 0)) {
+        return res.status(400).json({ msg: "Message content is required" });
+      }
+
+      // Find the conversation
+      const conversation = await Conversations.findById(conversationId)
+        .populate('recipients', 'fullname username avatar')
+        .populate('group');
+
+      if (!conversation) {
+        return res.status(404).json({ msg: "Conversation not found" });
+      }
+
+      // Check permissions based on conversation type
+      if (conversation.isGroupConversation) {
+        // Group conversation - check membership
+        const group = conversation.group;
+        if (!group) {
+          return res.status(404).json({ msg: "Group not found" });
+        }
+
+        const isMember = group.isMember(req.user._id);
+        const isCreator = group.creator.toString() === req.user._id.toString();
+        
+        if (!isMember && !isCreator) {
+          return res.status(403).json({ msg: "You are not a member of this group" });
+        }
+
+        // Check if group is expired
+        if (group.checkExpiry()) {
+          await group.save();
+          return res.status(400).json({ msg: "Cannot send message to expired group" });
+        }
+      } else {
+        // DM conversation - check if user is recipient
+        const isRecipient = conversation.recipients.some(
+          recipient => recipient._id.toString() === req.user._id.toString()
+        );
+        
+        if (!isRecipient) {
+          return res.status(403).json({ msg: "You are not part of this conversation" });
+        }
+      }
+
+      // Create the message
+      const newMessage = new Messages({
+        conversation: conversationId,
+        sender: req.user._id,
+        text,
+        media: media || [],
+        messageType,
+        isGroupMessage: conversation.isGroupConversation,
+        group: conversation.isGroupConversation ? conversation.group._id : undefined,
+        recipient: !conversation.isGroupConversation ? 
+          conversation.recipients.find(r => r._id.toString() !== req.user._id.toString())?._id : 
+          undefined
+      });
+
+      const savedMessage = await newMessage.save();
+      await savedMessage.populate('sender', 'fullname username avatar');
+
+      // Update conversation last message
+      conversation.lastMessage = {
+        text: text || 'Media',
+        sender: req.user._id,
+        messageType,
+        timestamp: new Date()
+      };
+      conversation.updatedAt = new Date();
+      await conversation.save();
+
+      // Update group last activity if it's a group conversation
+      if (conversation.isGroupConversation && conversation.group) {
+        conversation.group.lastActivity = new Date();
+        await conversation.group.save();
+      }
+
+      res.json({
+        message: savedMessage,
+        conversation: {
+          _id: conversation._id,
+          isGroupConversation: conversation.isGroupConversation,
+          lastMessage: conversation.lastMessage
+        }
+      });
+
+    } catch (err) {
+      console.error('createUnifiedMessage error:', err);
+      return res.status(500).json({ msg: err.message });
+    }
+  },
+
+  // Unified get messages API - handles both DMs and groups
+  getUnifiedMessages: async (req, res) => {
+    try {
+      const { conversationId } = req.params;
+      
+      if (!conversationId) {
+        return res.status(400).json({ msg: "Conversation ID is required" });
+      }
+
+      // Find and validate conversation
+      const conversation = await Conversations.findById(conversationId)
+        .populate('group');
+
+      if (!conversation) {
+        return res.status(404).json({ msg: "Conversation not found" });
+      }
+
+      // Check permissions
+      if (conversation.isGroupConversation) {
+        // Group conversation - check membership
+        const group = conversation.group;
+        if (!group) {
+          return res.status(404).json({ msg: "Group not found" });
+        }
+
+        const isMember = group.isMember(req.user._id);
+        const isCreator = group.creator.toString() === req.user._id.toString();
+        
+        if (!isMember && !isCreator) {
+          return res.status(403).json({ msg: "You are not a member of this group" });
+        }
+      } else {
+        // DM conversation - check if user is recipient
+        const isRecipient = conversation.recipients.some(
+          recipient => recipient.toString() === req.user._id.toString()
+        );
+        
+        if (!isRecipient) {
+          return res.status(403).json({ msg: "You are not part of this conversation" });
+        }
+      }
+
+      // Get messages with pagination
+      const features = new APIfeatures(
+        Messages.find({ 
+          conversation: conversationId,
+          isDeleted: false
+        })
+        .populate('sender', 'fullname username avatar')
+        .populate('replyTo')
+        .sort({ createdAt: -1 }),
+        req.query
+      ).paginating();
+
+      const messages = await features.query;
+
+      res.json({
+        messages: messages.reverse(),
+        result: messages.length,
+        conversation: {
+          _id: conversation._id,
+          isGroupConversation: conversation.isGroupConversation,
+          recipients: conversation.recipients,
+          group: conversation.group?._id
+        }
+      });
+
+    } catch (err) {
+      console.error('getUnifiedMessages error:', err);
+      return res.status(500).json({ msg: err.message });
+    }
+  },
+
   createMessage: async (req, res) => {
     try {
       const { recipient, text, media } = req.body;
@@ -221,8 +395,19 @@ const messageCtrl = {
         return res.status(404).json({ msg: "Group not found" });
       }
 
-      // Check if user is a member
-      if (!group.isMember(req.user._id)) {
+      // Check if user is a member or creator
+      const isMember = group.isMember(req.user._id);
+      const isCreator = group.creator.toString() === req.user._id.toString();
+      
+      console.log('Message permission check:', {
+        userId: req.user._id,
+        isMember,
+        isCreator,
+        groupCreator: group.creator,
+        members: group.members.map(m => ({ user: m.user._id || m.user, role: m.role }))
+      });
+      
+      if (!isMember && !isCreator) {
         return res.status(403).json({ msg: "You are not a member of this group" });
       }
 
@@ -233,7 +418,7 @@ const messageCtrl = {
       }
 
       // Check if only admins can message
-      if (group.settings.onlyAdminsCanMessage && !group.isAdmin(req.user._id)) {
+      if (group.settings.onlyAdminsCanMessage && !group.isAdmin(req.user._id) && !isCreator) {
         return res.status(403).json({ msg: "Only admins can send messages in this group" });
       }
 
@@ -248,16 +433,22 @@ const messageCtrl = {
       conversation.updatedAt = new Date();
       await conversation.save();
 
-      // Create the message
-      const newMessage = new Messages({
+      // Create the message - only include defined values
+      const messageData = {
         conversation: group.conversation,
         sender: req.user._id,
         group: groupId,
         isGroupMessage: true,
         text,
-        media: media || [],
         messageType
-      });
+      };
+      
+      // Only add media if it exists
+      if (media && media.length > 0) {
+        messageData.media = media;
+      }
+      
+      const newMessage = new Messages(messageData);
 
       await newMessage.save();
 
@@ -285,14 +476,28 @@ const messageCtrl = {
     try {
       const { groupId } = req.params;
       
-      // Find and validate group
-      const group = await Groups.findById(groupId);
+      console.log('getGroupMessages called with groupId:', groupId, 'by user:', req.user._id);
+      
+      // Validate ObjectId
+      if (!groupId || !groupId.match(/^[0-9a-fA-F]{24}$/)) {
+        return res.status(400).json({ msg: "Invalid group ID" });
+      }
+      
+      // Find and validate group with populated members
+      const group = await Groups.findById(groupId).populate('members.user');
+      console.log('Group found for messages:', !!group);
+      
       if (!group) {
         return res.status(404).json({ msg: "Group not found" });
       }
 
-      // Check if user is a member
-      if (!group.isMember(req.user._id)) {
+      // Check if user is a member or creator
+      const isMember = group.members.some(m => m.user._id.toString() === req.user._id.toString());
+      const isCreator = group.creator.toString() === req.user._id.toString();
+      
+      console.log('Message access check - isMember:', isMember, 'isCreator:', isCreator);
+
+      if (!isMember && !isCreator) {
         return res.status(403).json({ msg: "You are not a member of this group" });
       }
 
@@ -311,12 +516,15 @@ const messageCtrl = {
 
       const messages = await features.query;
 
+      console.log('Found', messages.length, 'messages for group:', groupId);
+
       res.json({
         messages: messages.reverse(),
         result: messages.length
       });
 
     } catch (err) {
+      console.error('getGroupMessages error:', err);
       return res.status(500).json({ msg: err.message });
     }
   },

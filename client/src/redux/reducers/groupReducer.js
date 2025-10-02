@@ -35,6 +35,22 @@ const groupReducer = (state = initialState, action) => {
         )
       };
 
+    case 'ADD_GROUP_IF_NOT_EXISTS':
+      const groupExists = state.groups.some(group => group._id === action.payload._id);
+      if (groupExists) {
+        return {
+          ...state,
+          groups: state.groups.map(group => 
+            group._id === action.payload._id ? action.payload : group
+          )
+        };
+      } else {
+        return {
+          ...state,
+          groups: [action.payload, ...state.groups]
+        };
+      }
+
     case GROUP_TYPES.DELETE_GROUP:
       return {
         ...state,
@@ -77,6 +93,36 @@ const groupReducer = (state = initialState, action) => {
         groupMessages: {
           ...state.groupMessages,
           [gId]: page === 1 ? messages : [...messages, ...(state.groupMessages[gId] || [])]
+        }
+      };
+
+    case GROUP_TYPES.UPDATE_GROUP_MESSAGE:
+      const { groupId: ugId, tempId, message: updatedMessage } = action.payload;
+      const existingGroupMessages = state.groupMessages[ugId] || [];
+      
+      return {
+        ...state,
+        groupMessages: {
+          ...state.groupMessages,
+          [ugId]: existingGroupMessages.map(msg => 
+            msg.tempId === tempId ? { ...updatedMessage } : msg
+          )
+        }
+      };
+
+    case GROUP_TYPES.UPDATE_GROUP_MESSAGE_STATUS:
+      const { groupId: ugsId, tempId: ugsTempId, status, error } = action.payload;
+      const existingGroupMsgs = state.groupMessages[ugsId] || [];
+      
+      return {
+        ...state,
+        groupMessages: {
+          ...state.groupMessages,
+          [ugsId]: existingGroupMsgs.map(msg => 
+            msg.tempId === ugsTempId 
+              ? { ...msg, messageStatus: status, error }
+              : msg
+          )
         }
       };
 
