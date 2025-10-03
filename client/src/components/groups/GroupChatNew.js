@@ -1,20 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useParams } from 'react-router-dom';
+import { useParams, useHistory } from 'react-router-dom';
 import { sendGroupMessage, getGroupMessages, getGroup } from '../../redux/actions/groupAction';
 import { imageUpload } from '../../utils/imageUpload';
 import { imageShow, videoShow } from '../../utils/mediaShow';
 import LoadIcon from '../../images/loading.gif';
+import '../../styles/group-chat-new.css';
 
 const GroupChatNew = () => {
   const { id: groupId } = useParams();
   const { auth, groups, socket } = useSelector(state => state);
   const dispatch = useDispatch();
+  const history = useHistory();
 
   const [text, setText] = useState('');
   const [media, setMedia] = useState([]);
   const [loadMedia, setLoadMedia] = useState(false);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   
   const messagesEndRef = useRef(null);
   const refDisplay = useRef();
@@ -52,18 +53,11 @@ const GroupChatNew = () => {
   // Handle message input
   const handleInputChange = (e) => {
     setText(e.target.value);
+    // Auto-resize textarea
+    e.target.style.height = 'auto';
+    e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
   };
 
-  // Handle emoji click
-  const handleEmojiClick = (emoji) => {
-    setText(prev => prev + emoji);
-    setShowEmojiPicker(false);
-  };
-
-  // Toggle emoji picker
-  const toggleEmojiPicker = () => {
-    setShowEmojiPicker(!showEmojiPicker);
-  };
 
   // Handle media upload
   const handleChangeMedia = (e) => {
@@ -116,16 +110,8 @@ const GroupChatNew = () => {
     
     setText('');
     setMedia([]);
-    setShowEmojiPicker(false);
   };
 
-  // Get group avatar (use first letter of group name if no avatar)
-  const getGroupAvatar = () => {
-    if (currentGroup?.avatar) {
-      return currentGroup.avatar;
-    }
-    return null; // Will show default avatar with first letter
-  };
 
   // Get time remaining
   const getTimeRemaining = () => {
@@ -157,104 +143,116 @@ const GroupChatNew = () => {
   }
 
   return (
-    <div className="whatsapp-chat-container">
-      {/* Chat Header - Same as person-to-person */}
-      <div className="whatsapp-chat-header">
-        <div className="chat-header-info">
-          <div className="chat-avatar">
+    <div className="modern-group-chat">
+      {/* Modern Header */}
+      <div className="modern-group-header">
+        <div className="header-left">
+          <button className="back-btn" onClick={() => history.goBack()}>
+            <i className="fas fa-arrow-left"></i>
+          </button>
+          
+          <div className="group-avatar-wrapper">
             {currentGroup.avatar ? (
-              <img src={currentGroup.avatar} alt={currentGroup.name} className="avatar-image" />
+              <img src={currentGroup.avatar} alt={currentGroup.name} className="group-avatar" />
             ) : (
-              <div className="avatar-placeholder">
-                {currentGroup.name.charAt(0).toUpperCase()}
+              <div className="group-avatar-placeholder">
+                <i className="fas fa-users"></i>
               </div>
             )}
+            <span className="online-dot"></span>
           </div>
-          <div className="chat-user-info">
-            <h3 className="chat-user-name">{currentGroup.name}</h3>
-            <p className="chat-user-status">
-              {currentGroup.members?.length || 1} members • {getTimeRemaining()}
-            </p>
+          
+          <div className="group-info">
+            <h3 className="group-name">{currentGroup.name}</h3>
+            <div className="group-status">
+              <span>{currentGroup.members?.length || 1} members</span>
+              <span className="dot">•</span>
+              <span className="expiry">{getTimeRemaining()}</span>
+            </div>
           </div>
         </div>
         
-        <div className="chat-header-actions">
-          <button className="header-action-btn">
+        <div className="header-actions">
+          <button className="action-btn" title="Search">
             <i className="fas fa-search"></i>
           </button>
-          <button className="header-action-btn">
+          <button className="action-btn" title="More">
             <i className="fas fa-ellipsis-v"></i>
           </button>
         </div>
       </div>
 
-      {/* Messages Area - Same structure as person-to-person */}
-      <div className="whatsapp-messages-container" ref={refDisplay}>
-        <div className="messages-wrapper">
-          {messages.length === 0 ? (
-            <div className="empty-messages">
-              <div className="welcome-message">
-                <div className="welcome-icon">
-                  <i className="fas fa-users"></i>
-                </div>
-                <h3>Welcome to {currentGroup.name}!</h3>
-                <p>Start the conversation by sending a message.</p>
-              </div>
+      {/* Messages Container */}
+      <div className="whatsapp-group-messages">
+        {messages.length === 0 ? (
+          <div className="group-empty-state">
+            <div className="empty-group-icon">
+              <i className="fas fa-users"></i>
             </div>
-          ) : (
-            <div className="messages-list">
-              {messages.map((msg, index) => (
-                <div 
-                  key={msg._id || index} 
-                  className={`message-wrapper ${msg.sender._id === auth.user._id ? 'sent' : 'received'}`}
-                >
+            <h4>Welcome to {currentGroup.name}!</h4>
+            <p>Start the conversation by sending the first message.</p>
+          </div>
+        ) : (
+          <div className="group-messages-scroll">
+            {messages.map((msg, index) => (
+              <div 
+                key={msg._id || index} 
+                className={`group-message-wrapper ${msg.sender._id === auth.user._id ? 'sent' : 'received'}`}
+              >
+                <div className="group-message-container">
                   {msg.sender._id !== auth.user._id && (
-                    <div className="message-avatar">
+                    <div className="group-message-avatar">
                       <img src={msg.sender.avatar} alt={msg.sender.fullname} className="sender-avatar" />
                     </div>
                   )}
-                  <div className="message-bubble">
+                  
+                  <div className="group-message-content">
                     {msg.sender._id !== auth.user._id && (
-                      <div className="sender-name">{msg.sender.fullname}</div>
+                      <div className="group-sender-name">{msg.sender.fullname}</div>
                     )}
                     
-                    {msg.media && msg.media.length > 0 && (
-                      <div className="message-media">
-                        {msg.media.map((item, i) => (
-                          <div key={i} className="media-item">
-                            {item.url ? (
-                              item.url.match(/video/i) ? videoShow(item.url) : imageShow(item.url)
-                            ) : (
-                              item.match(/video/i) ? videoShow(item) : imageShow(item)
-                            )}
-                          </div>
-                        ))}
+                    <div className={`group-message-bubble ${msg.sender._id === auth.user._id ? 'own' : 'other'}`}>
+                      {msg.media && msg.media.length > 0 && (
+                        <div className="message-media">
+                          {msg.media.map((item, i) => (
+                            <div key={i} className="media-item">
+                              {item.url ? (
+                                item.url.match(/video/i) ? videoShow(item.url) : imageShow(item.url)
+                              ) : (
+                                item.match(/video/i) ? videoShow(item) : imageShow(item)
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {msg.text && (
+                        <div className="group-message-text">{msg.text}</div>
+                      )}
+                      
+                      <div className="group-message-meta">
+                        <span>{new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                       </div>
-                    )}
-                    
-                    {msg.text && (
-                      <div className="message-text">{msg.text}</div>
-                    )}
-                    
-                    <div className="message-time">
-                      {new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                     </div>
                   </div>
                 </div>
-              ))}
-              
-              {loadMedia && (
-                <div className="message-wrapper sent">
-                  <div className="message-bubble loading-message">
-                    <img src={LoadIcon} alt="Sending..." className="loading-icon" />
-                    <span>Sending...</span>
+              </div>
+            ))}
+            
+            {loadMedia && (
+              <div className="group-message-wrapper sent">
+                <div className="group-message-container">
+                  <div className="group-message-content">
+                    <div className="group-message-bubble own">
+                      <img src={LoadIcon} alt="Sending..." className="loading-icon" />
+                      <span>Sending...</span>
+                    </div>
                   </div>
                 </div>
-              )}
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Media Preview */}
@@ -286,67 +284,57 @@ const GroupChatNew = () => {
         </div>
       )}
 
-      {/* Message Input - Exactly same as person-to-person */}
-      <div className="whatsapp-message-input">
-        <form onSubmit={handleSubmit} className="message-input-form">
-          <div className="input-container">
-            <div className="emoji-picker-container">
-              <button type="button" className="emoji-btn" onClick={toggleEmojiPicker}>
-                <i className="far fa-smile"></i>
-              </button>
-              {showEmojiPicker && (
-                <div className="emoji-picker">
-                  <div className="emoji-grid">
-                    {['😀', '😂', '😍', '🥰', '😊', '😎', '🤔', '😢', '😭', '😡', '👍', '👎', '❤️', '🔥', '💯', '🎉', '😴', '🤗', '🙄', '😬', '🤐', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '🥴', '😵', '🤯', '🤠', '🥳', '😇', '🤓'].map(emoji => (
-                      <button 
-                        key={emoji} 
-                        className="emoji-item" 
-                        onClick={() => handleEmojiClick(emoji)}
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            <div className="text-input-wrapper">
-              <input
-                type="text"
-                value={text}
-                onChange={handleInputChange}
-                placeholder="Type a message"
-                className="message-text-input"
-              />
-            </div>
-
-            <div className="input-actions">
-              <label className="attach-btn" htmlFor="file">
-                <i className="fas fa-paperclip"></i>
-                <input
-                  type="file"
-                  name="file"
-                  id="file"
-                  multiple
-                  accept="image/*,video/*"
-                  onChange={handleChangeMedia}
-                  style={{ display: 'none' }}
-                />
-              </label>
-              
-              {text.trim() || media.length > 0 ? (
-                <button type="submit" className="send-btn">
-                  <i className="fas fa-paper-plane"></i>
-                </button>
-              ) : (
-                <button type="button" className="voice-btn">
-                  <i className="fas fa-microphone"></i>
-                </button>
-              )}
-            </div>
-          </div>
-        </form>
+      {/* Input Container */}
+      <div className="group-input-container">
+        <button 
+          className="group-attachment-btn"
+          onClick={() => document.getElementById('file').click()}
+          title="Attach media"
+        >
+          <i className="fas fa-paperclip"></i>
+        </button>
+        
+        <div className="group-text-input-wrapper">
+          <textarea
+            value={text}
+            onChange={handleInputChange}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit(e);
+              }
+            }}
+            placeholder={`Message ${currentGroup.name}...`}
+            className="group-text-input"
+            rows="1"
+          />
+          
+          <button 
+            className="group-emoji-btn"
+            onClick={() => setText(prev => prev + '😊')}
+            title="Emoji"
+          >
+            <i className="fas fa-smile"></i>
+          </button>
+        </div>
+        
+        <button 
+          className="group-send-btn"
+          onClick={handleSubmit}
+          disabled={!text.trim() && media.length === 0}
+        >
+          <i className="fas fa-paper-plane"></i>
+        </button>
+        
+        {/* Hidden file input */}
+        <input
+          type="file"
+          id="file"
+          multiple
+          accept="image/*,video/*"
+          style={{ display: 'none' }}
+          onChange={handleChangeMedia}
+        />
       </div>
     </div>
   );

@@ -6615,7 +6615,7 @@ div.modern-group-chat {
   display: flex !important;
   flex-direction: column !important;
   height: 100vh !important;
-  background: #00ff00 !important; /* GREEN DEBUG - SHOULD BE VISIBLE */
+  background: #f7fafc !important; /* Clean background */
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
@@ -6625,15 +6625,15 @@ div.modern-group-chat {
   overflow: hidden !important;
 }
 
-/* Modern Compact Header */
+/* Modern Compact Header - Updated */
 div.modern-group-header {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
   padding: 12px 16px !important;
-  background: #ff0000 !important; /* RED DEBUG - SHOULD BE VISIBLE */
-  border-bottom: 1px solid #e5e7eb !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+  background: #075e54 !important; /* WhatsApp Green */
+  border-bottom: none !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
   z-index: 10 !important;
   height: 60px !important;
   width: 100% !important;
@@ -6652,7 +6652,7 @@ div.modern-group-header {
   border-radius: 50%;
   background: transparent;
   border: none;
-  color: #374151;
+  color: #ffffff !important;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -6661,7 +6661,7 @@ div.modern-group-header {
 }
 
 .back-btn:hover {
-  background: #f3f4f6;
+  background: rgba(255, 255, 255, 0.1) !important;
 }
 
 .group-avatar-wrapper {
@@ -6705,7 +6705,7 @@ div.modern-group-header {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #111827;
+  color: #ffffff !important;
   line-height: 1.2;
 }
 
@@ -6715,7 +6715,7 @@ div.modern-group-header {
   gap: 6px;
   margin-top: 2px;
   font-size: 13px;
-  color: #6b7280;
+  color: #a0aec0 !important;
 }
 
 .dot {
@@ -6734,7 +6734,7 @@ div.modern-group-header {
   border-radius: 50%;
   background: transparent;
   border: none;
-  color: #6b7280;
+  color: #a0aec0 !important;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -6743,8 +6743,8 @@ div.modern-group-header {
 }
 
 .action-btn:hover {
-  background: #f3f4f6;
-  color: #374151;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
 }
 
 /* WhatsApp-style Messages Container */
