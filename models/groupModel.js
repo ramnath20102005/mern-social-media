@@ -43,6 +43,10 @@ const groupSchema = new Schema(
       type: Boolean,
       default: false
     },
+    warnings: [{
+      type: String,
+      enum: ['7d', '1d', '24h']
+    }],
     isActive: {
       type: Boolean,
       default: true

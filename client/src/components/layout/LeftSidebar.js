@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { getDataAPI } from '../../utils/fetchData';
-import Avatar from '../Avatar';
 
 const LeftSidebar = () => {
   const { auth, homePosts } = useSelector(state => state);
   const { pathname } = useLocation();
+  const mounted = useRef(true);
   const [userStats, setUserStats] = useState({
     posts: 0,
     followers: 0,
@@ -29,7 +29,7 @@ const LeftSidebar = () => {
         try {
           // Get user profile data
           const res = await getDataAPI(`user/${auth.user._id}`, auth.token);
-          if (res.data.user) {
+          if (res.data.user && mounted.current) {
             setUserStats({
               posts: res.data.user.postCount || res.data.user.posts?.length || 0,
               followers: res.data.user.followers?.length || 0,
@@ -39,16 +39,23 @@ const LeftSidebar = () => {
         } catch (error) {
           console.error('Error fetching user stats:', error);
           // Fallback to auth user data
-          setUserStats({
-            posts: homePosts.posts?.filter(post => post.user._id === auth.user._id).length || 0,
-            followers: auth.user.followers?.length || 0,
-            following: auth.user.following?.length || 0
-          });
+          if (mounted.current) {
+            setUserStats({
+              posts: homePosts.posts?.filter(post => post.user._id === auth.user._id).length || 0,
+              followers: auth.user.followers?.length || 0,
+              following: auth.user.following?.length || 0
+            });
+          }
         }
       }
     };
 
     fetchUserStats();
+    
+    // Cleanup function
+    return () => {
+      mounted.current = false;
+    };
   }, [auth.user, auth.token, homePosts.posts]);
 
   // Update stats when auth user changes (after follow/unfollow)
@@ -60,7 +67,7 @@ const LeftSidebar = () => {
         following: auth.user.following?.length || 0
       }));
     }
-  }, [auth.user.followers, auth.user.following]);
+  }, [auth.user]);
 
   // Format number for display
   const formatNumber = (num) => {

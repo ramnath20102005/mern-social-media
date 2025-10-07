@@ -23,5 +23,7 @@ router.delete("/message/:messageId", auth, messageCtrl.deleteMessage);
 router.post("/group-message", auth, messageCtrl.createGroupMessage);
 router.get("/group-messages/:groupId", auth, messageCtrl.getGroupMessages);
 router.patch("/group-message/:messageId/read", auth, messageCtrl.markGroupMessageRead);
+router.delete("/group-messages/:messageId", auth, messageCtrl.deleteGroupMessage);
+router.post("/group-messages/delete-multiple", auth, messageCtrl.deleteMultipleGroupMessages);
 
 module.exports = router;

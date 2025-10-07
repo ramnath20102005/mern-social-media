@@ -86,24 +86,14 @@ const LeftSide = () => {
                activeTab === 'groups' ? 'Groups' : 'Invites'}
             </h2>
             <div className="sidebar-header-actions">
-              {activeTab === 'chats' && (
-                <button 
-                  className="sidebar-action-btn quick-group-btn"
-                  onClick={() => setShowQuickGroupCreate(true)}
-                  title="Quick Group"
-                >
-                  <i className="fas fa-users-plus"></i>
-                </button>
-              )}
-              {activeTab === 'groups' && (
-                <button 
-                  className="sidebar-action-btn create-group-btn"
-                  onClick={() => setShowCreateGroup(true)}
-                  title="Create Group"
-                >
-                  <i className="fas fa-users-plus"></i>
-                </button>
-              )}
+              {/* Always show New Group button - more prominent */}
+              <button 
+                className="sidebar-action-btn new-group-btn"
+                onClick={() => setShowCreateGroup(true)}
+                title="Create New Group"
+              >
+                <i className="fas fa-plus"></i>
+              </button>
               <button 
                 className="sidebar-action-btn"
                 onClick={() => setShowSearch(!showSearch)}

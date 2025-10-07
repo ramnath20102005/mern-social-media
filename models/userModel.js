@@ -110,9 +110,24 @@ const userSchema = new Schema(
       default: true
     },
     twoFactorAuth: {
-      type: Boolean,
-      default: false
-    }
+        type: Boolean,
+        default: false
+    },
+    notifications: [{
+        id: String,
+        type: String,
+        title: String,
+        message: String,
+        data: Schema.Types.Mixed,
+        timestamp: {
+            type: Date,
+            default: Date.now
+        },
+        read: {
+            type: Boolean,
+            default: false
+        }
+    }]
   },
   {
     timestamps: true,

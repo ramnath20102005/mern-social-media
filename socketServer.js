@@ -21,11 +21,28 @@ const SocketServer = (socket) => {
   });
 
   socket.on("joinAdmin", (id) => {
+    // Remove existing admin if already connected
+    admins = admins.filter(admin => admin.id !== id);
     admins.push({ id, socketId: socket.id });
     const admin = admins.find((admin) => admin.id === id);
     let totalActiveUsers = users.length;
 
     socket.to(`${admin.socketId}`).emit("activeUsers", totalActiveUsers);
+  });
+
+  socket.on("leaveUser", (id) => {
+    const leavingUser = users.find(user => user.id === id);
+    users = users.filter(user => user.id !== id);
+    
+    if (leavingUser) {
+      console.log(`👋 User ${id} left intentionally. Total users: ${users.length}`);
+      
+      // Broadcast updated online users list
+      const onlineUserIds = users.map(u => u.id);
+      users.forEach(user => {
+        socket.to(user.socketId).emit('onlineUsersUpdate', onlineUserIds);
+      });
+    }
   });
 
   socket.on("disconnect", () => {
@@ -292,17 +309,18 @@ const SocketServer = (socket) => {
     console.log(`👋 User ${userId} left conversation ${conversationId}`);
   });
 
-  // typing indicators
-  socket.on('typing', ({ from, to }) => {
-    const user = users.find(u => u.id === to);
+  // Handle typing in conversations
+  socket.on('typing', data => {
+    const user = users.find(u => u.id === data.to);
     if (user) {
-      socket.to(`${user.socketId}`).emit('typingToClient', { from });
+      socket.to(`${user.socketId}`).emit('typing', data);
     }
   });
 
-  socket.on('stopTyping', ({ from, to }) => {
-    const user = users.find(u => u.id === to);
+  socket.on('stopTyping', data => {
+    const user = users.find(u => u.id === data.to);
     if (user) {
+      socket.to(`${user.socketId}`).emit('stopTyping', data);
       socket.to(`${user.socketId}`).emit('stopTypingToClient', { from });
     }
   });
@@ -451,6 +469,57 @@ const SocketServer = (socket) => {
   });
 
   // Group typing indicators
+  socket.on('groupTyping', (data) => {
+    socket.to(`group_${data.groupId}`).emit('groupTyping', {
+      userId: data.from,
+      groupId: data.groupId,
+      user: socket.user
+    });
+  });
+
+  socket.on('stopGroupTyping', (data) => {
+    socket.to(`group_${data.groupId}`).emit('stopGroupTyping', {
+      userId: data.from,
+      groupId: data.groupId
+    });
+  });
+
+  // Group member events
+  socket.on('memberJoined', (data) => {
+    socket.to(`group_${data.groupId}`).emit('memberJoined', data);
+  });
+
+  socket.on('memberLeft', (data) => {
+    socket.to(`group_${data.groupId}`).emit('memberLeft', data);
+  });
+
+  socket.on('memberPromoted', (data) => {
+    socket.to(`group_${data.groupId}`).emit('memberPromoted', data);
+  });
+
+  socket.on('memberRemoved', (data) => {
+    socket.to(`group_${data.groupId}`).emit('memberRemoved', data);
+  });
+
+  // Group settings events
+  socket.on('groupUpdated', (data) => {
+    socket.to(`group_${data.groupId}`).emit('groupUpdated', data);
+  });
+
+  socket.on('groupExpiryExtended', (data) => {
+    socket.to(`group_${data.groupId}`).emit('groupExpiryExtended', data);
+  });
+
+  socket.on('groupExpired', (data) => {
+    socket.to(`group_${data.groupId}`).emit('groupExpired', data);
+  });
+
+  // Group avatar events
+  socket.on('groupAvatarUpdated', (data) => {
+    socket.to(`group_${data.groupId}`).emit('groupAvatarUpdated', data);
+  });
+
+  // Group typing indicators
   socket.on('groupTyping', ({ from, groupId }) => {
     socket.to(`group_${groupId}`).emit('groupTypingToClient', { from, groupId });
   });
@@ -462,6 +531,47 @@ const SocketServer = (socket) => {
   // Group notifications (member joined, left, etc.)
   socket.on('groupNotification', ({ groupId, notification }) => {
     socket.to(`group_${groupId}`).emit('groupNotificationToClient', notification);
+  });
+
+  // Group message deletion
+  socket.on('deleteGroupMessage', ({ messageId, groupId, userId }) => {
+    console.log(`🗑️ User ${userId} deleted message ${messageId} in group ${groupId}`);
+    
+    // Broadcast message deletion to all group members
+    socket.to(`group_${groupId}`).emit('groupMessageDeleted', {
+      messageId,
+      groupId,
+      deletedBy: userId,
+      deletedAt: new Date()
+    });
+    
+    // Also send to the sender for confirmation
+    socket.emit('groupMessageDeleted', {
+      messageId,
+      groupId,
+      deletedBy: userId,
+      deletedAt: new Date()
+    });
+  });
+
+  socket.on('deleteMultipleGroupMessages', ({ messageIds, groupId, userId }) => {
+    console.log(`🗑️ User ${userId} deleted ${messageIds.length} messages in group ${groupId}`);
+    
+    // Broadcast multiple message deletion to all group members
+    socket.to(`group_${groupId}`).emit('multipleGroupMessagesDeleted', {
+      messageIds,
+      groupId,
+      deletedBy: userId,
+      deletedAt: new Date()
+    });
+    
+    // Also send to the sender for confirmation
+    socket.emit('multipleGroupMessagesDeleted', {
+      messageIds,
+      groupId,
+      deletedBy: userId,
+      deletedAt: new Date()
+    });
   });
   //#endregion
 

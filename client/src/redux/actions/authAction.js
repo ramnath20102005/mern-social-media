@@ -22,6 +22,10 @@ export const login = (data) => async (dispatch) => {
     });
 
     localStorage.setItem("firstLogin", true);
+    localStorage.setItem("userLoggedIn", JSON.stringify({
+      timestamp: Date.now(),
+      userId: res.data.user._id
+    }));
     // Don't show success message for login - just clear any existing alerts
     dispatch({ type: GLOBALTYPES.ALERT, payload: {} });
   } catch (err) {
@@ -103,44 +107,46 @@ export const adminLogin = (data) => async (dispatch) => {
 };
 
 export const refreshToken = () => async (dispatch) => {
-  const firstLogin = localStorage.getItem("firstLogin");
-  if (firstLogin) {
-    try {
-      const res = await postDataAPI("refresh_token");
-      
-      dispatch({
-        type: GLOBALTYPES.AUTH,
-        payload: { token: res.data.access_token, user: res.data.user },
-      });
+  try {
+    // Always try to refresh token, regardless of localStorage
+    const res = await postDataAPI("refresh_token");
+    
+    dispatch({
+      type: GLOBALTYPES.AUTH,
+      payload: { token: res.data.access_token, user: res.data.user },
+    });
 
-      dispatch({
-        type: GLOBALTYPES.USER_TYPE,
-        payload: res.data.user.role,
-      });
+    dispatch({
+      type: GLOBALTYPES.USER_TYPE,
+      payload: res.data.user.role,
+    });
 
-      dispatch({ type: GLOBALTYPES.ALERT, payload: {} });
-    } catch (err) {
-      console.log('Refresh token failed:', err.response?.data?.msg || 'Authentication failed');
-      
-      localStorage.removeItem("firstLogin");
-      
-      dispatch({
-        type: GLOBALTYPES.AUTH,
-        payload: {},
-      });
-      
-      dispatch({
-        type: GLOBALTYPES.USER_TYPE,
-        payload: null,
-      });
-      
-      dispatch({ type: GLOBALTYPES.ALERT, payload: {} });
-    }
-  } else {
+    // Set firstLogin flag on successful refresh
+    localStorage.setItem("firstLogin", true);
+    localStorage.setItem("userLoggedIn", JSON.stringify({
+      timestamp: Date.now(),
+      userId: res.data.user._id
+    }));
+    
+    dispatch({ type: GLOBALTYPES.ALERT, payload: {} });
+  } catch (err) {
+    console.log('Refresh token failed - user needs to login');
+    
+    // Clear any existing login state
+    localStorage.removeItem("firstLogin");
+    localStorage.removeItem("userLoggedIn");
+    
     dispatch({
       type: GLOBALTYPES.AUTH,
       payload: {},
     });
+    
+    dispatch({
+      type: GLOBALTYPES.USER_TYPE,
+      payload: null,
+    });
+    
+    // Don't show error alert for refresh token failures on page load
     dispatch({ type: GLOBALTYPES.ALERT, payload: {} });
   }
 };
@@ -199,8 +205,20 @@ export const registerAdmin = (data) => async (dispatch) => {
 export const logout = () => async (dispatch) => {
   try {
     localStorage.removeItem("firstLogin");
-
+    localStorage.removeItem("userLoggedIn");
     await postDataAPI("logout");
+    
+    // Clear auth state
+    dispatch({
+      type: GLOBALTYPES.AUTH,
+      payload: {},
+    });
+    
+    dispatch({
+      type: GLOBALTYPES.USER_TYPE,
+      payload: null,
+    });
+    
     window.location.href = "/";
   } catch (err) {
     dispatch({

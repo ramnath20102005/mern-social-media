@@ -77,22 +77,90 @@ const groupReducer = (state = initialState, action) => {
       const { groupId, message } = action.payload;
       const existingMessages = state.groupMessages[groupId] || [];
       
-      return {
-        ...state,
-        groupMessages: {
-          ...state.groupMessages,
-          [groupId]: [...existingMessages, message]
-        }
-      };
-
-    case GROUP_TYPES.GET_GROUP_MESSAGES:
-      const { groupId: gId, messages, page } = action.payload;
+      // Check if message already exists to prevent duplicates
+      const messageExists = existingMessages.some(msg => msg._id === message._id);
       
       return {
         ...state,
         groupMessages: {
           ...state.groupMessages,
-          [gId]: page === 1 ? messages : [...messages, ...(state.groupMessages[gId] || [])]
+          [groupId]: messageExists ? existingMessages : [...existingMessages, message]
+        }
+      };
+
+    case 'ADD_GROUP_MESSAGE':
+      const { groupId: gId, message: msg } = action.payload;
+      const currentMessages = state.groupMessages[gId] || [];
+      
+      // Check if message already exists to prevent duplicates
+      const msgExists = currentMessages.some(m => m._id === msg._id);
+      
+      return {
+        ...state,
+        groupMessages: {
+          ...state.groupMessages,
+          [gId]: msgExists ? currentMessages : [...currentMessages, msg]
+        }
+      };
+
+    case GROUP_TYPES.GET_GROUP_MESSAGES:
+      return {
+        ...state,
+        groupMessages: {
+          ...state.groupMessages,
+          [action.payload.groupId]: action.payload.page === 1 
+            ? action.payload.messages
+            : [...(state.groupMessages[action.payload.groupId] || []), ...action.payload.messages]
+        }
+      };
+
+    case GROUP_TYPES.EXTEND_GROUP_EXPIRY:
+      return {
+        ...state,
+        groups: state.groups.map(group => 
+          group._id === action.payload.groupId
+            ? { ...group, expiryDate: action.payload.newExpiryDate, isExpired: false }
+            : group
+        )
+      };
+
+    case GROUP_TYPES.UPLOAD_GROUP_AVATAR:
+      return {
+        ...state,
+        groups: state.groups.map(group => 
+          group._id === action.payload.groupId
+            ? { ...group, avatar: action.payload.avatar }
+            : group
+        )
+      };
+
+    case GROUP_TYPES.UPDATE_GROUP_SETTINGS:
+      return {
+        ...state,
+        groups: state.groups.map(group => 
+          group._id === action.payload.groupId
+            ? { ...group, settings: { ...group.settings, ...action.payload.settings } }
+            : group
+        )
+      };
+
+    case GROUP_TYPES.GET_GROUP_MEMBERS:
+      return {
+        ...state,
+        groupMembers: {
+          ...state.groupMembers,
+          [action.payload.groupId]: action.payload.members
+        }
+      };
+
+    case GROUP_TYPES.GET_GROUP_MEDIA:
+      return {
+        ...state,
+        groupMedia: {
+          ...state.groupMedia,
+          [action.payload.groupId]: action.payload.page === 1 
+            ? action.payload.media
+            : [...(state.groupMedia[action.payload.groupId] || []), ...action.payload.media]
         }
       };
 
@@ -123,6 +191,30 @@ const groupReducer = (state = initialState, action) => {
               ? { ...msg, messageStatus: status, error }
               : msg
           )
+        }
+      };
+
+    case GROUP_TYPES.DELETE_GROUP_MESSAGE:
+      const { groupId: dgId, messageId } = action.payload;
+      const messagesAfterDelete = state.groupMessages[dgId] || [];
+      
+      return {
+        ...state,
+        groupMessages: {
+          ...state.groupMessages,
+          [dgId]: messagesAfterDelete.filter(msg => msg._id !== messageId)
+        }
+      };
+
+    case GROUP_TYPES.DELETE_MULTIPLE_GROUP_MESSAGES:
+      const { groupId: dmgId, messageIds } = action.payload;
+      const messagesAfterMultiDelete = state.groupMessages[dmgId] || [];
+      
+      return {
+        ...state,
+        groupMessages: {
+          ...state.groupMessages,
+          [dmgId]: messagesAfterMultiDelete.filter(msg => !messageIds.includes(msg._id))
         }
       };
 

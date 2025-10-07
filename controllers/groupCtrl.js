@@ -570,6 +570,526 @@ const groupCtrl = {
     } catch (err) {
       return res.status(500).json({ msg: err.message });
     }
+  },
+
+  // Update group information
+  updateGroup: async (req, res) => {
+    try {
+      const { name, description } = req.body;
+      const groupId = req.params.id;
+
+      const group = await Groups.findById(groupId);
+      if (!group) {
+        return res.status(404).json({ msg: "Group not found" });
+      }
+
+      // Check if user is creator or admin
+      const isCreator = group.creator.toString() === req.user._id.toString();
+      const isAdmin = group.isAdmin(req.user._id);
+      
+      if (!isCreator && !isAdmin) {
+        return res.status(403).json({ msg: "Only admins can update group info" });
+      }
+
+      if (name && name.trim()) {
+        group.name = name.trim();
+      }
+      
+      if (description !== undefined) {
+        group.description = description.trim();
+      }
+
+      await group.save();
+
+      res.json({ 
+        msg: "Group updated successfully",
+        group: await group.populate('members.user', 'fullname username avatar')
+      });
+
+    } catch (err) {
+      return res.status(500).json({ msg: err.message });
+    }
+  },
+
+  // Extend group expiry
+  extendExpiry: async (req, res) => {
+    try {
+      const { hours } = req.body;
+      const groupId = req.params.id;
+
+      if (!hours || hours < 1) {
+        return res.status(400).json({ msg: "Valid hours required" });
+      }
+
+      const group = await Groups.findById(groupId);
+      if (!group) {
+        return res.status(404).json({ msg: "Group not found" });
+      }
+
+      // Check if user is creator or admin
+      const isCreator = group.creator.toString() === req.user._id.toString();
+      const isAdmin = group.isAdmin(req.user._id);
+      
+      if (!isCreator && !isAdmin) {
+        return res.status(403).json({ msg: "Only admins can extend expiry" });
+      }
+
+      // Extend expiry date
+      const currentExpiry = new Date(group.expiryDate);
+      const newExpiry = new Date(currentExpiry.getTime() + hours * 60 * 60 * 1000);
+      
+      group.expiryDate = newExpiry;
+      group.isExpired = false;
+      await group.save();
+
+      // Create system message
+      const systemMessage = new Messages({
+        conversation: group.conversation,
+        sender: req.user._id,
+        group: group._id,
+        isGroupMessage: true,
+        messageType: 'system',
+        systemMessageType: 'group_extended',
+        systemMessageData: {
+          extenderName: req.user.fullname,
+          hours: hours
+        },
+        text: `${req.user.fullname} extended group expiry by ${hours} hours`
+      });
+      await systemMessage.save();
+
+      res.json({ 
+        msg: "Group expiry extended successfully",
+        newExpiryDate: newExpiry
+      });
+
+    } catch (err) {
+      return res.status(500).json({ msg: err.message });
+    }
+  },
+
+  // Generate avatar for group
+  generateAvatar: async (req, res) => {
+    try {
+      const { groupName } = req.params;
+      
+      if (!groupName || !groupName.trim()) {
+        return res.status(400).json({ msg: "Group name is required" });
+      }
+
+      // Generate initials
+      const initials = groupName
+        .split(' ')
+        .map(word => word.charAt(0))
+        .join('')
+        .substring(0, 2)
+        .toUpperCase();
+
+      // Generate gradient colors based on group name hash
+      const gradients = [
+        ['#3B82F6', '#8B5CF6'], // blue-purple
+        ['#10B981', '#3B82F6'], // green-blue
+        ['#8B5CF6', '#EC4899'], // purple-pink
+        ['#F97316', '#EF4444'], // orange-red
+        ['#14B8A6', '#06B6D4'], // teal-cyan
+        ['#6366F1', '#8B5CF6'], // indigo-purple
+        ['#EC4899', '#F43F5E'], // pink-rose
+        ['#059669', '#14B8A6'], // emerald-teal
+        ['#D97706', '#F97316'], // amber-orange
+        ['#7C3AED', '#8B5CF6']  // violet-purple
+      ];
+
+      const hash = groupName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      const [color1, color2] = gradients[hash % gradients.length];
+
+      // Create SVG avatar
+      const svg = `
+        <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:${color1};stop-opacity:1" />
+              <stop offset="100%" style="stop-color:${color2};stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <circle cx="100" cy="100" r="100" fill="url(#grad)" />
+          <text x="100" y="120" font-family="Arial, sans-serif" font-size="60" font-weight="bold" 
+                text-anchor="middle" fill="white" text-shadow="0 2px 4px rgba(0,0,0,0.3)">${initials}</text>
+        </svg>
+      `;
+
+      res.setHeader('Content-Type', 'image/svg+xml');
+      res.send(svg);
+
+    } catch (err) {
+      return res.status(500).json({ msg: err.message });
+    }
+  },
+
+  // Upload group avatar
+  uploadAvatar: async (req, res) => {
+    try {
+      const groupId = req.params.id;
+      const { avatar } = req.body;
+
+      if (!avatar) {
+        return res.status(400).json({ msg: "Avatar image is required" });
+      }
+
+      const group = await Groups.findById(groupId);
+      if (!group) {
+        return res.status(404).json({ msg: "Group not found" });
+      }
+
+      // Check permissions
+      const isCreator = group.creator.toString() === req.user._id.toString();
+      const isAdmin = group.isAdmin(req.user._id);
+      
+      if (!isCreator && !isAdmin) {
+        return res.status(403).json({ msg: "Only admins can update group avatar" });
+      }
+
+      // Delete old avatar if exists
+      if (group.avatar) {
+        await imageDestroy(group.avatar);
+      }
+
+      // Upload new avatar
+      const uploadResult = await imageUpload(avatar);
+      
+      group.avatar = uploadResult.url;
+      await group.save();
+
+      res.json({ 
+        msg: "Avatar updated successfully",
+        avatar: uploadResult.url
+      });
+
+    } catch (err) {
+      return res.status(500).json({ msg: err.message });
+    }
+  },
+
+  // Delete group avatar
+  deleteAvatar: async (req, res) => {
+    try {
+      const groupId = req.params.id;
+
+      const group = await Groups.findById(groupId);
+      if (!group) {
+        return res.status(404).json({ msg: "Group not found" });
+      }
+
+      // Check permissions
+      const isCreator = group.creator.toString() === req.user._id.toString();
+      const isAdmin = group.isAdmin(req.user._id);
+      
+      if (!isCreator && !isAdmin) {
+        return res.status(403).json({ msg: "Only admins can delete group avatar" });
+      }
+
+      if (group.avatar) {
+        await imageDestroy(group.avatar);
+        group.avatar = undefined;
+        await group.save();
+      }
+
+      res.json({ msg: "Avatar deleted successfully" });
+
+    } catch (err) {
+      return res.status(500).json({ msg: err.message });
+    }
+  },
+
+  // Remove member from group
+  removeMember: async (req, res) => {
+    try {
+      const { id: groupId, userId } = req.params;
+
+      const group = await Groups.findById(groupId).populate('members.user');
+      if (!group) {
+        return res.status(404).json({ msg: "Group not found" });
+      }
+
+      // Check if requester is creator or admin
+      const isCreator = group.creator.toString() === req.user._id.toString();
+      const isAdmin = group.isAdmin(req.user._id);
+      
+      if (!isCreator && !isAdmin) {
+        return res.status(403).json({ msg: "Only admins can remove members" });
+      }
+
+      // Cannot remove creator
+      if (group.creator.toString() === userId) {
+        return res.status(400).json({ msg: "Cannot remove group creator" });
+      }
+
+      // Find and remove member
+      const memberIndex = group.members.findIndex(m => m.user._id.toString() === userId);
+      if (memberIndex === -1) {
+        return res.status(404).json({ msg: "Member not found in group" });
+      }
+
+      const removedMember = group.members[memberIndex];
+      group.members.splice(memberIndex, 1);
+
+      // Remove from conversation
+      const conversation = await Conversations.findById(group.conversation);
+      conversation.recipients = conversation.recipients.filter(
+        recipient => recipient.toString() !== userId
+      );
+
+      await Promise.all([group.save(), conversation.save()]);
+
+      // Create system message
+      const systemMessage = new Messages({
+        conversation: group.conversation,
+        sender: req.user._id,
+        group: group._id,
+        isGroupMessage: true,
+        messageType: 'system',
+        systemMessageType: 'member_removed',
+        systemMessageData: {
+          removedMemberName: removedMember.user.fullname,
+          removerName: req.user.fullname
+        },
+        text: `${removedMember.user.fullname} was removed by ${req.user.fullname}`
+      });
+      await systemMessage.save();
+
+      res.json({ msg: "Member removed successfully" });
+
+    } catch (err) {
+      return res.status(500).json({ msg: err.message });
+    }
+  },
+
+  // Promote member to admin
+  promoteMember: async (req, res) => {
+    try {
+      const { id: groupId, userId } = req.params;
+
+      const group = await Groups.findById(groupId).populate('members.user');
+      if (!group) {
+        return res.status(404).json({ msg: "Group not found" });
+      }
+
+      // Only creator can promote
+      const isCreator = group.creator.toString() === req.user._id.toString();
+      if (!isCreator) {
+        return res.status(403).json({ msg: "Only group creator can promote members" });
+      }
+
+      // Find member
+      const member = group.members.find(m => m.user._id.toString() === userId);
+      if (!member) {
+        return res.status(404).json({ msg: "Member not found in group" });
+      }
+
+      if (member.role === 'admin') {
+        return res.status(400).json({ msg: "Member is already an admin" });
+      }
+
+      member.role = 'admin';
+      await group.save();
+
+      // Create system message
+      const systemMessage = new Messages({
+        conversation: group.conversation,
+        sender: req.user._id,
+        group: group._id,
+        isGroupMessage: true,
+        messageType: 'system',
+        systemMessageType: 'member_promoted',
+        systemMessageData: {
+          promotedMemberName: member.user.fullname,
+          promoterName: req.user.fullname
+        },
+        text: `${member.user.fullname} was promoted to admin by ${req.user.fullname}`
+      });
+      await systemMessage.save();
+
+      res.json({ msg: "Member promoted to admin successfully" });
+
+    } catch (err) {
+      return res.status(500).json({ msg: err.message });
+    }
+  },
+
+  // Demote admin to member
+  demoteMember: async (req, res) => {
+    try {
+      const { id: groupId, userId } = req.params;
+
+      const group = await Groups.findById(groupId).populate('members.user');
+      if (!group) {
+        return res.status(404).json({ msg: "Group not found" });
+      }
+
+      // Only creator can demote
+      const isCreator = group.creator.toString() === req.user._id.toString();
+      if (!isCreator) {
+        return res.status(403).json({ msg: "Only group creator can demote admins" });
+      }
+
+      // Cannot demote creator
+      if (group.creator.toString() === userId) {
+        return res.status(400).json({ msg: "Cannot demote group creator" });
+      }
+
+      // Find member
+      const member = group.members.find(m => m.user._id.toString() === userId);
+      if (!member) {
+        return res.status(404).json({ msg: "Member not found in group" });
+      }
+
+      if (member.role === 'member') {
+        return res.status(400).json({ msg: "Member is already a regular member" });
+      }
+
+      member.role = 'member';
+      await group.save();
+
+      // Create system message
+      const systemMessage = new Messages({
+        conversation: group.conversation,
+        sender: req.user._id,
+        group: group._id,
+        isGroupMessage: true,
+        messageType: 'system',
+        systemMessageType: 'member_demoted',
+        systemMessageData: {
+          demotedMemberName: member.user.fullname,
+          demoterName: req.user.fullname
+        },
+        text: `${member.user.fullname} was demoted to member by ${req.user.fullname}`
+      });
+      await systemMessage.save();
+
+      res.json({ msg: "Admin demoted to member successfully" });
+
+    } catch (err) {
+      return res.status(500).json({ msg: err.message });
+    }
+  },
+
+  // Update group settings
+  updateSettings: async (req, res) => {
+    try {
+      const groupId = req.params.id;
+      const { onlyAdminsCanMessage, allowMemberInvites } = req.body;
+
+      const group = await Groups.findById(groupId);
+      if (!group) {
+        return res.status(404).json({ msg: "Group not found" });
+      }
+
+      // Check permissions
+      const isCreator = group.creator.toString() === req.user._id.toString();
+      const isAdmin = group.isAdmin(req.user._id);
+      
+      if (!isCreator && !isAdmin) {
+        return res.status(403).json({ msg: "Only admins can update group settings" });
+      }
+
+      if (typeof onlyAdminsCanMessage === 'boolean') {
+        group.settings.onlyAdminsCanMessage = onlyAdminsCanMessage;
+      }
+      
+      if (typeof allowMemberInvites === 'boolean') {
+        group.settings.allowMemberInvites = allowMemberInvites;
+      }
+
+      await group.save();
+
+      res.json({ 
+        msg: "Group settings updated successfully",
+        settings: group.settings
+      });
+
+    } catch (err) {
+      return res.status(500).json({ msg: err.message });
+    }
+  },
+
+  // Get group members
+  getMembers: async (req, res) => {
+    try {
+      const groupId = req.params.id;
+
+      const group = await Groups.findById(groupId)
+        .populate('members.user', 'fullname username avatar')
+        .populate('creator', 'fullname username avatar');
+        
+      if (!group) {
+        return res.status(404).json({ msg: "Group not found" });
+      }
+
+      // Check if user is member
+      const isMember = group.isMember(req.user._id);
+      const isCreator = group.creator._id.toString() === req.user._id.toString();
+      
+      if (!isMember && !isCreator) {
+        return res.status(403).json({ msg: "Access denied" });
+      }
+
+      res.json({
+        creator: group.creator,
+        members: group.members,
+        totalMembers: group.members.length + 1 // +1 for creator
+      });
+
+    } catch (err) {
+      return res.status(500).json({ msg: err.message });
+    }
+  },
+
+  // Get group media
+  getGroupMedia: async (req, res) => {
+    try {
+      const groupId = req.params.id;
+      const { page = 1, limit = 20 } = req.query;
+
+      const group = await Groups.findById(groupId);
+      if (!group) {
+        return res.status(404).json({ msg: "Group not found" });
+      }
+
+      // Check if user is member
+      const isMember = group.isMember(req.user._id);
+      const isCreator = group.creator.toString() === req.user._id.toString();
+      
+      if (!isMember && !isCreator) {
+        return res.status(403).json({ msg: "Access denied" });
+      }
+
+      // Get messages with media
+      const messages = await Messages.find({
+        group: groupId,
+        isDeleted: false,
+        media: { $exists: true, $ne: [] }
+      })
+      .populate('sender', 'fullname username avatar')
+      .sort({ createdAt: -1 })
+      .limit(limit * page)
+      .skip((page - 1) * limit);
+
+      const mediaItems = messages.map(msg => ({
+        _id: msg._id,
+        sender: msg.sender,
+        media: msg.media,
+        createdAt: msg.createdAt,
+        text: msg.text
+      }));
+
+      res.json({
+        media: mediaItems,
+        currentPage: page,
+        totalPages: Math.ceil(messages.length / limit)
+      });
+
+    } catch (err) {
+      return res.status(500).json({ msg: err.message });
+    }
   }
 };
 

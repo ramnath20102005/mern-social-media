@@ -13,6 +13,7 @@ const StoriesBar = () => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const fileRef = useRef();
+  const mounted = useRef(true);
 
   const fetchStories = async () => {
     try {
@@ -20,12 +21,20 @@ const StoriesBar = () => {
       console.log('Fetching stories...');
       const res = await getDataAPI('stories', auth.token);
       console.log('Stories response:', res.data);
-      setStories(res.data.stories || []);
+      
+      // Check if component is still mounted before setting state
+      if (mounted.current) {
+        setStories(res.data.stories || []);
+      }
     } catch (err) {
       console.error('Error fetching stories:', err);
-      dispatch({ type: GLOBALTYPES.ALERT, payload: { error: err.response?.data?.msg || 'Failed to load stories' } });
+      if (mounted.current) {
+        dispatch({ type: GLOBALTYPES.ALERT, payload: { error: err.response?.data?.msg || 'Failed to load stories' } });
+      }
     } finally {
-      setLoading(false);
+      if (mounted.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -107,6 +116,11 @@ const StoriesBar = () => {
 
   useEffect(() => {
     if (auth.token) fetchStories();
+    
+    // Cleanup function to prevent memory leaks
+    return () => {
+      mounted.current = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.token]);
 

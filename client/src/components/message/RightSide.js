@@ -1,33 +1,30 @@
-import React, { useEffect, useState, useRef } from 'react';
-import UserCard from "../UserCard";
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useState, useEffect, useRef } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import MsgDisplay from './MsgDisplay';
-import Icons from "../Icons";
 import { GLOBALTYPES } from '../../redux/actions/globalTypes';
-import { imageShow, videoShow } from '../../utils/mediaShow';
 import { imageUpload } from '../../utils/imageUpload';
 import { addMessage, getMessages, MESSAGE_TYPES } from '../../redux/actions/messageAction';
 import LoadIcon from '../../images/loading.gif';
 
 const RightSide = () => {
-    const { auth, message, theme, socket } = useSelector(state => state);
-    const dispatch = useDispatch();
-    const [user, setUser] = useState([]);
-    const [text, setText] = useState('');
-    const [page, setPage] = useState(0);
-    const [data, setData] = useState([]);
-    const { id } = useParams();
-    const [media, setMedia] = useState([]);
-    const [loadMedia, setLoadMedia] = useState(false);
-    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-    const [showMessageSearch, setShowMessageSearch] = useState(false);
-    const [messageSearchQuery, setMessageSearchQuery] = useState('');
-    const [searchResults, setSearchResults] = useState([]);
-    const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
+  const { auth, message, theme, socket } = useSelector(state => state);
+  const dispatch = useDispatch();
+  const [user, setUser] = useState({});
+  const [text, setText] = useState('');
+  const [page, setPage] = useState(0);
+  const [data, setData] = useState([]);
+  const { id } = useParams();
+  const [media, setMedia] = useState([]);
+  const [loadMedia, setLoadMedia] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showMessageSearch, setShowMessageSearch] = useState(false);
+  const [messageSearchQuery, setMessageSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [currentSearchIndex, setCurrentSearchIndex] = useState(0);
 
-    const refDisplay = useRef();
-    const pageEnd = useRef();
+  const refDisplay = useRef();
+  const pageEnd = useRef();
 
     useEffect(() => {
       if (id) {
@@ -46,17 +43,22 @@ const RightSide = () => {
       
       const newData = message.data.filter(
         (item) => {
-          const isMyMessage = item.sender._id === auth.user._id && item.recipient._id === id;
-          const isTheirMessage = item.sender._id === id && item.recipient._id === auth.user._id;
-          const isMyMessageAlt = item.sender === auth.user._id && item.recipient === id;
-          const isTheirMessageAlt = item.sender === id && item.recipient === auth.user._id;
+          // Handle both object and string sender/recipient IDs
+          const senderId = typeof item.sender === 'object' ? item.sender._id : item.sender;
+          const recipientId = typeof item.recipient === 'object' ? item.recipient._id : item.recipient;
           
-          return isMyMessage || isTheirMessage || isMyMessageAlt || isTheirMessageAlt;
+          const isMyMessage = senderId === auth.user._id && recipientId === id;
+          const isTheirMessage = senderId === id && recipientId === auth.user._id;
+          
+          return isMyMessage || isTheirMessage;
         }
       );
       
-      console.log('Filtered messages:', newData);
-      setData(newData);
+      // Sort messages by creation date to ensure proper order
+      const sortedData = newData.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      
+      console.log('Filtered and sorted messages:', sortedData);
+      setData(sortedData);
     }, [message.data, auth.user._id, id]);
 
     useEffect(() => {
@@ -65,6 +67,47 @@ const RightSide = () => {
         setUser(newUser);
       }
     }, [message.users, id]);
+
+    // Socket event listeners for real-time messaging
+    useEffect(() => {
+      if (socket) {
+        // Listen for incoming messages
+        const handleAddMessage = (msg) => {
+          console.log('Received message via socket:', msg);
+          dispatch({
+            type: MESSAGE_TYPES.ADD_MESSAGE,
+            payload: {
+              ...msg,
+              messageStatus: 'delivered'
+            }
+          });
+        };
+
+        // Listen for typing indicators
+        const handleTyping = (data) => {
+          if (data.from === id) {
+            dispatch({ type: MESSAGE_TYPES.TYPING_START, payload: data.from });
+          }
+        };
+
+        const handleStopTyping = (data) => {
+          if (data.from === id) {
+            dispatch({ type: MESSAGE_TYPES.TYPING_STOP, payload: data.from });
+          }
+        };
+
+        socket.on('addMessageToClient', handleAddMessage);
+        socket.on('typing', handleTyping);
+        socket.on('stopTyping', handleStopTyping);
+
+        // Cleanup listeners
+        return () => {
+          socket.off('addMessageToClient', handleAddMessage);
+          socket.off('typing', handleTyping);
+          socket.off('stopTyping', handleStopTyping);
+        };
+      }
+    }, [socket, id, dispatch]);
 
     const handleChangeMedia = (e) => {
       const files = [...e.target.files];
@@ -250,20 +293,33 @@ const RightSide = () => {
       }
     }, [message.resultData, page, id, auth, dispatch]);
 
+    // Auto-scroll to bottom when new messages arrive
     useEffect(() => {
-      if (refDisplay.current) {
+      if (refDisplay.current && data.length > 0) {
         refDisplay.current.scrollIntoView({
-          behaviour: "smooth",
+          behavior: "smooth",
           block: "end",
         });
       }
-    }, [text])
+    }, [data.length]);
+
+    // Scroll to bottom when component mounts or conversation changes
+    useEffect(() => {
+      if (refDisplay.current) {
+        setTimeout(() => {
+          refDisplay.current.scrollIntoView({
+            behavior: "smooth",
+            block: "end",
+          });
+        }, 100);
+      }
+    }, [id]);
 
     return (
       <div className="whatsapp-chat-container">
         {/* Chat Header */}
         <div className="whatsapp-chat-header">
-          {user.length !== 0 ? (
+          {user && user._id ? (
             <div className="chat-header-content">
               <div className="chat-user-info">
                 <div className="chat-avatar-container">
@@ -376,18 +432,25 @@ const RightSide = () => {
             ) : (
               <div className="messages-list" ref={refDisplay}>
                 {data.map((msg, index) => {
+                  // Fix sender ID comparison
+                  const senderId = typeof msg.sender === 'object' ? msg.sender._id : msg.sender;
+                  const isSentByMe = senderId === auth.user._id;
+                  
                   console.log('Rendering message:', msg);
-                  console.log('Sender:', msg.sender, 'Auth user:', auth.user._id);
-                  console.log('Is sent message:', (msg.sender._id || msg.sender) === auth.user._id);
+                  console.log('Sender ID:', senderId, 'Auth user:', auth.user._id);
+                  console.log('Is sent message:', isSentByMe);
+                  
                   return (
-                  <div key={index} className={`message-wrapper ${(msg.sender._id || msg.sender) === auth.user._id ? 'sent' : 'received'}`}>
+                  <div key={index} className={`message-wrapper ${isSentByMe ? 'sent' : 'received'}`}>
                     <div className="message-bubble">
-                      <MsgDisplay user={(msg.sender._id || msg.sender) === auth.user._id ? auth.user : user} msg={msg} theme={theme} />
+                      <div className="message-content">
+                        <MsgDisplay user={isSentByMe ? auth.user : user} msg={msg} theme={theme} />
+                      </div>
                       <div className="message-meta">
                         <span className="message-time">
                           {new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                         </span>
-                        {(msg.sender._id || msg.sender) === auth.user._id && (
+                        {isSentByMe && (
                           <div className="message-status">
                             <i className={`fas fa-check${msg.messageStatus === 'read' ? '-double status-read' : msg.messageStatus === 'delivered' ? '-double status-delivered' : ' status-sent'}`}></i>
                           </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import Avatar from '../Avatar';
@@ -8,6 +8,7 @@ import { getDataAPI } from '../../utils/fetchData';
 const RightSidebar = () => {
   const { auth, suggestions, socket, online = { users: [] } } = useSelector(state => state);
   const dispatch = useDispatch();
+  const mounted = useRef(true);
   const [followingUsers, setFollowingUsers] = useState(new Set());
   const [topFollowers, setTopFollowers] = useState([]);
 
@@ -16,7 +17,7 @@ const RightSidebar = () => {
     if (auth.user && auth.user.following) {
       setFollowingUsers(new Set(auth.user.following));
     }
-  }, [auth.user.following]);
+  }, [auth.user]);
 
   // Random last seen generator
   const getRandomLastSeen = () => {
@@ -43,7 +44,9 @@ const RightSidebar = () => {
                 isOnline: online.users.includes(result.data.user._id), // Real online status
                 lastSeen: getRandomLastSeen()
               }));
-            setTopFollowers(validFollowers);
+            if (mounted.current) {
+              setTopFollowers(validFollowers);
+            }
           }
         } catch (error) {
           console.error('Error fetching top followers:', error);
@@ -52,18 +55,27 @@ const RightSidebar = () => {
     };
 
     fetchTopFollowers();
-  }, [auth.user.followers, auth.token, online.users]);
+    
+    // Cleanup function
+    return () => {
+      mounted.current = false;
+    };
+  }, [auth.user, auth.token, online.users]);
 
   const handleFollow = (user) => {
     if (followingUsers.has(user._id)) {
-      setFollowingUsers(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(user._id);
-        return newSet;
-      });
+      if (mounted.current) {
+        setFollowingUsers(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(user._id);
+          return newSet;
+        });
+      }
       dispatch(unfollow({ users: suggestions.users, user, auth, socket }));
     } else {
-      setFollowingUsers(prev => new Set(prev).add(user._id));
+      if (mounted.current) {
+        setFollowingUsers(prev => new Set(prev).add(user._id));
+      }
       dispatch(follow({ users: suggestions.users, user, auth, socket }));
     }
   };

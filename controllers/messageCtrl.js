@@ -563,6 +563,138 @@ const messageCtrl = {
     } catch (err) {
       return res.status(500).json({ msg: err.message });
     }
+  },
+
+  // Delete single group message
+  deleteGroupMessage: async (req, res) => {
+    try {
+      const { messageId } = req.params;
+      console.log('🗑️ DELETE request received for message:', messageId);
+      console.log('👤 User requesting delete:', req.user._id, req.user.username);
+      console.log('🔍 Request URL:', req.originalUrl);
+      console.log('🔍 Request method:', req.method);
+      
+      // Find the message
+      const message = await Messages.findById(messageId);
+      console.log('📄 Message found:', !!message);
+      console.log('🏷️ Is group message:', message?.isGroupMessage);
+      console.log('👤 Message sender:', message?.sender);
+      
+      if (!message || !message.isGroupMessage) {
+        console.log('❌ Message not found or not a group message');
+        return res.status(404).json({ msg: "Group message not found" });
+      }
+
+      // Check if user is the sender or group admin/creator
+      const group = await Groups.findById(message.group);
+      if (!group) {
+        return res.status(404).json({ msg: "Group not found" });
+      }
+
+      const isMessageSender = message.sender.toString() === req.user._id.toString();
+      const isGroupCreator = group.creator.toString() === req.user._id.toString();
+      const isGroupAdmin = group.members.some(
+        member => member.user.toString() === req.user._id.toString() && member.role === 'admin'
+      );
+
+      console.log('🔐 Permission check:');
+      console.log('   - Is message sender:', isMessageSender);
+      console.log('   - Is group creator:', isGroupCreator);
+      console.log('   - Is group admin:', isGroupAdmin);
+
+      if (!isMessageSender && !isGroupCreator && !isGroupAdmin) {
+        console.log('❌ Permission denied for user:', req.user._id);
+        return res.status(403).json({ msg: "You can only delete your own messages or you must be a group admin" });
+      }
+
+      console.log('✅ Permission granted, proceeding with soft delete');
+      
+      // Soft delete the message
+      message.isDeleted = true;
+      message.deletedAt = new Date();
+      message.deletedBy = req.user._id;
+      await message.save();
+
+      console.log('✅ Message soft deleted successfully');
+      res.json({ msg: "Message deleted successfully" });
+
+    } catch (err) {
+      console.error('deleteGroupMessage error:', err);
+      return res.status(500).json({ msg: err.message });
+    }
+  },
+
+  // Delete multiple group messages
+  deleteMultipleGroupMessages: async (req, res) => {
+    try {
+      const { messageIds, groupId } = req.body;
+      
+      if (!messageIds || !Array.isArray(messageIds) || messageIds.length === 0) {
+        return res.status(400).json({ msg: "Message IDs are required" });
+      }
+
+      if (!groupId) {
+        return res.status(400).json({ msg: "Group ID is required" });
+      }
+
+      // Find the group
+      const group = await Groups.findById(groupId);
+      if (!group) {
+        return res.status(404).json({ msg: "Group not found" });
+      }
+
+      // Check if user is group creator or admin
+      const isGroupCreator = group.creator.toString() === req.user._id.toString();
+      const isGroupAdmin = group.members.some(
+        member => member.user.toString() === req.user._id.toString() && member.role === 'admin'
+      );
+
+      // Find all messages
+      const messages = await Messages.find({
+        _id: { $in: messageIds },
+        group: groupId,
+        isGroupMessage: true,
+        isDeleted: false
+      });
+
+      if (messages.length === 0) {
+        return res.status(404).json({ msg: "No messages found to delete" });
+      }
+
+      // Check permissions for each message
+      const messagesToDelete = [];
+      for (const message of messages) {
+        const isMessageSender = message.sender.toString() === req.user._id.toString();
+        
+        if (isMessageSender || isGroupCreator || isGroupAdmin) {
+          messagesToDelete.push(message);
+        }
+      }
+
+      if (messagesToDelete.length === 0) {
+        return res.status(403).json({ msg: "You don't have permission to delete any of these messages" });
+      }
+
+      // Soft delete all permitted messages
+      const updatePromises = messagesToDelete.map(message => {
+        message.isDeleted = true;
+        message.deletedAt = new Date();
+        message.deletedBy = req.user._id;
+        return message.save();
+      });
+
+      await Promise.all(updatePromises);
+
+      res.json({ 
+        msg: `${messagesToDelete.length} message${messagesToDelete.length > 1 ? 's' : ''} deleted successfully`,
+        deletedCount: messagesToDelete.length,
+        totalRequested: messageIds.length
+      });
+
+    } catch (err) {
+      console.error('deleteMultipleGroupMessages error:', err);
+      return res.status(500).json({ msg: err.message });
+    }
   }
 };
 

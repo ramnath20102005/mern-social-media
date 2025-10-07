@@ -20,7 +20,11 @@ const messageSchema = new Schema(
     // System messages for group events
     systemMessageType: {
       type: String,
-      enum: ['member_joined', 'member_left', 'group_created', 'group_expired', 'member_promoted', 'member_demoted']
+      enum: [
+        'member_joined', 'member_left', 'group_created', 'group_expired', 
+        'member_promoted', 'member_demoted', 'member_removed', 'group_extended',
+        'settings_changed', 'avatar_updated', 'expiry_warning'
+      ]
     },
     systemMessageData: {
       type: Schema.Types.Mixed
@@ -48,10 +52,15 @@ const messageSchema = new Schema(
       type: Boolean,
       default: false
     },
-    deletedBy: [{
-      user: { type: mongoose.Types.ObjectId, ref: "user" },
-      deletedAt: { type: Date, default: Date.now }
-    }],
+    deletedAt: {
+      type: Date,
+      default: null
+    },
+    deletedBy: {
+      type: mongoose.Types.ObjectId,
+      ref: "user",
+      default: null
+    },
     // Reply/thread support
     replyTo: { type: mongoose.Types.ObjectId, ref: "message" },
     isEdited: { type: Boolean, default: false },

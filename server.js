@@ -1,12 +1,13 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') })
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const cookieParser = require('cookie-parser');
-const SocketServer = require('./socketServer');
+const express = require('express')
+const mongoose = require('mongoose')
+const cors = require('cors')
+const cookieParser = require('cookie-parser')
+const SocketServer = require('./socketServer')
+const { ExpressPeerServer } = require('peer')
+const { scheduleExpiryChecks, scheduleCleanup } = require('./utils/groupExpiryScheduler')
 
-// Suppress circular dependency warnings
 process.removeAllListeners('warning');
 
 // Allow your hosted frontend origin (Render) and localhost during development
@@ -70,6 +71,7 @@ app.use('/api', require('./routes/seedRouter'));
 app.use('/api', require('./routes/storyRouter'));
 app.use('/api/settings', require('./routes/settingsRouter'));
 app.use('/api/groups', require('./routes/groupRouter'));
+app.use('/api/notifications', require('./routes/notificationRouter'));
 //#endregion
 
 // Health check
@@ -93,6 +95,11 @@ mongoose.connect(URI, {
 }, err => {
     if(err) throw err;
     console.log("Database Connected!!")
+    
+    // Start group expiry schedulers after DB connection
+    scheduleExpiryChecks();
+    scheduleCleanup();
+    console.log("🕐 Group expiry schedulers initialized")
 })
 
 const port = process.env.PORT || 8080;
