@@ -2,6 +2,7 @@ import React from 'react';
 import CardBody from "./home/post_card/CardBody";
 import CardFooter from "./home/post_card/CardFooter";
 import CardHeader from "./home/post_card/CardHeader";
+import "../styles/modern_post_card.css";
 
 const PostCard = ({ post, theme }) => {
   return (

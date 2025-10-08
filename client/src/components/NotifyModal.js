@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import Avatar from "./Avatar";
 import moment from 'moment';
 import { deleteAllNotifies, isReadNotify, NOTIFY_TYPES } from '../redux/actions/notifyAction';
-import '../styles/notifications.css';
 
 const NotifyModal = () => {
     const { auth, notify } = useSelector(state => state);
@@ -89,29 +88,31 @@ const NotifyModal = () => {
     }
 
     return (
-      <div className="modern-notification-modal">
+      <div className="enhanced-notification-modal">
         {/* Header */}
-        <div className="notification-header">
+        <div className="notification-modal-header">
           <div className="notification-title-section">
-            <h3 className="notification-title">Notifications</h3>
-            <div className="notification-count-badge">
-              {unreadCount > 0 && `${unreadCount} new`}
-            </div>
+            <h3 className="notification-modal-title">Notifications</h3>
+            {unreadCount > 0 && (
+              <div className="notification-count-badge">
+                {unreadCount} new
+              </div>
+            )}
           </div>
           <div className="notification-header-actions">
             <button 
-              className="notification-sound-btn"
+              className="notification-action-btn sound-btn"
               onClick={handleSound}
               title={notify.sound ? 'Disable sound' : 'Enable sound'}
             >
               <i className={notify.sound ? 'fas fa-bell' : 'fas fa-bell-slash'}></i>
             </button>
             <button 
-              className="notification-collapse-btn"
+              className="notification-action-btn close-btn"
               onClick={() => setIsCollapsed(true)}
-              title="Minimize"
+              title="Close"
             >
-              <i className="fas fa-minus"></i>
+              <i className="fas fa-times"></i>
             </button>
           </div>
         </div>
@@ -142,7 +143,7 @@ const NotifyModal = () => {
         {filteredNotifications.length > 0 && (
           <div className="notification-bulk-actions">
             <button 
-              className="bulk-action-btn mark-read"
+              className="bulk-action-btn mark-read-btn"
               onClick={handleMarkAllRead}
               disabled={unreadCount === 0}
             >
@@ -150,7 +151,7 @@ const NotifyModal = () => {
               Mark all read
             </button>
             <button 
-              className="bulk-action-btn delete-all"
+              className="bulk-action-btn delete-all-btn"
               onClick={handleDeleteAll}
             >
               <i className="fas fa-trash"></i>
@@ -176,55 +177,55 @@ const NotifyModal = () => {
               </p>
             </div>
           ) : (
-            <div className="notifications-list">
+            <div className="enhanced-notifications-list">
               {filteredNotifications.map((msg, index) => (
                 <div 
                   key={index}
-                  className={`notification-item ${!msg.isRead ? 'unread' : 'read'}`}
+                  className={`enhanced-notification-item ${!msg.isRead ? 'unread' : 'read'}`}
                   onMouseEnter={() => setHoveredNotification(index)}
                   onMouseLeave={() => setHoveredNotification(null)}
                 >
                   <Link
                     to={`${msg.url}`}
-                    className="notification-link"
+                    className="enhanced-notification-link"
                     onClick={() => handleIsRead(msg)}
                   >
-                    <div className="notification-avatar">
+                    <div className="enhanced-notification-avatar">
                       <Avatar src={msg.user.avatar} size="big-avatar" />
                       <div 
-                        className="notification-type-icon"
+                        className="enhanced-notification-type-icon"
                         style={{ backgroundColor: getNotificationColor(msg.type) }}
                       >
                         <i className={getNotificationIcon(msg.type)}></i>
                       </div>
                     </div>
 
-                    <div className="notification-content">
-                      <div className="notification-text">
-                        <strong className="notification-username">{msg.user.username}</strong>
-                        <span className="notification-message">{msg.text}</span>
+                    <div className="enhanced-notification-content">
+                      <div className="enhanced-notification-text">
+                        <strong className="enhanced-notification-username">{msg.user.username}</strong>
+                        <span className="enhanced-notification-message">{msg.text}</span>
                       </div>
                       {msg.content && (
-                        <div className="notification-preview">
+                        <div className="enhanced-notification-preview">
                           {msg.content.slice(0, 50)}{msg.content.length > 50 ? '...' : ''}
                         </div>
                       )}
-                      <div className="notification-time">
+                      <div className="enhanced-notification-time">
                         {moment(msg.createdAt).fromNow()}
                       </div>
                     </div>
 
-                    <div className="notification-media">
+                    <div className="enhanced-notification-media">
                       {msg.image && <Avatar src={msg.image} size="medium-avatar" />}
                     </div>
                   </Link>
 
                   {/* Action buttons on hover */}
                   {hoveredNotification === index && (
-                    <div className="notification-actions">
+                    <div className="enhanced-notification-actions">
                       {!msg.isRead && (
                         <button 
-                          className="action-btn mark-read-btn"
+                          className="enhanced-action-btn mark-read-action"
                           onClick={(e) => {
                             e.preventDefault();
                             handleIsRead(msg);
@@ -235,7 +236,7 @@ const NotifyModal = () => {
                         </button>
                       )}
                       <button 
-                        className="action-btn delete-btn"
+                        className="enhanced-action-btn delete-action"
                         onClick={(e) => {
                           e.preventDefault();
                           // Handle individual delete
@@ -247,7 +248,7 @@ const NotifyModal = () => {
                     </div>
                   )}
 
-                  {!msg.isRead && <div className="unread-indicator"></div>}
+                  {!msg.isRead && <div className="enhanced-unread-indicator"></div>}
                 </div>
               ))}
             </div>

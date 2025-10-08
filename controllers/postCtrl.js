@@ -12,7 +12,6 @@ class APIfeatures  {
     const page = this.queryString.page * 1 || 1; 
     const limit = this.queryString.limit * 1 || 9;
     const skip = (page -1) * limit; 
-    this.query = this.query.skip(skip).limit(limit);
     return this;
   }
 }
@@ -20,25 +19,33 @@ class APIfeatures  {
 const postCtrl = {
   createPost: async (req, res) => {
     try {
-      const { content, images } = req.body;
+      const { content, images, location, taggedUsers, feeling, activity, privacy } = req.body;
 
-      if (images.length === 0) {
-        return res.status(400).json({ msg: "Please add photo(s)" });
+      // Allow posts with content OR images (not requiring both)
+      if (!content && (!images || images.length === 0)) {
+        return res.status(400).json({ msg: "Please add some content or photo(s)" });
       }
 
       const newPost = new Posts({
         content,
-        images,
+        images: images || [],
         user: req.user._id,
+        location,
+        taggedUsers,
+        feeling,
+        activity,
+        privacy: privacy || 'public'
       });
       await newPost.save();
 
+      // Populate the new post with user and tagged users data
+      const populatedPost = await Posts.findById(newPost._id)
+        .populate('user', 'avatar username fullname')
+        .populate('taggedUsers', 'avatar username fullname');
+
       res.json({ 
         msg: "Post created successfully.", 
-        newPost: {
-          ...newPost._doc,
-          user: req.user
-        } 
+        newPost: populatedPost
       });
     } catch (err) {
       return res.status(500).json({ msg: err.message });
@@ -56,6 +63,7 @@ const postCtrl = {
       const posts = await features.query
         .sort("-createdAt")
         .populate("user likes", "avatar username fullname followers")
+        .populate("taggedUsers", "avatar username fullname")
         .populate({
           path: "comments",
           populate: {

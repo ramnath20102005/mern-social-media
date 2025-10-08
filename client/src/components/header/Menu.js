@@ -81,9 +81,11 @@ const Menu = () => {
           )}
         </button>
 
-        <div className={`dropdown-menu modern-dropdown-menu ${isNotificationDropdownOpen ? 'show' : ''}`}>
-          <NotifyModal />
-        </div>
+        {isNotificationDropdownOpen && (
+          <div className="dropdown-menu modern-dropdown-menu show">
+            <NotifyModal />
+          </div>
+        )}
       </div>
 
       <div className="nav-item profile-item" ref={profileDropdownRef}>
