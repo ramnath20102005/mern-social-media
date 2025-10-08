@@ -33,61 +33,60 @@ const CardHeader = ({ post }) => {
   };
 
   return (
-    <div className="card_header">
-      <div className="d-flex">
-        <div className="outer-shadow big-avatar-cover me-2">
+    <div className="modern-post-header">
+      <div className="post-header-left">
+        <div className="post-avatar-container">
           <Avatar src={post.user.avatar} size="big-avatar" />
+          <div className="avatar-ring"></div>
         </div>
-        <div className="card_name">
-          <h6 className="m-0">
-            <Link className="text-dark" to={`/profile/${post.user._id}`}>
-              {post.user.username}
-            </Link>
-          </h6>
-          <small className="text-muted">
+        <div className="post-user-info">
+          <Link className="post-username" to={`/profile/${post.user._id}`}>
+            {post.user.username}
+          </Link>
+          <div className="post-timestamp">
             {moment(post.createdAt).fromNow()}
-          </small>
+          </div>
         </div>
       </div>
 
-      <div className="nav-item dropdown">
+      <div className="post-header-actions">
         {auth.user._id === post.user._id && (
-          <span
-            className="material-icons text-danger me-2"
-            style={{ cursor: 'pointer' }}
+          <button
+            className="post-action-btn delete-btn"
             onClick={handleDeletePost}
             title="Delete Post"
           >
-            delete
-          </span>
+            <i className="fas fa-trash"></i>
+          </button>
         )}
-        <span
-          className="material-icons"
-          id="moreLink"
-          data-bs-toggle="dropdown"
-        >
-          more_horiz
-        </span>
+        <div className="post-dropdown">
+          <button className="post-action-btn more-btn" data-bs-toggle="dropdown">
+            <i className="fas fa-ellipsis-h"></i>
+          </button>
 
-        <div className="dropdown-menu">
-          {auth.user._id === post.user._id && (
-            <>
-              <div className="dropdown-item" onClick={handleEditPost}>
-                <span className="material-icons text-info">create</span> Edit Post
-              </div>
-              <div className="dropdown-item" onClick={handleDeletePost}>
-                  <span className="material-icons text-danger">delete</span> <span className="text-danger">Delete Post</span>
-              </div>
-            </>
-          )}
+          <div className="dropdown-menu modern-dropdown">
+            {auth.user._id === post.user._id && (
+              <>
+                <div className="dropdown-item" onClick={handleEditPost}>
+                  <i className="fas fa-edit"></i>
+                  <span>Edit Post</span>
+                </div>
+                <div className="dropdown-item delete-item" onClick={handleDeletePost}>
+                  <i className="fas fa-trash"></i>
+                  <span>Delete Post</span>
+                </div>
+                <div className="dropdown-divider"></div>
+              </>
+            )}
 
-          <div className="dropdown-item" onClick={handleCopyLink}>
-            <span className="material-icons text-primary">content_copy</span>
-            Copy Link
-          </div>
-          <div className="dropdown-item" onClick={handleReportPost}>
-            <span className="material-icons text-yellow">report_problem</span>
-            Report this post
+            <div className="dropdown-item" onClick={handleCopyLink}>
+              <i className="fas fa-copy"></i>
+              <span>Copy Link</span>
+            </div>
+            <div className="dropdown-item" onClick={handleReportPost}>
+              <i className="fas fa-flag"></i>
+              <span>Report Post</span>
+            </div>
           </div>
         </div>
       </div>

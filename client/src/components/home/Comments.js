@@ -20,33 +20,42 @@ const Comments = ({post}) => {
   }, [post.comments]);
 
     return (
-      <div className="comments">
-        {showComments.map((comment, index) => (
-          <CommentDisplay
-            key={index}
-            comment={comment}
-            post={post}
-            replyCm={replyComments.filter((item) => item.reply === comment._id)}
-          />
-        ))}
-        {comments.length - next > 0 ? (
-          <div
-            onClick={() => setNext(next + 10)}
-            className="p-2 border-top"
-            style={{ cursor: "pointer", color: "crimson" }}
-          >
-            Load more...
-          </div>
+      <div className="enhanced-comments">
+        {showComments.length > 0 ? (
+          <>
+            {showComments.map((comment, index) => (
+              <CommentDisplay
+                key={index}
+                comment={comment}
+                post={post}
+                replyCm={replyComments.filter((item) => item.reply === comment._id)}
+              />
+            ))}
+            {comments.length - next > 0 ? (
+              <button
+                onClick={() => setNext(next + 10)}
+                className="load-more-btn"
+              >
+                <i className="fas fa-chevron-down"></i>
+                Load more comments ({comments.length - next})
+              </button>
+            ) : (
+              comments.length > 2 && (
+                <button
+                  onClick={() => setNext(2)}
+                  className="load-more-btn collapse-btn"
+                >
+                  <i className="fas fa-chevron-up"></i>
+                  Show less
+                </button>
+              )
+            )}
+          </>
         ) : (
-          comments.length > 2 && (
-            <div
-              onClick={() => setNext(2)}
-              className="p-2 border-top"
-              style={{ cursor: "pointer", color: "crimson" }}
-            >
-              Hide...
-            </div>
-          )
+          <div className="no-comments">
+            <i className="far fa-comment-dots"></i>
+            <p>No comments yet. Be the first to comment!</p>
+          </div>
         )}
       </div>
     );

@@ -69,106 +69,92 @@ const CommentCard = ({ children, comment, post, commentId }) => {
   };
 
   return (
-    <div className="comment_card mt-2" style={styleCard}>
-      <Link to={`/profile/${comment.user._id}`} className="d-flex text-dark">
-        <Avatar src={comment.user.avatar} size="small-avatar" />
-        <h6 className="mx-1">{comment.user.username}</h6>
-      </Link>
-
-      <div className="comment_content">
-        <div
-          className="flex-fill"
-          style={{
-            filter: theme ? "invert(1)" : "invert(0)",
-            color: theme ? "white" : "#111",
-          }}
-        >
-          {onEdit ? (
-            <textarea
-              rows="5"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
+    <div className="enhanced-comment-card" style={styleCard}>
+      <div className="comment-header">
+        <Link to={`/profile/${comment.user._id}`} className="comment-user">
+          <Avatar src={comment.user.avatar} size="small-avatar" />
+          <span className="comment-username">{comment.user.username}</span>
+        </Link>
+        <div className="comment-actions">
+          <CommentMenu post={post} comment={comment} setOnEdit={setOnEdit} />
+          <div className="comment-like-btn">
+            <LikeButton
+              isLike={isLike}
+              handleLike={handleLike}
+              handleUnLike={handleUnLike}
             />
-          ) : (
-            <div>
-              {comment.tag && comment.tag._id !== comment.user._id && (
-                <Link
-                  to={`/profile/${comment.tag._id}`}
-                  style={{ textDecoration: "none" }}
-                  className="me-1"
-                >
-                  @{comment.tag.username}
-                </Link>
-              )}
-              <span>
-                {content.length < 100
-                  ? content
-                  : readMore
-                  ? content + " "
-                  : content.slice(0, 100) + "..."}
-              </span>
-              {content.length > 100 && (
-                <span
-                  className="readMore"
-                  onClick={() => setReadMore(!readMore)}
-                >
-                  {readMore ? "Hide " : "Read more"}
-                </span>
-              )}
-            </div>
-          )}
-
-          <div style={{ cursor: "pointer" }}>
-            <small className="text-muted" style={{ marginRight: "9px" }}>
-              {moment(comment.createdAt).fromNow()}
-            </small>
-
-            <small
-              style={{ fontWeight: "bold", marginRight: "9px" }}
-              className="mr3"
-            >
-              {comment.likes.length} likes
-            </small>
-            {onEdit ? (
-              <>
-                <small
-                  onClick={handleUpdate}
-                  style={{ fontWeight: "bold", marginRight: "9px" }}
-                  className="mr3"
-                >
-                  update
-                </small>
-                <small
-                  onClick={() => setOnEdit(false)}
-                  style={{ fontWeight: "bold", marginRight: "9px" }}
-                  className="mr3"
-                >
-                  cancel
-                </small>
-              </>
-            ) : (
-              <small
-                style={{ fontWeight: "bold", marginRight: "9px" }}
-                className="mr3"
-                onClick={handleReply}
-              >
-                {onReply ? "cancel" : "reply"}
-              </small>
-            )}
           </div>
         </div>
+      </div>
 
-        <div
-          className="d-flex align-items-center "
-          style={{ cursor: "pointer" }}
-        >
-          <CommentMenu post={post} comment={comment} setOnEdit={setOnEdit} />
+      <div className="comment-content">
+        {onEdit ? (
+          <div className="comment-edit">
+            <textarea
+              className="comment-edit-textarea"
+              rows="3"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Edit your comment..."
+            />
+            <div className="comment-edit-actions">
+              <button onClick={handleUpdate} className="update-btn">
+                <i className="fas fa-check"></i> Update
+              </button>
+              <button onClick={() => setOnEdit(false)} className="cancel-btn">
+                <i className="fas fa-times"></i> Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="comment-text">
+            {comment.tag && comment.tag._id !== comment.user._id && (
+              <Link
+                to={`/profile/${comment.tag._id}`}
+                className="comment-tag"
+              >
+                @{comment.tag.username}
+              </Link>
+            )}
+            <span className="comment-body">
+              {content.length < 100
+                ? content
+                : readMore
+                ? content + " "
+                : content.slice(0, 100) + "..."}
+            </span>
+            {content.length > 100 && (
+              <button
+                className="read-more-btn"
+                onClick={() => setReadMore(!readMore)}
+              >
+                {readMore ? "Show less" : "Read more"}
+              </button>
+            )}
+          </div>
+        )}
 
-          <LikeButton
-            isLike={isLike}
-            handleLike={handleLike}
-            handleUnLike={handleUnLike}
-          />
+        <div className="comment-meta">
+          <span className="comment-time">
+            {moment(comment.createdAt).fromNow()}
+          </span>
+          
+          {comment.likes.length > 0 && (
+            <span className="comment-likes">
+              <i className="fas fa-heart"></i>
+              {comment.likes.length}
+            </span>
+          )}
+          
+          {!onEdit && (
+            <button
+              className="reply-btn"
+              onClick={handleReply}
+            >
+              <i className="fas fa-reply"></i>
+              {onReply ? "Cancel" : "Reply"}
+            </button>
+          )}
         </div>
       </div>
 
