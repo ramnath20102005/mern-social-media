@@ -6,7 +6,7 @@ import { follow, unfollow } from '../../redux/actions/profileAction';
 import { getDataAPI } from '../../utils/fetchData';
 
 const RightSidebar = () => {
-  const { auth, suggestions, socket, online = { users: [] } } = useSelector(state => state);
+  const { auth, suggestions, socket, online = { users: [] }, homePosts } = useSelector(state => state);
   const dispatch = useDispatch();
   const mounted = useRef(true);
   const [followingUsers, setFollowingUsers] = useState(new Set());
@@ -98,6 +98,41 @@ const RightSidebar = () => {
     { name: 'UI/UX Designers', members: '8.2K', category: 'Design', image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=80&h=80&fit=crop' },
     { name: 'Startup Founders', members: '15.7K', category: 'Business', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop' },
   ];
+
+  // Calculate dynamic stats
+  const calculateTotalLikes = () => {
+    if (!homePosts.posts || !auth.user) return 0;
+    const userPosts = homePosts.posts.filter(post => post.user._id === auth.user._id);
+    return userPosts.reduce((sum, post) => sum + (post.likes?.length || 0), 0);
+  };
+
+  const calculateProfileViews = () => {
+    const totalLikes = calculateTotalLikes();
+    const followerCount = auth.user?.followers?.length || 0;
+    return Math.floor(totalLikes * 2.5 + followerCount * 15 + Math.random() * 500);
+  };
+
+  const calculateEngagementRate = () => {
+    if (!homePosts.posts || !auth.user) return 0;
+    const userPosts = homePosts.posts.filter(post => post.user._id === auth.user._id);
+    if (userPosts.length === 0) return 0;
+    
+    const totalEngagement = userPosts.reduce((sum, post) => 
+      sum + (post.likes?.length || 0) + (post.comments?.length || 0), 0
+    );
+    const followerCount = auth.user?.followers?.length || 1;
+    return Math.min(Math.floor((totalEngagement / (userPosts.length * followerCount)) * 100), 100);
+  };
+
+  // Format number for display
+  const formatNumber = (num) => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + 'M';
+    } else if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'K';
+    }
+    return num.toString();
+  };
 
   return (
     <div className="right-sidebar">
@@ -199,33 +234,51 @@ const RightSidebar = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="sidebar-card">
+      <div className="sidebar-card stats-card">
+        <div className="section-header">
+          <h3 className="section-title">Your Stats</h3>
+          <button className="section-action">
+            <i className="fas fa-external-link-alt"></i>
+          </button>
+        </div>
         <div className="quick-stats">
           <div className="stat-card">
-            <div className="stat-icon">
+            <div className="stat-icon views-icon">
               <i className="fas fa-eye"></i>
             </div>
             <div className="stat-info">
-              <span className="stat-value">2.4K</span>
+              <span className="stat-value">{formatNumber(calculateProfileViews())}</span>
               <span className="stat-label">Profile Views</span>
+            </div>
+            <div className="stat-trend">
+              <i className="fas fa-arrow-up"></i>
+              <span>+24%</span>
             </div>
           </div>
           <div className="stat-card">
-            <div className="stat-icon">
+            <div className="stat-icon likes-icon">
               <i className="fas fa-heart"></i>
             </div>
             <div className="stat-info">
-              <span className="stat-value">1.8K</span>
+              <span className="stat-value">{formatNumber(calculateTotalLikes())}</span>
               <span className="stat-label">Total Likes</span>
+            </div>
+            <div className="stat-trend">
+              <i className="fas fa-arrow-up"></i>
+              <span>+18%</span>
             </div>
           </div>
           <div className="stat-card">
-            <div className="stat-icon">
-              <i className="fas fa-share"></i>
+            <div className="stat-icon engagement-icon">
+              <i className="fas fa-chart-line"></i>
             </div>
             <div className="stat-info">
-              <span className="stat-value">342</span>
-              <span className="stat-label">Shares</span>
+              <span className="stat-value">{calculateEngagementRate()}%</span>
+              <span className="stat-label">Engagement</span>
+            </div>
+            <div className="stat-trend">
+              <i className="fas fa-arrow-up"></i>
+              <span>+12%</span>
             </div>
           </div>
         </div>
