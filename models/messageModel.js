@@ -14,8 +14,14 @@ const messageSchema = new Schema(
     media: Array,
     messageType: {
       type: String,
-      enum: ['text', 'image', 'video', 'audio', 'file', 'system'],
+      enum: ['text', 'image', 'video', 'audio', 'file', 'system', 'story_reply'],
       default: 'text'
+    },
+    // Story reply fields
+    storyId: { type: mongoose.Types.ObjectId, ref: "story" },
+    storyMedia: {
+      url: String,
+      type: { type: String, enum: ['image', 'video'] }
     },
     // System messages for group events
     systemMessageType: {

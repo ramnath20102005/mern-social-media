@@ -1,32 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { getStoriesFeed } from '../../redux/actions/storyAction';
-import AddStoryModal from './AddStoryModal';
-import StoryViewer from './StoryViewer';
+import { GLOBALTYPES } from '../../redux/actions/globalTypes';
 
 const StoryBar = () => {
-  const { auth, story } = useSelector(state => state);
+  const { auth, stories } = useSelector(state => state);
   const dispatch = useDispatch();
   
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showViewer, setShowViewer] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [selectedStoryIndex, setSelectedStoryIndex] = useState(0);
 
   useEffect(() => {
     if (auth.token) {
+      console.log('Fetching stories feed...');
       dispatch(getStoriesFeed(auth.token));
     }
   }, [dispatch, auth.token]);
 
+  // Debug log
+  useEffect(() => {
+    console.log('Stories state:', stories);
+  }, [stories]);
+
   const handleAddStory = () => {
-    setShowAddModal(true);
+    dispatch({ type: GLOBALTYPES.STORY, payload: true });
   };
 
   const handleViewStory = (userStories, storyIndex = 0) => {
-    setSelectedUser(userStories);
-    setSelectedStoryIndex(storyIndex);
-    setShowViewer(true);
+    dispatch({
+      type: GLOBALTYPES.STORY_VIEWER,
+      payload: {
+        show: true,
+        userStories: userStories,
+        initialStoryIndex: storyIndex
+      }
+    });
   };
 
   const getTimeRemaining = (expiryDate) => {
@@ -59,97 +65,161 @@ const StoryBar = () => {
     return hoursRemaining <= 2 && hoursRemaining > 0;
   };
 
-  if (!story.stories || story.stories.length === 0) {
+  // Show loading state
+  if (stories.loading) {
     return (
-      <div className="story-bar-container">
-        <div className="story-bar">
-          {/* Add Story Button */}
-          <div className="story-item add-story-item" onClick={handleAddStory}>
-            <div className="story-ring add-story-ring">
-              <div className="story-avatar add-story-avatar">
-                <img src={auth.user?.avatar} alt="Your story" />
-                <div className="add-story-plus">
+      <div className="modern-story-container">
+        <div className="story-scroll-area">
+          {/* Add Story Card */}
+          <div className="story-card add-story-card" onClick={handleAddStory}>
+            <div className="story-avatar-container">
+              <div className="story-avatar-wrapper">
+                <img src={auth.user?.avatar} alt="Your story" className="story-avatar" />
+                <div className="add-story-icon">
                   <i className="fas fa-plus"></i>
                 </div>
               </div>
             </div>
-            <div className="story-info">
-              <span className="story-username">Your story</span>
-              <span className="story-time">Add story</span>
+            <div className="story-label">
+              <span className="story-text">Add Story</span>
             </div>
           </div>
+          
+          {/* Loading skeleton */}
+          {[1, 2, 3].map(i => (
+            <div key={i} className="story-card">
+              <div className="story-avatar-container">
+                <div className="story-avatar-wrapper loading-skeleton">
+                  <div className="story-avatar loading-skeleton"></div>
+                </div>
+              </div>
+              <div className="story-label">
+                <span className="story-text loading-skeleton">Loading...</span>
+              </div>
+            </div>
+          ))}
         </div>
-
-        {showAddModal && (
-          <AddStoryModal 
-            onClose={() => setShowAddModal(false)}
-          />
-        )}
       </div>
     );
   }
 
-  return (
-    <div className="story-bar-container">
-      <div className="story-bar">
-        {/* Add Story Button */}
-        <div className="story-item add-story-item" onClick={handleAddStory}>
-          <div className="story-ring add-story-ring">
-            <div className="story-avatar add-story-avatar">
-              <img src={auth.user?.avatar} alt="Your story" />
-              <div className="add-story-plus">
-                <i className="fas fa-plus"></i>
+  // Show empty state with just add story button
+  if (!stories || !stories.stories || stories.stories.length === 0) {
+    return (
+      <div className="modern-story-container">
+        <div className="story-scroll-area">
+          {/* Add Story Card */}
+          <div className="story-card add-story-card" onClick={handleAddStory}>
+            <div className="story-avatar-container">
+              <div className="story-avatar-wrapper">
+                <img src={auth.user?.avatar} alt="Your story" className="story-avatar" />
+                <div className="add-story-icon">
+                  <i className="fas fa-plus"></i>
+                </div>
               </div>
             </div>
-          </div>
-          <div className="story-info">
-            <span className="story-username">Your story</span>
-            <span className="story-time">Add story</span>
+            <div className="story-label">
+              <span className="story-text">Add Story</span>
+            </div>
           </div>
         </div>
+      </div>
+    );
+  }
 
-        {/* Stories from feed */}
-        {story.stories.map((userStories, index) => {
+  // Check if current user has stories
+  const currentUserStories = stories.stories?.find(userStories => 
+    userStories.user._id === auth.user._id
+  );
+
+  return (
+    <div className="modern-story-container">
+      <div className="story-scroll-area">
+        {/* Current User Story Card */}
+        {currentUserStories ? (
+          // User has stories - show their story with ring
+          <div 
+            className="story-card user-story-card current-user-story"
+            onClick={() => handleViewStory(currentUserStories)}
+          >
+            <div className="story-avatar-container">
+              <div className="story-avatar-wrapper unviewed">
+                <img src={auth.user?.avatar} alt="Your story" className="story-avatar" />
+                {currentUserStories.storyCount > 1 && (
+                  <div className="story-badge count">
+                    {currentUserStories.storyCount}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="story-label">
+              <span className="story-text">Your story</span>
+            </div>
+          </div>
+        ) : (
+          // User has no stories - show add story button
+          <div className="story-card add-story-card" onClick={handleAddStory}>
+            <div className="story-avatar-container">
+              <div className="story-avatar-wrapper">
+                <img src={auth.user?.avatar} alt="Your story" className="story-avatar" />
+                <div className="add-story-icon">
+                  <i className="fas fa-plus"></i>
+                </div>
+              </div>
+            </div>
+            <div className="story-label">
+              <span className="story-text">Add Story</span>
+            </div>
+          </div>
+        )}
+
+        {/* Other Users' Stories */}
+        {stories.stories && stories.stories
+          .filter(userStories => userStories.user._id !== auth.user._id) // Exclude current user
+          .map((userStories, index) => {
+          // Safety check for latestStory
+          if (!userStories || !userStories.latestStory) {
+            return null;
+          }
+          
           const latestStory = userStories.latestStory;
-          const timeRemaining = getTimeRemaining(latestStory.expiryDate);
-          const expiringSoon = isExpiringSoon(latestStory.expiryDate);
+          const timeRemaining = getTimeRemaining(latestStory.expiresAt || latestStory.expiryDate);
+          const expiringSoon = isExpiringSoon(latestStory.expiresAt || latestStory.expiryDate);
           
           return (
             <div 
-              key={userStories.user._id} 
-              className={`story-item ${timeRemaining.expired ? 'expired' : ''} ${expiringSoon ? 'expiring-soon' : ''}`}
+              key={`story-${userStories.user._id}-${index}`} 
+              className={`story-card user-story-card ${timeRemaining.expired ? 'expired' : ''} ${expiringSoon ? 'expiring-soon' : ''}`}
               onClick={() => !timeRemaining.expired && handleViewStory(userStories)}
             >
-              <div className={`story-ring ${userStories.hasUnviewed ? 'unviewed' : 'viewed'} ${latestStory.visibility === 'close_friends' ? 'close-friends' : ''}`}>
-                <div className="story-avatar">
-                  <img src={userStories.user.avatar} alt={userStories.user.fullname} />
+              <div className="story-avatar-container">
+                <div className={`story-avatar-wrapper ${userStories.hasUnviewed ? 'unviewed' : 'viewed'} ${latestStory.visibility === 'close_friends' ? 'close-friends' : ''}`}>
+                  <img src={userStories.user.avatar} alt={userStories.user.fullname} className="story-avatar" />
+                  
+                  {/* Story badges */}
+                  {latestStory.visibility === 'close_friends' && (
+                    <div className="story-badge close-friends">
+                      <i className="fas fa-heart"></i>
+                    </div>
+                  )}
+                  {latestStory.visibility === 'public' && (
+                    <div className="story-badge public">
+                      <i className="fas fa-globe"></i>
+                    </div>
+                  )}
+                  {userStories.storyCount > 1 && (
+                    <div className="story-badge count">
+                      {userStories.storyCount}
+                    </div>
+                  )}
                 </div>
               </div>
               
-              <div className="story-info">
-                <span className="story-username">{userStories.user.username}</span>
+              <div className="story-label">
+                <span className="story-text">{userStories.user.username}</span>
                 <span className={`story-time ${timeRemaining.expired ? 'expired' : ''}`}>
                   {timeRemaining.text}
                 </span>
-              </div>
-
-              {/* Story badges */}
-              <div className="story-badges">
-                {latestStory.visibility === 'close_friends' && (
-                  <div className="story-badge close-friends">
-                    <i className="fas fa-heart"></i>
-                  </div>
-                )}
-                {latestStory.visibility === 'public' && (
-                  <div className="story-badge public">
-                    <i className="fas fa-globe"></i>
-                  </div>
-                )}
-                {userStories.storyCount > 1 && (
-                  <div className="story-badge count">
-                    {userStories.storyCount}
-                  </div>
-                )}
               </div>
 
               {/* Caption preview */}
@@ -162,45 +232,10 @@ const StoryBar = () => {
           );
         })}
       </div>
-
-      {/* Modals */}
-      {showAddModal && (
-        <AddStoryModal 
-          onClose={() => setShowAddModal(false)}
-        />
-      )}
-
-      {showViewer && selectedUser && (
-        <StoryViewer
-          userStories={selectedUser}
-          initialStoryIndex={selectedStoryIndex}
-          onClose={() => {
-            setShowViewer(false);
-            setSelectedUser(null);
-            setSelectedStoryIndex(0);
-          }}
-          onNext={(nextUser) => {
-            // Find next user in the stories array
-            const currentIndex = story.stories.findIndex(s => s.user._id === selectedUser.user._id);
-            const nextIndex = currentIndex + 1;
-            if (nextIndex < story.stories.length) {
-              setSelectedUser(story.stories[nextIndex]);
-              setSelectedStoryIndex(0);
-            }
-          }}
-          onPrevious={(prevUser) => {
-            // Find previous user in the stories array
-            const currentIndex = story.stories.findIndex(s => s.user._id === selectedUser.user._id);
-            const prevIndex = currentIndex - 1;
-            if (prevIndex >= 0) {
-              setSelectedUser(story.stories[prevIndex]);
-              setSelectedStoryIndex(0);
-            }
-          }}
-        />
-      )}
+      
     </div>
   );
 };
+
 
 export default StoryBar;

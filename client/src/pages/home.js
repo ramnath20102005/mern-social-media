@@ -4,8 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 
 import Posts from "../components/home/Posts";
 import Status from "../components/home/Status";
-import RightSideBar from "../components/home/RightSideBar";
-import StoriesBar from "../components/home/StoriesBar";
+import StoryBar from "../components/story/StoryBar";
 import LeftSidebar from "../components/layout/LeftSidebar";
 import RightSidebar from "../components/layout/RightSidebar";
 import { GLOBALTYPES } from "../redux/actions/globalTypes";
@@ -50,11 +49,14 @@ const Home = () => {
             <div className="stories-section">
               <div className="stories-header">
                 <h3 className="stories-title">Stories</h3>
-                <button className="stories-add-btn">
+                <button 
+                  className="stories-add-btn"
+                  onClick={() => dispatch({ type: GLOBALTYPES.STORY, payload: true })}
+                >
                   <i className="fas fa-plus"></i>
                 </button>
               </div>
-              <StoriesBar />
+              <StoryBar />
             </div>
           </div>
 

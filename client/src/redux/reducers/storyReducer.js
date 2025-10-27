@@ -17,6 +17,7 @@ const storyReducer = (state = initialState, action) => {
       };
 
     case STORY_TYPES.GET_STORIES_FEED:
+      console.log('Story reducer - GET_STORIES_FEED:', action.payload);
       return {
         ...state,
         stories: action.payload

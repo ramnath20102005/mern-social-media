@@ -1,5 +1,5 @@
 import { GLOBALTYPES } from './globalTypes';
-import { postDataAPI, getDataAPI, patchDataAPI, deleteDataAPI } from '../../utils/fetchData';
+import { postDataAPI, getDataAPI, deleteDataAPI } from '../../utils/fetchData';
 
 export const STORY_TYPES = {
   LOADING_STORY: 'LOADING_STORY',
@@ -15,16 +15,19 @@ export const STORY_TYPES = {
 // Get stories feed for home page
 export const getStoriesFeed = (token) => async (dispatch) => {
   try {
+    console.log('Fetching stories feed...');
     dispatch({ type: STORY_TYPES.LOADING_STORY, payload: true });
 
-    const res = await getDataAPI('stories/feed', token);
+    const res = await getDataAPI('stories', token);
+    console.log('Stories feed response:', res.data);
     
     dispatch({
       type: STORY_TYPES.GET_STORIES_FEED,
-      payload: res.data.stories
+      payload: res.data.stories || []
     });
 
   } catch (err) {
+    console.error('Error fetching stories:', err);
     dispatch({
       type: GLOBALTYPES.ALERT,
       payload: { error: err.response?.data?.msg || 'Failed to load stories' }
@@ -37,37 +40,47 @@ export const getStoriesFeed = (token) => async (dispatch) => {
 // Create a new story
 export const createStory = (storyData, token) => async (dispatch) => {
   try {
+    console.log('Creating story with data:', storyData);
     dispatch({ type: STORY_TYPES.LOADING_STORY, payload: true });
 
-    // In a real app, you would upload media to cloud storage first
-    // For now, we'll simulate the upload
-    const uploadedMedia = await uploadMedia(storyData.media);
+    // Process media array - in a real app, upload to cloud storage
+    const uploadedMedia = await Promise.all(
+      storyData.media.map(async (mediaItem) => {
+        // For now, simulate upload and return the media item
+        return {
+          url: mediaItem.url,
+          public_id: mediaItem.public_id || `story_${Date.now()}_${Math.random()}`,
+          type: mediaItem.type
+        };
+      })
+    );
     
     const finalStoryData = {
       ...storyData,
       media: uploadedMedia
     };
 
-    const res = await postDataAPI('stories/create', finalStoryData, token);
+    console.log('Sending story data to backend:', finalStoryData);
+    const res = await postDataAPI('story', finalStoryData, token);
+    console.log('Story creation response:', res.data);
     
     dispatch({
       type: STORY_TYPES.CREATE_STORY,
       payload: res.data.story
     });
 
-    dispatch({
-      type: GLOBALTYPES.ALERT,
-      payload: { success: 'Story created successfully!' }
-    });
+    // Wait a moment then refresh stories feed
+    setTimeout(() => {
+      console.log('Refreshing stories feed after creation...');
+      dispatch(getStoriesFeed(token));
+    }, 1000);
 
-    // Refresh stories feed
-    dispatch(getStoriesFeed(token));
+    return res.data.story;
 
   } catch (err) {
-    dispatch({
-      type: GLOBALTYPES.ALERT,
-      payload: { error: err.response?.data?.msg || 'Failed to create story' }
-    });
+    console.error('Story creation error:', err);
+    console.error('Error response:', err.response?.data);
+    throw err;
   } finally {
     dispatch({ type: STORY_TYPES.LOADING_STORY, payload: false });
   }
@@ -101,46 +114,50 @@ export const getUserStories = (userId, token) => async (dispatch) => {
 // View a story
 export const viewStory = (storyId, token) => async (dispatch) => {
   try {
+    console.log('Attempting to view story:', storyId);
     const res = await postDataAPI(`stories/${storyId}/view`, {}, token);
+    console.log('Story view response:', res.data);
     
     dispatch({
       type: STORY_TYPES.VIEW_STORY,
       payload: {
         storyId,
-        viewCount: res.data.viewCount
+        view: res.data.view
       }
     });
 
   } catch (err) {
     // Don't show error for view failures, just log
     console.error('Failed to record story view:', err);
+    console.error('Story ID:', storyId);
+    console.error('Error details:', err.response?.data);
   }
 };
 
 // Reply to a story
 export const replyToStory = (storyId, text, token) => async (dispatch) => {
   try {
-    const res = await postDataAPI(`stories/${storyId}/reply`, { text }, token);
+    console.log('Attempting to reply to story:', storyId, 'with message:', text);
+    const res = await postDataAPI(`stories/${storyId}/reply`, { message: text }, token);
+    console.log('Story reply response:', res.data);
+    
+    // Story reply now creates a direct message, so we don't need to update story state
+    // Instead, we could dispatch to update the message state if needed
     
     dispatch({
-      type: STORY_TYPES.REPLY_STORY,
-      payload: {
-        storyId,
-        reply: res.data.reply,
-        totalReplies: res.data.totalReplies
-      }
+      type: GLOBALTYPES.ALERT,
+      payload: { success: res.data.msg || 'Reply sent as direct message!' }
     });
 
-    dispatch({
-      type: GLOBALTYPES.ALERT,
-      payload: { success: 'Reply sent!' }
-    });
+    // Return the response data for the component to handle
+    return res.data;
 
   } catch (err) {
     dispatch({
       type: GLOBALTYPES.ALERT,
       payload: { error: err.response?.data?.msg || 'Failed to send reply' }
     });
+    throw err; // Re-throw so component can handle the error
   }
 };
 
@@ -191,20 +208,7 @@ export const getStoryAnalytics = (storyId, token) => async (dispatch) => {
   }
 };
 
-// Helper function to simulate media upload
-// In a real app, this would upload to Cloudinary, AWS S3, etc.
-const uploadMedia = async (media) => {
-  return new Promise((resolve) => {
-    // Simulate upload delay
-    setTimeout(() => {
-      resolve({
-        type: media.type,
-        url: media.url, // In production, this would be the cloud URL
-        publicId: `story_${Date.now()}` // Simulated public ID
-      });
-    }, 1000);
-  });
-};
+// Helper function removed - media processing now handled in createStory action
 
 // Utility functions for story management
 export const isStoryExpired = (expiryDate) => {

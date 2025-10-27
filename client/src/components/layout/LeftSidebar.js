@@ -123,6 +123,10 @@ const LeftSidebar = () => {
     dispatch({ type: GLOBALTYPES.STATUS, payload: true });
   };
 
+  const handleCreateStory = () => {
+    dispatch({ type: GLOBALTYPES.STORY, payload: true });
+  };
+
   const handleFindFriends = () => {
     // Navigate to discover page
     window.location.href = '/discover';
@@ -223,6 +227,10 @@ const LeftSidebar = () => {
           <button className="quick-action-btn primary" onClick={handleCreatePost}>
             <i className="fas fa-plus"></i>
             <span>New Post</span>
+          </button>
+          <button className="quick-action-btn story" onClick={handleCreateStory}>
+            <i className="fas fa-camera"></i>
+            <span>Add Story</span>
           </button>
           <button className="quick-action-btn secondary" onClick={handleFindFriends}>
             <i className="fas fa-user-plus"></i>

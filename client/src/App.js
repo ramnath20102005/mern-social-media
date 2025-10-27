@@ -11,6 +11,8 @@ import Home from "./pages/home";
 import Alert from "./components/alert/Alert";
 import Header from "./components/header/Header";
 import StatusModal from "./components/StatusModal";
+import StoryModal from "./components/StoryModal";
+import StoryDetailsModal from "./components/story/StoryDetailsModal";
 import { refreshToken } from "./redux/actions/authAction";
 import { getPosts } from "./redux/actions/postAction";
 import { getSuggestions } from "./redux/actions/suggestionsAction";
@@ -21,7 +23,7 @@ import SocketClient from "./SocketClient";
 import './styles/modern-layout.css';
 
 function App() {
-  const { auth, status, modal, socket } = useSelector((state) => state);
+  const { auth, status, story, storyViewer, modal, socket } = useSelector((state) => state);
   const dispatch = useDispatch();
   const [isInitializing, setIsInitializing] = useState(true);
 
@@ -164,10 +166,12 @@ function App() {
     <Router>
       <Alert />
       <input type="checkbox" id="theme" />
-      <div className={`App ${(status || modal) && 'mode'}`} id="style-2">
+      <div className={`App ${(status || story || storyViewer.show || modal) && 'mode'}`} id="style-2">
         <div className="main">
           {auth.token && <Header />}
           {status && <StatusModal />}
+          {story && <StoryModal />}
+          {storyViewer.show && <StoryDetailsModal />}
           {auth.token && <SocketClient />}
           <Route exact path="/" component={auth.token ? Home : Login} />
           <Route exact path="/register" component={Register} />

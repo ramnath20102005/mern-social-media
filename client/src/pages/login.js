@@ -6,7 +6,6 @@ import { useDispatch, useSelector } from "react-redux";
 const Login = () => {
   const initialState = { email: "", password: "" };
   const [userData, setUserData] = useState(initialState);
-  const [userType, setUserType] = useState(false);
   const { email, password } = userData;
 
   const [typePass, setTypePass] = useState(false);
@@ -27,11 +26,7 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!userType) {
-      dispatch(login(userData));
-    } else {
-      dispatch(adminLogin(userData));
-    }
+    dispatch(login(userData));
   };
 
   return (
@@ -99,42 +94,6 @@ const Login = () => {
               </div>
             </div>
 
-            {/* User Type Selection */}
-            <div className="form-group">
-              <label className="form-label">
-                <i className="fas fa-user-tag"></i>
-                Account Type
-              </label>
-              <div className="radio-group">
-                <label className={`radio-option ${!userType ? 'active' : ''}`}>
-                  <input
-                    type="radio"
-                    name="userType"
-                    checked={!userType}
-                    onChange={() => setUserType(false)}
-                  />
-                  <span className="radio-custom"></span>
-                  <div className="radio-content">
-                    <i className="fas fa-user"></i>
-                    <span>User</span>
-                  </div>
-                </label>
-
-                <label className={`radio-option ${userType ? 'active' : ''}`}>
-                  <input
-                    type="radio"
-                    name="userType"
-                    checked={userType}
-                    onChange={() => setUserType(true)}
-                  />
-                  <span className="radio-custom"></span>
-                  <div className="radio-content">
-                    <i className="fas fa-user-shield"></i>
-                    <span>Admin</span>
-                  </div>
-                </label>
-              </div>
-            </div>
 
             {/* Submit Button */}
             <button

@@ -100,6 +100,11 @@ mongoose.connect(URI, {
     scheduleExpiryChecks();
     scheduleCleanup();
     console.log("🕐 Group expiry schedulers initialized")
+    
+    // Start notification cleanup jobs
+    const NotificationCleanupJob = require('./jobs/notificationCleanupJob');
+    NotificationCleanupJob.init();
+    console.log("🔔 Notification cleanup jobs initialized")
 })
 
 const port = process.env.PORT || 8080;

@@ -1,4 +1,6 @@
 const Users = require("../models/userModel");
+const bcrypt = require('bcrypt');
+const NotificationService = require('../services/notificationService');
 
 const userCtrl = {
   searchUser: async (req, res) => {
@@ -189,6 +191,14 @@ const userCtrl = {
         { new: true }
       );
 
+      // Create follow notification
+      try {
+        await NotificationService.createFollowNotification(req.user._id, req.params.id);
+      } catch (notifyError) {
+        console.error('Error creating follow notification:', notifyError);
+        // Don't fail the follow action if notification fails
+      }
+
       res.json({ newUser });
     } catch (err) {
       console.error('Follow error:', err);
@@ -230,6 +240,14 @@ const userCtrl = {
         { $pull: { following: req.params.id } },
         { new: true }
       );
+
+      // Remove follow notification
+      try {
+        await NotificationService.removeFollowNotification(req.user._id, req.params.id);
+      } catch (notifyError) {
+        console.error('Error removing follow notification:', notifyError);
+        // Don't fail the unfollow action if notification removal fails
+      }
 
       res.json({ newUser });
     } catch (err) {

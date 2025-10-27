@@ -6,6 +6,9 @@ import alert from './alertReducer';
 import theme from './themeReducer';
 import profile from './profileReducer';
 import status from './statusReducer';
+import story from './storyModalReducer';
+import storyViewer from './storyViewerReducer';
+import stories from './storyReducer';
 import homePosts from './postReducer';
 import modal from './modalReducer';
 import detailPost from "./detailPostReducer";
@@ -25,6 +28,9 @@ export default combineReducers({
   theme,
   profile,
   status,
+  story,
+  storyViewer,
+  stories,
   homePosts,
   modal,
   detailPost,

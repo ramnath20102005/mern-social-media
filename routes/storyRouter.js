@@ -9,11 +9,11 @@ router.get('/my-stories', auth, storyCtrl.getMyStories);
 router.delete('/story/:id', auth, storyCtrl.deleteStory);
 
 // Story interactions
-router.get('/story/:id/view', auth, storyCtrl.viewStory);
-router.post('/story/:id/reply', auth, storyCtrl.replyToStory);
-router.patch('/story/:id/extend', auth, storyCtrl.extendStory);
+router.post('/stories/:id/view', auth, storyCtrl.viewStory);
+router.post('/stories/:id/reply', auth, storyCtrl.replyToStory);
+router.patch('/stories/:id/extend', auth, storyCtrl.extendStory);
 
 // Story analytics
-router.get('/story/:id/analytics', auth, storyCtrl.getStoryAnalytics);
+router.get('/stories/:id/analytics', auth, storyCtrl.getStoryAnalytics);
 
 module.exports = router;

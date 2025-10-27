@@ -1,4 +1,5 @@
 const Stories = require('../models/storyModel');
+const NotificationService = require('../services/notificationService');
 
 const storyCtrl = {
   createStory: async (req, res) => {
@@ -45,8 +46,12 @@ const storyCtrl = {
         storyData.closeFriends = closeFriends;
       }
 
+      console.log('Creating story with data:', storyData);
       const story = await Stories.create(storyData);
+      console.log('Story created:', story);
+      
       const populated = await story.populate('user', 'username fullname avatar');
+      console.log('Story populated:', populated);
       
       return res.json({ 
         msg: 'Story created successfully.', 
@@ -63,6 +68,20 @@ const storyCtrl = {
       if (!story) {
         return res.status(404).json({ msg: 'Story not found or you do not have permission to delete it.' });
       }
+
+      // Update related messages to remove story reference but keep the message
+      const Messages = require('../models/messageModel');
+      await Messages.updateMany(
+        { storyId: req.params.id, messageType: 'story_reply' },
+        { 
+          $unset: { 
+            storyId: 1,
+            storyMedia: 1 
+          }
+        }
+      );
+
+      console.log(`Story ${req.params.id} deleted and related messages updated`);
       return res.json({ msg: 'Story deleted.' });
     } catch (err) {
       return res.status(500).json({ msg: err.message });
@@ -71,8 +90,10 @@ const storyCtrl = {
 
   getFeedStories: async (req, res) => {
     try {
+      console.log('Getting stories feed for user:', req.user._id);
       const currentUser = req.user;
       const followingIds = currentUser.following || [];
+      console.log('User following:', followingIds.length, 'users');
       
       // Build query for visible stories
       const query = {
@@ -96,10 +117,13 @@ const storyCtrl = {
         ]
       };
 
+      console.log('Story query:', JSON.stringify(query, null, 2));
       const stories = await Stories.find(query)
         .populate('user', 'username fullname avatar')
         .populate('views.user', 'username fullname')
         .sort('-createdAt');
+      
+      console.log('Found', stories.length, 'stories');
 
       // Group stories by user
       const groupedStories = {};
@@ -109,7 +133,9 @@ const storyCtrl = {
           groupedStories[userId] = {
             user: story.user,
             stories: [],
-            hasUnviewed: false
+            latestStory: story, // Set the first story as latest (since sorted by -createdAt)
+            hasUnviewed: false,
+            storyCount: 0
           };
         }
         
@@ -123,11 +149,16 @@ const storyCtrl = {
         }
         
         groupedStories[userId].stories.push(story);
+        groupedStories[userId].storyCount = groupedStories[userId].stories.length;
       });
 
+      const result = Object.values(groupedStories);
+      console.log('Returning', result.length, 'grouped stories');
+      console.log('Grouped stories:', result.map(g => ({ user: g.user.username, storyCount: g.storyCount })));
+      
       return res.json({ 
         result: Object.keys(groupedStories).length, 
-        stories: Object.values(groupedStories) 
+        stories: result 
       });
     } catch (err) {
       return res.status(500).json({ msg: err.message });
@@ -154,10 +185,15 @@ const storyCtrl = {
   // View a story (adds to view count)
   viewStory: async (req, res) => {
     try {
+      console.log('ViewStory - Story ID:', req.params.id);
+      console.log('ViewStory - User ID:', req.user._id);
+      
       const story = await Stories.findById(req.params.id)
         .populate('user', 'username fullname avatar');
 
+      console.log('ViewStory - Story found:', !!story);
       if (!story) {
+        console.log('ViewStory - Story not found in database');
         return res.status(404).json({ msg: 'Story not found.' });
       }
 
@@ -218,7 +254,7 @@ const storyCtrl = {
     }
   },
 
-  // Reply to story
+  // Reply to story - creates a direct message
   replyToStory: async (req, res) => {
     try {
       const { message } = req.body;
@@ -238,35 +274,85 @@ const storyCtrl = {
         return res.status(403).json({ msg: 'Replies are disabled for this story.' });
       }
 
-      // Check if user can view this story
       const userFollowing = req.user.following || [];
-      if (!story.canUserView(req.user._id, userFollowing)) {
+      const canView = story.canUserView(req.user._id, userFollowing);
+      
+      if (!canView) {
         return res.status(403).json({ msg: 'You cannot reply to this story.' });
       }
 
-      // Add reply
-      story.replies.push({
-        user: req.user._id,
-        message: message.trim(),
-        repliedAt: new Date()
+      // Don't allow replying to own story
+      if (story.user._id.toString() === req.user._id.toString()) {
+        return res.status(400).json({ msg: 'You cannot reply to your own story.' });
+      }
+
+      // Create a direct message instead of adding to story replies
+      const Conversations = require('../models/conversationModel');
+      const Messages = require('../models/messageModel');
+
+      // Find or create conversation between the two users
+      let conversation = await Conversations.findOne({
+        recipients: { $all: [req.user._id, story.user._id] },
+        isGroupConversation: false
       });
 
-      await story.save();
+      if (!conversation) {
+        conversation = new Conversations({
+          recipients: [req.user._id, story.user._id],
+          isGroupConversation: false,
+          text: `Replied to your story`,
+          media: [],
+          call: null
+        });
+        await conversation.save();
+      }
+
+      // Create the message with story context
+      const newMessage = new Messages({
+        conversation: conversation._id,
+        sender: req.user._id,
+        recipient: story.user._id,
+        text: message.trim(),
+        media: [],
+        messageType: 'story_reply',
+        storyId: story._id,
+        storyMedia: story.media[0] || null // Include story media for context
+      });
+
+      await newMessage.save();
+
+      // Update conversation with latest message
+      conversation.text = message.trim();
+      conversation.media = [];
+      conversation.call = null;
+      await conversation.save();
+
+      // Populate the message for response
+      const populatedMessage = await Messages.findById(newMessage._id)
+        .populate('sender', 'username fullname avatar')
+        .populate('recipient', 'username fullname avatar');
+
+      // Create story reply notification
+      try {
+        await NotificationService.createStoryReplyNotification(
+          req.user._id, 
+          story.user._id, 
+          story._id, 
+          message.trim()
+        );
+      } catch (notifyError) {
+        console.error('Error creating story reply notification:', notifyError);
+        // Don't fail the reply if notification fails
+      }
 
       return res.json({ 
-        msg: 'Reply sent successfully.',
-        reply: {
-          user: {
-            _id: req.user._id,
-            username: req.user.username,
-            fullname: req.user.fullname,
-            avatar: req.user.avatar
-          },
-          message: message.trim(),
-          repliedAt: new Date()
-        }
+        msg: 'Reply sent as direct message!',
+        message: populatedMessage,
+        conversationId: conversation._id
       });
     } catch (err) {
+      console.error('ReplyToStory - Error:', err);
+      console.error('ReplyToStory - Error stack:', err.stack);
       return res.status(500).json({ msg: err.message });
     }
   },

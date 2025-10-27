@@ -90,14 +90,16 @@ storySchema.methods.isExpired = function() {
 storySchema.methods.canUserView = function(userId, userFollowing = []) {
   if (this.isExpired()) return false;
   
+  const storyOwnerId = typeof this.user === 'object' ? this.user._id.toString() : this.user.toString();
+  
   // Story owner can always view
-  if (this.user.toString() === userId.toString()) return true;
+  if (storyOwnerId === userId.toString()) return true;
   
   switch (this.visibility) {
     case 'PUBLIC':
       return true;
     case 'FOLLOWERS':
-      return userFollowing.includes(this.user.toString());
+      return userFollowing.includes(storyOwnerId);
     case 'CLOSE_FRIENDS':
       return this.closeFriends.some(friendId => friendId.toString() === userId.toString());
     default:
