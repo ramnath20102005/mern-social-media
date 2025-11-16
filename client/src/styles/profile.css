@@ -1,17 +1,356 @@
+/* Profile Page Container */
 .profile {
     width: 100%;
     min-height: 100vh;
     background: linear-gradient(135deg, #f0f4ff, #ffffff);
     font-family: 'Inter', sans-serif;
-    padding-bottom: 40px;
+    padding: 40px 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
 }
 
-/* #region info component */
+/* Profile Card Container */
+.profile-card {
+    width: 100%;
+    max-width: 900px;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin: 0 20px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Profile Header Section */
+.profile-header {
+    position: relative;
+    padding: 30px;
+    background: linear-gradient(135deg, #6c63ff, #8a63ff);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-top: 60px;
+}
+
+/* Profile Avatar */
+.profile-avatar-container {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    border: 5px solid white;
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    position: relative;
+    z-index: 2;
+    background: #f0f2f5;
+}
+
+.profile-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Profile Section Header */
+.profile-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 16px 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.profile-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #050505;
+  margin: 0;
+}
+
+.profile-see-all {
+  font-size: 13px;
+  color: #1877f2;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.profile-see-all:hover {
+  background-color: rgba(24, 119, 242, 0.1);
+  text-decoration: none;
+}
+
+/* Profile Info */
+.profile-info {
+    margin-bottom: 20px;
+}
+
+.profile-name {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 5px 0;
+    color: white;
+}
+
+.profile-username {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 15px 0;
+    font-weight: 500;
+}
+
+/* Profile Stats */
+.profile-stats {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin: 20px 0;
+    width: 100%;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 0 15px;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+}
+
+/* Profile Bio */
+.profile-bio {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1rem;
+    margin-bottom: 20px;
+}
+
+/* Profile Actions */
+.profile-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+/* Modern Follow Button */
+.modern-follow-btn {
+    position: relative;
+    padding: 10px 24px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+    height: 40px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* Follow State */
+.modern-follow-btn:not(.following) {
+    background: #1877f2;
+    color: white;
+    box-shadow: 0 2px 10px rgba(24, 119, 242, 0.3);
+}
+
+.modern-follow-btn:not(.following):hover {
+    background: #166fe5;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(24, 119, 242, 0.4);
+}
+
+/* Following State */
+.modern-follow-btn.following {
+    background: #e4e6eb;
+    color: #050505;
+    padding-right: 16px;
+    padding-left: 16px;
+}
+
+.modern-follow-btn.following:hover {
+    background: #d8dadf;
+}
+
+/* Button Content */
+.modern-follow-btn i {
+    font-size: 14px;
+    margin-right: 8px;
+}
+
+/* Button Text */
+.modern-follow-btn .btn-text {
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+/* Hover Text (Unfollow) */
+.modern-follow-btn .btn-hover-text {
+    position: absolute;
+    opacity: 0;
+    color: #e41e3f;
+    transition: all 0.2s ease;
+    transform: translateY(10px);
+}
+
+/* Hover State for Following Button */
+.modern-follow-btn.following:hover .btn-text {
+    transform: translateY(-20px);
+    opacity: 0;
+}
+
+.modern-follow-btn.following:hover .btn-hover-text {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Loading State */
+.modern-follow-btn.loading {
+    opacity: 0.8;
+    cursor: not-allowed;
+}
+
+.btn-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.loading-spinner-btn {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+}
+
+.modern-follow-btn.following .loading-spinner-btn {
+    border-color: rgba(0, 0, 0, 0.1);
+    border-top-color: #000;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Message Button */
+.message-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 40px;
+}
+
+.message-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+/* More Options Button */
+.more-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.more-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Profile Content Tabs */
+.profile-content {
+    padding: 30px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .profile {
+        padding: 20px 0;
+    }
+    
+    .profile-header {
+        padding: 30px 20px;
+        padding-top: 50px;
+    }
+    
+    .profile-avatar-container {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .profile-name {
+        font-size: 1.6rem;
+    }
+    
+    .profile-stats {
+        gap: 15px;
+    }
+    
+    .stat-value {
+        font-size: 1.3rem;
+    }
+    
+    .profile-content {
+        padding: 20px 15px;
+    }
+}
+
+/* Info Container */
 .info {
     width: 100%;
     max-width: 900px;
-    margin: auto;
-    padding: 30px 15px;
+    margin: 0 auto;
+    padding: 0 15px 30px;
 }
 
 .info_container {
@@ -23,11 +362,14 @@
 
 .info_content {
     min-width: 280px;
-    max-width: 650px;
+    max-width: 100%;
     width: 100%;
     flex: 1;
-    margin: 0 20px;
-    background: rgba(255, 255, 255, 0.9);
+    margin: 0;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
     border-radius: 12px;
     padding: 20px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);

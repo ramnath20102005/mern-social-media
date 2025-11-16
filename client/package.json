@@ -1,6 +1,5 @@
 {
   "name": "mesme",
-  "proxy": "http://localhost:8080",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -15,6 +14,7 @@
     "axios": "^1.12.2",
     "chart.js": "^3.9.1",
     "emoji-mart": "^3.0.1",
+    "http-proxy-middleware": "^2.0.6",
     "moment": "^2.29.1",
     "react": "^17.0.1",
     "react-chartjs-2": "^4.3.1",

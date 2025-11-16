@@ -1,24 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { getStoriesFeed } from '../../redux/actions/storyAction';
 import { GLOBALTYPES } from '../../redux/actions/globalTypes';
+import '../../styles/story_bar.css';
 
 const StoryBar = () => {
   const { auth, stories } = useSelector(state => state);
   const dispatch = useDispatch();
   
-
   useEffect(() => {
     if (auth.token) {
-      console.log('Fetching stories feed...');
       dispatch(getStoriesFeed(auth.token));
     }
   }, [dispatch, auth.token]);
-
-  // Debug log
-  useEffect(() => {
-    console.log('Stories state:', stories);
-  }, [stories]);
 
   const handleAddStory = () => {
     dispatch({ type: GLOBALTYPES.STORY, payload: true });
@@ -29,213 +23,101 @@ const StoryBar = () => {
       type: GLOBALTYPES.STORY_VIEWER,
       payload: {
         show: true,
-        userStories: userStories,
+        userStories,
         initialStoryIndex: storyIndex
       }
     });
   };
 
-  const getTimeRemaining = (expiryDate) => {
-    const now = new Date();
-    const expiry = new Date(expiryDate);
-    const remaining = expiry - now;
-    
-    if (remaining <= 0) {
-      return { expired: true, text: 'Expired' };
-    }
-    
-    const hours = Math.floor(remaining / (1000 * 60 * 60));
-    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-    
-    if (hours > 24) {
-      const days = Math.floor(hours / 24);
-      return { expired: false, text: `${days}d left` };
-    } else if (hours > 0) {
-      return { expired: false, text: `${hours}h left` };
-    } else {
-      return { expired: false, text: `${minutes}m left` };
-    }
-  };
-
-  const isExpiringSoon = (expiryDate) => {
-    const now = new Date();
-    const expiry = new Date(expiryDate);
-    const remaining = expiry - now;
-    const hoursRemaining = remaining / (1000 * 60 * 60);
-    return hoursRemaining <= 2 && hoursRemaining > 0;
-  };
-
-  // Show loading state
-  if (stories.loading) {
-    return (
-      <div className="modern-story-container">
-        <div className="story-scroll-area">
-          {/* Add Story Card */}
-          <div className="story-card add-story-card" onClick={handleAddStory}>
-            <div className="story-avatar-container">
-              <div className="story-avatar-wrapper">
-                <img src={auth.user?.avatar} alt="Your story" className="story-avatar" />
-                <div className="add-story-icon">
-                  <i className="fas fa-plus"></i>
-                </div>
-              </div>
-            </div>
-            <div className="story-label">
-              <span className="story-text">Add Story</span>
-            </div>
-          </div>
-          
-          {/* Loading skeleton */}
-          {[1, 2, 3].map(i => (
-            <div key={i} className="story-card">
-              <div className="story-avatar-container">
-                <div className="story-avatar-wrapper loading-skeleton">
-                  <div className="story-avatar loading-skeleton"></div>
-                </div>
-              </div>
-              <div className="story-label">
-                <span className="story-text loading-skeleton">Loading...</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  // Show empty state with just add story button
-  if (!stories || !stories.stories || stories.stories.length === 0) {
-    return (
-      <div className="modern-story-container">
-        <div className="story-scroll-area">
-          {/* Add Story Card */}
-          <div className="story-card add-story-card" onClick={handleAddStory}>
-            <div className="story-avatar-container">
-              <div className="story-avatar-wrapper">
-                <img src={auth.user?.avatar} alt="Your story" className="story-avatar" />
-                <div className="add-story-icon">
-                  <i className="fas fa-plus"></i>
-                </div>
-              </div>
-            </div>
-            <div className="story-label">
-              <span className="story-text">Add Story</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Check if current user has stories
+  // Get current user's stories
   const currentUserStories = stories.stories?.find(userStories => 
-    userStories.user._id === auth.user._id
+    userStories.user._id === auth.user?._id
   );
+
+  // Get other users' stories (excluding current user)
+  const otherUsersStories = stories.stories?.filter(userStories => 
+    userStories.user._id !== auth.user?._id
+  ) || [];
+
+  if (!auth.token) return null;
 
   return (
     <div className="modern-story-container">
+      <div className="story-bar-header">
+        <h3 className="story-bar-title">People to Follow</h3>
+        <a href="/explore/people" className="story-bar-see-all">See All</a>
+      </div>
       <div className="story-scroll-area">
-        {/* Current User Story Card */}
-        {currentUserStories ? (
-          // User has stories - show their story with ring
-          <div 
-            className="story-card user-story-card current-user-story"
-            onClick={() => handleViewStory(currentUserStories)}
-          >
-            <div className="story-avatar-container">
-              <div className="story-avatar-wrapper unviewed">
-                <img src={auth.user?.avatar} alt="Your story" className="story-avatar" />
-                {currentUserStories.storyCount > 1 && (
-                  <div className="story-badge count">
-                    {currentUserStories.storyCount}
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="story-label">
-              <span className="story-text">Your story</span>
+        {/* Always show Add Story button */}
+        <div className="story-card" onClick={handleAddStory}>
+          <div className="story-avatar-container">
+            <div className="story-avatar-wrapper">
+              <img
+                src={auth.user?.avatar || '/images/default-avatar.png'}
+                alt="Add story"
+                className="story-avatar"
+                onError={(e) => {
+                  e.target.src = '/images/default-avatar.png';
+                }}
+              />
             </div>
           </div>
-        ) : (
-          // User has no stories - show add story button
-          <div className="story-card add-story-card" onClick={handleAddStory}>
+          <div className="story-label">Add Story</div>
+        </div>
+
+        {/* Show "Your Story" if there are stories */}
+        {currentUserStories?.stories?.length > 0 && (
+          <div 
+            className="story-card"
+            onClick={() => handleViewStory(currentUserStories, 0)}
+          >
             <div className="story-avatar-container">
               <div className="story-avatar-wrapper">
-                <img src={auth.user?.avatar} alt="Your story" className="story-avatar" />
-                <div className="add-story-icon">
-                  <i className="fas fa-plus"></i>
-                </div>
+                <img
+                  src={currentUserStories.latestStory.media[0]?.url || auth.user?.avatar || '/images/default-avatar.png'}
+                  alt="Your story"
+                  className="story-avatar"
+                  onError={(e) => {
+                    e.target.src = '/images/default-avatar.png';
+                  }}
+                />
               </div>
             </div>
-            <div className="story-label">
-              <span className="story-text">Add Story</span>
-            </div>
+            <div className="story-label">Your Story</div>
           </div>
         )}
 
         {/* Other Users' Stories */}
-        {stories.stories && stories.stories
-          .filter(userStories => userStories.user._id !== auth.user._id) // Exclude current user
-          .map((userStories, index) => {
-          // Safety check for latestStory
-          if (!userStories || !userStories.latestStory) {
-            return null;
-          }
-          
-          const latestStory = userStories.latestStory;
-          const timeRemaining = getTimeRemaining(latestStory.expiresAt || latestStory.expiryDate);
-          const expiringSoon = isExpiringSoon(latestStory.expiresAt || latestStory.expiryDate);
+        {otherUsersStories.map((userStories) => {
+          if (!userStories || !userStories.latestStory) return null;
           
           return (
             <div 
-              key={`story-${userStories.user._id}-${index}`} 
-              className={`story-card user-story-card ${timeRemaining.expired ? 'expired' : ''} ${expiringSoon ? 'expiring-soon' : ''}`}
-              onClick={() => !timeRemaining.expired && handleViewStory(userStories)}
+              key={`story-${userStories.user._id}`}
+              className="story-card"
+              onClick={() => handleViewStory(userStories, 0)}
             >
               <div className="story-avatar-container">
-                <div className={`story-avatar-wrapper ${userStories.hasUnviewed ? 'unviewed' : 'viewed'} ${latestStory.visibility === 'close_friends' ? 'close-friends' : ''}`}>
-                  <img src={userStories.user.avatar} alt={userStories.user.fullname} className="story-avatar" />
-                  
-                  {/* Story badges */}
-                  {latestStory.visibility === 'close_friends' && (
-                    <div className="story-badge close-friends">
-                      <i className="fas fa-heart"></i>
-                    </div>
-                  )}
-                  {latestStory.visibility === 'public' && (
-                    <div className="story-badge public">
-                      <i className="fas fa-globe"></i>
-                    </div>
-                  )}
-                  {userStories.storyCount > 1 && (
-                    <div className="story-badge count">
-                      {userStories.storyCount}
-                    </div>
-                  )}
+                <div className={`story-avatar-wrapper ${userStories.hasUnviewed ? 'unviewed' : ''}`}>
+                  <img
+                    src={userStories.user.avatar || '/images/default-avatar.png'}
+                    alt={userStories.user.username}
+                    className="story-avatar"
+                    onError={(e) => {
+                      e.target.src = '/images/default-avatar.png';
+                    }}
+                  />
                 </div>
               </div>
-              
               <div className="story-label">
-                <span className="story-text">{userStories.user.username}</span>
-                <span className={`story-time ${timeRemaining.expired ? 'expired' : ''}`}>
-                  {timeRemaining.text}
-                </span>
+                {userStories.user.username}
               </div>
-
-              {/* Caption preview */}
-              {latestStory.caption && (
-                <div className="story-caption-preview" title={latestStory.caption}>
-                  {latestStory.caption}
-                </div>
-              )}
             </div>
           );
         })}
       </div>
-      
     </div>
   );
 };
-
 
 export default StoryBar;

@@ -4,6 +4,7 @@ import LoadIcon from "../../images/loading.gif";
 import LoadMoreBtn from "../LoadMoreBtn";
 import { getDataAPI } from "../../utils/fetchData";
 import { PROFILE_TYPES } from "../../redux/actions/profileAction";
+import ProfileHeader from "./ProfileHeader";
 
 const Posts = ({ auth, profile, dispatch, id }) => {
   const [posts, setPosts] = useState([]);
@@ -58,24 +59,25 @@ const Posts = ({ auth, profile, dispatch, id }) => {
   }
 
   return (
-    <div className="profile-posts-container">
+    <div className="profile-posts">
+      <ProfileHeader 
+        title="Posts" 
+        showSeeAll={posts.length > 0} 
+        seeAllLink={`/profile/${id}?tab=posts`}
+      />
+      
       <PostThumb posts={posts} result={result} />
 
-      {load && (
-        <div className="posts-load-more-container">
-          <div className="posts-loading-spinner">
-            <div className="spinner-gradient"></div>
-          </div>
-          <p>Loading more posts...</p>
-        </div>
-      )}
+      {load && <img src={LoadIcon} alt="loading" className="d-block mx-auto" />}
 
-      <LoadMoreBtn
-        result={result}
-        page={page}
-        load={load}
-        handleLoadMore={handleLoadMore}
-      />
+      {!profile.loading && (
+        <LoadMoreBtn
+          result={result}
+          page={page}
+          load={load}
+          handleLoadMore={handleLoadMore}
+        />
+      )}
     </div>
   );
 };

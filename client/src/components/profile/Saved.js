@@ -4,6 +4,7 @@ import LoadIcon from "../../images/loading.gif";
 import LoadMoreBtn from "../LoadMoreBtn";
 import { getDataAPI } from "../../utils/fetchData";
 import { GLOBALTYPES } from "../../redux/actions/globalTypes";
+import ProfileHeader from "./ProfileHeader";
 
 const Saved = ({ auth, dispatch }) => {
   const [savePosts, setSavePosts] = useState([]);
@@ -37,7 +38,13 @@ const Saved = ({ auth, dispatch }) => {
 
 
   return (
-    <div>
+    <div className="saved-posts">
+      <ProfileHeader 
+        title="Saved Posts" 
+        showSeeAll={savePosts.length > 0} 
+        seeAllLink="/saved"
+      />
+      
       <PostThumb posts={savePosts} result={result} />
 
       {load && (

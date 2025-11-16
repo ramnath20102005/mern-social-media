@@ -1,10 +1,21 @@
 /* Enhanced Avatar Styles for Modern UI */
-.supper-avatar {
-  height: 150px;
-  width: 150px;
+/* Avatar Base Styles */
+.avatar-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 50%;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.2);
+  background: #f0f2f5;
+}
+
+/* Large Avatar */
+.supper-avatar {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
@@ -16,27 +27,30 @@
   z-index: 10;
 }
 
-.supper-avatar img {
+/* Ensure all avatar images maintain aspect ratio and fill container */
+.supper-avatar img,
+.big-avatar img,
+.nav-avatar img,
+.avatar-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: inherit;
+  object-position: center;
+  display: block;
   transition: transform 0.3s ease;
 }
 
-.supper-avatar:hover img {
-  transform: scale(1.1);
-}
-
+/* Medium Avatar */
 .big-avatar {
-  height: 50px;
   width: 50px;
+  height: 50px;
   border-radius: 50%;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border: 2px solid rgba(255, 255, 255, 0.5);
+  background: #f8f9fa;
+  border: 2px solid white;
+  box-sizing: border-box;
 }
 
 .big-avatar:hover {
@@ -89,6 +103,35 @@
   height: 100%;
   object-fit: cover;
   border-radius: inherit;
+}
+
+.nav-avatar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  background: #f0f2f5;
+  position: relative;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 50%;
+  display: block;
+  margin: 0;
+  padding: 0;
 }
 
 .big-avatar-cover {

@@ -68,10 +68,19 @@
 }
 
 .story-user-name {
-  font-size: 16px;
   font-weight: 600;
-  color: #1e293b;
+  font-size: 14px;
+  color: #ffffff;
   margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.story-time-remaining-header {
+  font-weight: 400;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .story-time-ago {

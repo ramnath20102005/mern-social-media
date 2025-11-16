@@ -182,6 +182,41 @@ const StoryDetailsModal = () => {
     }
   };
 
+  // Format time remaining for the current story
+  const formatTimeRemaining = (expiryDate) => {
+    if (!expiryDate) return { text: 'Expired', shortText: 'Exp' };
+    
+    const now = new Date();
+    const expiry = new Date(expiryDate);
+    const diffMs = expiry - now;
+    
+    if (diffMs <= 0) return { text: 'Expired', shortText: 'Exp' };
+    
+    const diffMins = Math.round(diffMs / (1000 * 60));
+    const diffHrs = Math.round(diffMins / 60);
+    
+    if (diffMins < 60) {
+      return { 
+        text: `${diffMins} ${diffMins === 1 ? 'min' : 'mins'} left`,
+        shortText: `${diffMins}m`
+      };
+    } else if (diffHrs < 24) {
+      return { 
+        text: `${diffHrs} ${diffHrs === 1 ? 'hour' : 'hrs'} left`,
+        shortText: `${diffHrs}h`
+      };
+    } else {
+      const days = Math.round(diffHrs / 24);
+      return { 
+        text: `${days} ${days === 1 ? 'day' : 'days'} left`,
+        shortText: `${days}d`
+      };
+    }
+  };
+
+  // Get time remaining for current story
+  const currentTimeRemaining = currentStory ? formatTimeRemaining(currentStory.expiresAt) : null;
+
   if (!currentStory) {
     return null;
   }
@@ -197,9 +232,19 @@ const StoryDetailsModal = () => {
                 src={userStories.user.avatar} 
                 alt={userStories.user.fullname}
                 className="story-user-avatar"
+                onError={(e) => {
+                  e.target.src = '/images/default-avatar.png';
+                }}
               />
               <div className="story-user-details">
-                <span className="story-user-name">{userStories.user.username}</span>
+                <span className="story-user-name">
+                  {userStories.user.username}
+                  {currentTimeRemaining && (
+                    <span className="story-time-remaining-header">
+                      • {currentTimeRemaining.text}
+                    </span>
+                  )}
+                </span>
                 <span className="story-time-ago">{getTimeAgo(currentStory.createdAt)}</span>
               </div>
             </div>
@@ -271,6 +316,9 @@ const StoryDetailsModal = () => {
                 {currentStory.media && (
                   <p>Media array length: {currentStory.media.length}</p>
                 )}
+                <div className="story-time-remaining-overlay">
+                  {formatTimeRemaining(currentStory.expiresAt)}
+                </div>
               </div>
             )}
             

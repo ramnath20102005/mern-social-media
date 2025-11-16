@@ -6,6 +6,10 @@ import { follow, unfollow } from '../../redux/actions/profileAction';
 import { getDataAPI } from '../../utils/fetchData';
 
 const RightSidebar = () => {
+  const [likes, setLikes] = useState(0);
+  const [comments, setComments] = useState(0);
+  const [profileViews, setProfileViews] = useState(0);
+  const [modalContent, setModalContent] = useState(null); // Can be 'likes' or 'comments'
   const { auth, suggestions, socket, online = { users: [] }, homePosts } = useSelector(state => state);
   const dispatch = useDispatch();
   const mounted = useRef(true);
@@ -100,6 +104,12 @@ const RightSidebar = () => {
   ];
 
   // Calculate dynamic stats
+  const calculateTotalComments = () => {
+    if (!homePosts.posts || !auth.user) return 0;
+    const userPosts = homePosts.posts.filter(post => post.user._id === auth.user._id);
+    return userPosts.reduce((sum, post) => sum + (post.comments?.length || 0), 0);
+  };
+
   const calculateTotalLikes = () => {
     if (!homePosts.posts || !auth.user) return 0;
     const userPosts = homePosts.posts.filter(post => post.user._id === auth.user._id);
@@ -109,7 +119,40 @@ const RightSidebar = () => {
   const calculateProfileViews = () => {
     const totalLikes = calculateTotalLikes();
     const followerCount = auth.user?.followers?.length || 0;
-    return Math.floor(totalLikes * 2.5 + followerCount * 15 + Math.random() * 500);
+    return Math.floor(totalLikes * 1.5 + followerCount * 10 + Math.random() * 200);
+  };
+
+  useEffect(() => {
+    if (auth.user) {
+      setLikes(calculateTotalLikes());
+      setComments(calculateTotalComments());
+      setProfileViews(calculateProfileViews());
+    }
+  }, [homePosts.posts, auth.user]);
+
+  useEffect(() => {
+    if (socket) {
+      const handleLikeUpdate = () => setLikes(calculateTotalLikes());
+      const handleCommentUpdate = () => setComments(calculateTotalComments());
+
+      socket.on('likePost', handleLikeUpdate);
+      socket.on('unLikePost', handleLikeUpdate);
+      socket.on('createComment', handleCommentUpdate);
+
+      return () => {
+        socket.off('likePost', handleLikeUpdate);
+        socket.off('unLikePost', handleLikeUpdate);
+        socket.off('createComment', handleCommentUpdate);
+      };
+    }
+  }, [socket, auth.user, homePosts.posts]);
+
+  const handleOpenModal = (type) => {
+    setModalContent(type);
+  };
+
+  const handleCloseModal = () => {
+    setModalContent(null);
   };
 
   const calculateEngagementRate = () => {
@@ -151,12 +194,21 @@ const RightSidebar = () => {
                 <Avatar src={user.avatar} size="suggestion-avatar" />
                 <div className="suggestion-info">
                   <span className="suggestion-name">{user.fullname}</span>
-                  <span className="suggestion-meta">
-                    @{user.username} • {user.followers?.length || 0} followers
-                  </span>
-                  <div className="mutual-connections">
-                    <i className="fas fa-users"></i>
-                    <span>2 mutual connections</span>
+                  <div className="suggestion-meta">
+                    <span className="meta-item">
+                      <i className="fas fa-user-friends"></i>
+                      <span>2</span>
+                    </span>
+                    <span className="meta-separator">•</span>
+                    <span className="meta-item">
+                      <i className="fas fa-user-plus"></i>
+                      <span>{user.following?.length || 0}</span>
+                    </span>
+                    <span className="meta-separator">•</span>
+                    <span className="meta-item">
+                      <i className="fas fa-users"></i>
+                      <span>{user.followers?.length || 0}</span>
+                    </span>
                   </div>
                 </div>
               </Link>
@@ -233,59 +285,43 @@ const RightSidebar = () => {
         </div>
       </div>
 
-      {/* Quick Stats */}
+            {/* Your Activity */}
       <div className="sidebar-card stats-card">
         <div className="section-header">
-          <h3 className="section-title">Your Stats</h3>
-          <button className="section-action">
-            <i className="fas fa-external-link-alt"></i>
-          </button>
+          <h3 className="section-title">Your Activity</h3>
+          <button className="section-action"><i className="fas fa-chart-line"></i></button>
         </div>
-        <div className="quick-stats">
-          <div className="stat-card">
-            <div className="stat-icon views-icon">
-              <i className="fas fa-eye"></i>
-            </div>
+        <div className="activity-stats">
+          <div className="stat-item" onClick={() => handleOpenModal('likes')}>
+            <div className="stat-icon likes-icon"><i className="fas fa-heart"></i></div>
             <div className="stat-info">
-              <span className="stat-value">{formatNumber(calculateProfileViews())}</span>
-              <span className="stat-label">Profile Views</span>
+              <span className="stat-label">Likes received</span>
+              <span className="stat-value">{formatNumber(likes)}</span>
             </div>
-            <div className="stat-trend">
-              <i className="fas fa-arrow-up"></i>
-              <span>+24%</span>
-            </div>
+            <div className="stat-trend up"><i className="fas fa-arrow-up"></i> +12%</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-icon likes-icon">
-              <i className="fas fa-heart"></i>
-            </div>
+          <div className="stat-item" onClick={() => handleOpenModal('comments')}>
+            <div className="stat-icon comments-icon"><i className="fas fa-comment"></i></div>
             <div className="stat-info">
-              <span className="stat-value">{formatNumber(calculateTotalLikes())}</span>
-              <span className="stat-label">Total Likes</span>
+              <span className="stat-label">Comments</span>
+              <span className="stat-value">{formatNumber(comments)}</span>
             </div>
-            <div className="stat-trend">
-              <i className="fas fa-arrow-up"></i>
-              <span>+18%</span>
-            </div>
+            <div className="stat-trend up"><i className="fas fa-arrow-up"></i> +8%</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-icon engagement-icon">
-              <i className="fas fa-chart-line"></i>
-            </div>
+          <div className="stat-item">
+            <div className="stat-icon views-icon"><i className="fas fa-eye"></i></div>
             <div className="stat-info">
-              <span className="stat-value">{calculateEngagementRate()}%</span>
-              <span className="stat-label">Engagement</span>
+              <span className="stat-label">Profile views</span>
+              <span className="stat-value">{formatNumber(profileViews)}</span>
             </div>
-            <div className="stat-trend">
-              <i className="fas fa-arrow-up"></i>
-              <span>+12%</span>
-            </div>
+            <div className="stat-trend up"><i className="fas fa-arrow-up"></i> +15%</div>
           </div>
         </div>
       </div>
 
-      {/* Footer Links */}
-      <div className="sidebar-footer">
+      <ActivityModal type={modalContent} onClose={handleCloseModal} />
+
+            <div className="sidebar-footer">
         <div className="footer-links">
           <Link to="/about">About</Link>
           <Link to="/privacy">Privacy</Link>
