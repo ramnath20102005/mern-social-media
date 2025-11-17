@@ -84,7 +84,7 @@
   border-radius: 50%;
   border: 3px solid transparent;
   background: linear-gradient(white, white) padding-box,
-              linear-gradient(45deg, var(--primary-color), var(--success-color)) border-box;
+    linear-gradient(45deg, var(--primary-color), var(--success-color)) border-box;
   transition: all 0.3s ease;
 }
 
@@ -479,11 +479,25 @@
 
 /* Heart beat animation for liked posts */
 @keyframes heartBeat {
-  0% { transform: scale(1); }
-  25% { transform: scale(1.2); }
-  50% { transform: scale(1); }
-  75% { transform: scale(1.1); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  25% {
+    transform: scale(1.2);
+  }
+
+  50% {
+    transform: scale(1);
+  }
+
+  75% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* ========== POST STATS ========== */
@@ -924,6 +938,7 @@
     opacity: 0;
     transform: translateY(30px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
@@ -935,6 +950,7 @@
     opacity: 0;
     transform: translateY(-10px) scale(0.95);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -946,6 +962,7 @@
     max-height: 0;
     opacity: 0;
   }
+
   100% {
     max-height: 500px;
     opacity: 1;
@@ -953,9 +970,12 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.05);
   }
@@ -967,11 +987,11 @@
   .modern-post-header {
     padding: var(--space-4) var(--space-4);
   }
-  
+
   .modern-card-body {
     padding: 0 var(--space-4) var(--space-3);
   }
-  
+
   .action-buttons-container,
   .post-stats-enhanced,
   .comments-header,
@@ -979,30 +999,30 @@
     padding-left: var(--space-4);
     padding-right: var(--space-4);
   }
-  
+
   .action-buttons-container {
     padding: var(--space-3) var(--space-4);
   }
-  
+
   .action-buttons-box {
     justify-content: space-around;
   }
-  
+
   .enhanced-action-btn {
     padding: var(--space-2) var(--space-3);
     gap: var(--space-1);
     max-width: 100px;
   }
-  
+
   .btn-label {
     font-size: 0.8rem;
     letter-spacing: 0.3px;
   }
-  
+
   .post-username {
     font-size: 0.9rem;
   }
-  
+
   .post-timestamp {
     font-size: 0.8rem;
   }
@@ -1012,17 +1032,17 @@
   .modern-post-card {
     margin-bottom: var(--space-4);
   }
-  
+
   .post-card-container {
     border-radius: var(--radius-md);
     margin: 0 var(--space-2);
   }
-  
+
   .enhanced-action-btn {
     padding: var(--space-2);
     gap: var(--space-1);
   }
-  
+
   .post-stats-enhanced {
     flex-direction: column;
     align-items: flex-start;
@@ -1075,6 +1095,11 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }

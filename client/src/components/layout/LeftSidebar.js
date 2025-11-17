@@ -3,9 +3,33 @@ import { Link, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { getDataAPI } from '../../utils/fetchData';
 import { GLOBALTYPES } from '../../redux/actions/globalTypes';
+import { useTranslation } from 'react-i18next';
 
 const LeftSidebar = () => {
-  const { auth, homePosts } = useSelector(state => state);
+  const { t } = useTranslation();
+  const { auth, homePosts, theme } = useSelector(state => state);
+
+  // Theme colors for light/dark mode
+  const themeColors = {
+    light: {
+      textPrimary: '#1e293b',
+      textSecondary: '#475569',
+      bgPrimary: '#ffffff',
+      bgSecondary: '#f8fafc',
+      bgTertiary: '#f1f5f9',
+      border: '#e2e8f0',
+    },
+    dark: {
+      textPrimary: '#f8fafc',
+      textSecondary: '#e2e8f0',
+      bgPrimary: '#0f172a',
+      bgSecondary: '#1e293b',
+      bgTertiary: '#334155',
+      border: '#334155',
+    }
+  };
+
+  const currentTheme = themeColors[theme] || themeColors.light;
   const { pathname } = useLocation();
   const dispatch = useDispatch();
   const mounted = useRef(true);
@@ -22,12 +46,66 @@ const LeftSidebar = () => {
   });
 
   const navigationItems = [
-    { label: 'Home', icon: 'fas fa-home', path: '/', color: '#3b82f6' },
-    { label: 'Profile', icon: 'fas fa-user', path: `/profile/${auth.user?._id}`, color: '#8b5cf6' },
-    { label: 'Messages', icon: 'fas fa-envelope', path: '/message', color: '#10b981' },
-    { label: 'Explore', icon: 'fas fa-compass', path: '/discover', color: '#f59e0b' },
-    { label: 'Bookmarks', icon: 'fas fa-bookmark', path: '/saved', color: '#ef4444' },
-    { label: 'Settings', icon: 'fas fa-cog', path: '/settings', color: '#6b7280' },
+    {
+      key: 'home',
+      label: t('menu.home'),
+      icon: 'fas fa-home',
+      path: '/',
+      color: {
+        light: '#3b82f6', // blue-500
+        dark: '#60a5fa'   // blue-400
+      }
+    },
+    {
+      key: 'profile',
+      label: t('menu.profile'),
+      icon: 'fas fa-user',
+      path: `/profile/${auth.user?._id}`,
+      color: {
+        light: '#8b5cf6', // purple-500
+        dark: '#a78bfa'   // purple-400
+      }
+    },
+    {
+      key: 'messages',
+      label: t('menu.messages'),
+      icon: 'fas fa-envelope',
+      path: '/message',
+      color: {
+        light: '#10b981', // emerald-500
+        dark: '#34d399'   // emerald-400
+      }
+    },
+    {
+      key: 'explore',
+      label: t('menu.explore'),
+      icon: 'fas fa-compass',
+      path: '/discover',
+      color: {
+        light: '#f59e0b', // amber-500
+        dark: '#fbbf24'   // amber-400
+      }
+    },
+    {
+      key: 'bookmarks',
+      label: t('menu.bookmarks'),
+      icon: 'fas fa-bookmark',
+      path: '/saved',
+      color: {
+        light: '#ef4444', // red-500
+        dark: '#f87171'   // red-400
+      }
+    },
+    {
+      key: 'settings',
+      label: t('menu.settings'),
+      icon: 'fas fa-cog',
+      path: '/settings',
+      color: {
+        light: '#6b7280', // gray-500
+        dark: '#9ca3af'   // gray-400
+      }
+    }
   ];
 
   // Fetch user stats and activity data
@@ -63,14 +141,14 @@ const LeftSidebar = () => {
         try {
           // Calculate activity stats from user's posts
           const userPosts = homePosts.posts?.filter(post => post.user._id === auth.user._id) || [];
-          
+
           const totalLikes = userPosts.reduce((sum, post) => sum + (post.likes?.length || 0), 0);
           const totalComments = userPosts.reduce((sum, post) => sum + (post.comments?.length || 0), 0);
           const totalShares = userPosts.reduce((sum, post) => sum + (post.shares?.length || 0), 0);
-          
+
           // Simulate profile views (could be fetched from backend)
           const profileViews = Math.floor(totalLikes * 2.5 + totalComments * 3 + auth.user.followers?.length * 10);
-          
+
           if (mounted.current) {
             setActivityStats({
               likesReceived: totalLikes,
@@ -87,7 +165,7 @@ const LeftSidebar = () => {
 
     fetchUserStats();
     fetchActivityStats();
-    
+
     // Cleanup function
     return () => {
       mounted.current = false;
@@ -133,109 +211,444 @@ const LeftSidebar = () => {
   };
 
   return (
-    <div className="left-sidebar">
+    <div className="left-sidebar" style={{
+      '--text-primary': currentTheme.textPrimary,
+      '--text-secondary': currentTheme.textSecondary,
+      '--bg-primary': currentTheme.bgPrimary,
+      '--bg-secondary': currentTheme.bgSecondary,
+      '--bg-tertiary': currentTheme.bgTertiary,
+      '--border': currentTheme.border,
+      color: currentTheme.textPrimary,
+      backgroundColor: currentTheme.bgSecondary,
+      borderRight: `1px solid ${currentTheme.border}`
+    }}>
       {/* Navigation Menu */}
       <div className="sidebar-card">
         <div className="nav-menu">
-          {navigationItems.map((item, index) => (
-            <Link
-              key={index}
-              to={item.path}
-              className={`nav-menu-item ${isActive(item.path) ? 'active' : ''}`}
-            >
-              <div className="nav-menu-icon" style={{ color: item.color }}>
-                <i className={item.icon}></i>
-              </div>
-              <span className="nav-menu-text">{item.label}</span>
-            </Link>
-          ))}
+          {navigationItems.map((item) => {
+            const active = isActive(item.path) || (item.path !== '/' && pathname.startsWith(item.path));
+            const itemColor = item.color[theme] || item.color.light;
+
+            return (
+              <Link
+                key={item.key}
+                to={item.path}
+                className={`nav-menu-item ${active ? 'active' : ''}`}
+                style={{
+                  '--item-color': active ? '#ffffff' : itemColor,
+                  '--item-bg': active ? itemColor : 'transparent',
+                  '--item-hover-bg': active ? `${itemColor}dd` : currentTheme.bgTertiary,
+                  color: active ? '#ffffff' : itemColor,
+                  backgroundColor: active ? itemColor : 'transparent',
+                }}
+              >
+                <div className="nav-menu-icon">
+                  <i className={item.icon} style={{ color: active ? '#ffffff' : itemColor }}></i>
+                </div>
+                <span className="nav-menu-text">{item.label}</span>
+              </Link>
+            );
+          })}
         </div>
 
         {/* User Stats */}
-        <div className="user-stats">
-          <div className="stats-grid">
-            <div className="stat-item">
-              <span className="stat-number">{formatNumber(userStats.posts)}</span>
-              <span className="stat-label">Posts</span>
+        <div className="user-stats" style={{
+          borderTop: `1px solid ${currentTheme.border}`,
+          padding: '16px 0',
+          marginTop: '16px'
+        }}>
+          <div className="stats-grid" style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '8px',
+            padding: '0 16px'
+          }}>
+            <div className="stat-item" style={{
+              textAlign: 'center',
+              padding: '8px',
+              borderRadius: '8px',
+              backgroundColor: currentTheme.bgPrimary,
+              border: `1px solid ${currentTheme.border}`
+            }}>
+              <div className="stat-number" style={{
+                display: 'block',
+                fontWeight: '700',
+                fontSize: '1.1rem',
+                color: currentTheme.textPrimary,
+                marginBottom: '4px'
+              }}>{formatNumber(userStats.posts)}</div>
+              <div className="stat-label" style={{
+                fontSize: '0.8rem',
+                color: currentTheme.textSecondary,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>Posts</div>
             </div>
-            <div className="stat-item">
-              <span className="stat-number">{formatNumber(userStats.followers)}</span>
-              <span className="stat-label">Followers</span>
+            <div className="stat-item" style={{
+              textAlign: 'center',
+              padding: '8px',
+              borderRadius: '8px',
+              backgroundColor: currentTheme.bgPrimary,
+              border: `1px solid ${currentTheme.border}`
+            }}>
+              <div className="stat-number" style={{
+                display: 'block',
+                fontWeight: '700',
+                fontSize: '1.1rem',
+                color: currentTheme.textPrimary,
+                marginBottom: '4px'
+              }}>{formatNumber(userStats.followers)}</div>
+              <div className="stat-label" style={{
+                fontSize: '0.8rem',
+                color: currentTheme.textSecondary,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>Followers</div>
             </div>
-            <div className="stat-item">
-              <span className="stat-number">{formatNumber(userStats.following)}</span>
-              <span className="stat-label">Following</span>
+            <div className="stat-item" style={{
+              textAlign: 'center',
+              padding: '8px',
+              borderRadius: '8px',
+              backgroundColor: currentTheme.bgPrimary,
+              border: `1px solid ${currentTheme.border}`
+            }}>
+              <div className="stat-number" style={{
+                display: 'block',
+                fontWeight: '700',
+                fontSize: '1.1rem',
+                color: currentTheme.textPrimary,
+                marginBottom: '4px'
+              }}>{formatNumber(userStats.following)}</div>
+              <div className="stat-label" style={{
+                fontSize: '0.8rem',
+                color: currentTheme.textSecondary,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>Following</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Recent Activity */}
-      <div className="sidebar-card activity-card">
-        <div className="section-header">
-          <h3 className="section-title">Your Activity</h3>
-          <button className="section-action">
+      <div className="sidebar-card activity-card" style={{
+        backgroundColor: currentTheme.bgPrimary,
+        borderRadius: '12px',
+        padding: '16px',
+        margin: '16px 0',
+        border: `1px solid ${currentTheme.border}`
+      }}>
+        <div className="section-header" style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '16px'
+        }}>
+          <h3 className="section-title" style={{
+            margin: 0,
+            fontSize: '1rem',
+            fontWeight: '600',
+            color: currentTheme.textPrimary
+          }}>{t('sidebar.yourActivity')}</h3>
+          <button
+            className="section-action"
+            onClick={() => window.location.href = '/activity'}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: currentTheme.textSecondary,
+              cursor: 'pointer',
+              padding: '4px',
+              borderRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = currentTheme.bgTertiary;
+              e.currentTarget.style.color = currentTheme.textPrimary;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = currentTheme.textSecondary;
+            }}
+          >
             <i className="fas fa-chart-line"></i>
           </button>
         </div>
-        <div className="activity-summary">
-          <div className="activity-item">
-            <div className="activity-icon likes-icon">
+        <div className="activity-summary" style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px'
+        }}>
+          <div className="activity-item" style={{
+            display: 'flex',
+            alignItems: 'center',
+            padding: '12px',
+            borderRadius: '8px',
+            backgroundColor: currentTheme.bgSecondary,
+            border: `1px solid ${currentTheme.border}`,
+            transition: 'all 0.2s ease'
+          }}>
+            <div className="activity-icon likes-icon" style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '8px',
+              backgroundColor: 'rgef(239, 68, 68, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: '12px',
+              color: '#ef4444',
+              fontSize: '16px'
+            }}>
               <i className="fas fa-heart"></i>
             </div>
-            <div className="activity-info">
-              <span className="activity-label">Likes received</span>
-              <span className="activity-count">{formatNumber(activityStats.likesReceived)}</span>
+            <div className="activity-info" style={{
+              flex: 1
+            }}>
+              <div className="activity-label" style={{
+                fontSize: '0.8rem',
+                color: currentTheme.textSecondary,
+                marginBottom: '2px'
+              }}>{t('sidebar.likesReceived')}</div>
+              <div className="activity-count" style={{
+                fontSize: '1rem',
+                fontWeight: '600',
+                color: currentTheme.textPrimary
+              }}>{formatNumber(activityStats.likesReceived || 0)}</div>
             </div>
-            <div className="activity-trend positive">
-              <i className="fas fa-arrow-up"></i>
-              <span>+12%</span>
-            </div>
+            {activityStats.likesChange && (
+              <div className={`activity-trend ${activityStats.likesChange >= 0 ? 'positive' : 'negative'}`} style={{
+                display: 'flex',
+                alignItems: 'center',
+                fontSize: '0.8rem',
+                fontWeight: '500',
+                color: activityStats.likesChange >= 0 ? '#10b981' : '#ef4444'
+              }}>
+                <i className={`fas fa-arrow-${activityStats.likesChange >= 0 ? 'up' : 'down'}`} style={{
+                  marginRight: '4px'
+                }}></i>
+                <span>{Math.abs(activityStats.likesChange)}%</span>
+              </div>
+            )}
           </div>
-          <div className="activity-item">
-            <div className="activity-icon comments-icon">
+          <div className="activity-item" style={{
+            display: 'flex',
+            alignItems: 'center',
+            padding: '12px',
+            borderRadius: '8px',
+            backgroundColor: currentTheme.bgSecondary,
+            border: `1px solid ${currentTheme.border}`,
+            transition: 'all 0.2s ease'
+          }}>
+            <div className="activity-icon comments-icon" style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '8px',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: '12px',
+              color: '#10b981',
+              fontSize: '16px'
+            }}>
               <i className="fas fa-comment"></i>
             </div>
-            <div className="activity-info">
-              <span className="activity-label">Comments</span>
-              <span className="activity-count">{formatNumber(activityStats.commentsReceived)}</span>
+            <div className="activity-info" style={{
+              flex: 1
+            }}>
+              <div className="activity-label" style={{
+                fontSize: '0.8rem',
+                color: currentTheme.textSecondary,
+                marginBottom: '2px'
+              }}>{t('sidebar.comments')}</div>
+              <div className="activity-count" style={{
+                fontSize: '1rem',
+                fontWeight: '600',
+                color: currentTheme.textPrimary
+              }}>{formatNumber(activityStats.commentsReceived || 0)}</div>
             </div>
-            <div className="activity-trend positive">
-              <i className="fas fa-arrow-up"></i>
-              <span>+8%</span>
-            </div>
+            {activityStats.commentsChange && (
+              <div className={`activity-trend ${activityStats.commentsChange >= 0 ? 'positive' : 'negative'}`} style={{
+                display: 'flex',
+                alignItems: 'center',
+                fontSize: '0.8rem',
+                fontWeight: '500',
+                color: activityStats.commentsChange >= 0 ? '#10b981' : '#ef4444'
+              }}>
+                <i className={`fas fa-arrow-${activityStats.commentsChange >= 0 ? 'up' : 'down'}`} style={{
+                  marginRight: '4px'
+                }}></i>
+                <span>{Math.abs(activityStats.commentsChange)}%</span>
+              </div>
+            )}
           </div>
-          <div className="activity-item">
-            <div className="activity-icon views-icon">
+          <div className="activity-item" style={{
+            display: 'flex',
+            alignItems: 'center',
+            padding: '12px',
+            borderRadius: '8px',
+            backgroundColor: currentTheme.bgSecondary,
+            border: `1px solid ${currentTheme.border}`,
+            transition: 'all 0.2s ease'
+          }}>
+            <div className="activity-icon views-icon" style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '8px',
+              backgroundColor: 'rgba(99, 102, 241, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: '12px',
+              color: '#6366f1',
+              fontSize: '16px'
+            }}>
               <i className="fas fa-eye"></i>
             </div>
-            <div className="activity-info">
-              <span className="activity-label">Profile views</span>
-              <span className="activity-count">{formatNumber(activityStats.profileViews)}</span>
+            <div className="activity-info" style={{
+              flex: 1
+            }}>
+              <div className="activity-label" style={{
+                fontSize: '0.8rem',
+                color: currentTheme.textSecondary,
+                marginBottom: '2px'
+              }}>{t('sidebar.profileViews')}</div>
+              <div className="activity-count" style={{
+                fontSize: '1rem',
+                fontWeight: '600',
+                color: currentTheme.textPrimary
+              }}>{formatNumber(activityStats.profileViews || 0)}</div>
             </div>
-            <div className="activity-trend positive">
-              <i className="fas fa-arrow-up"></i>
-              <span>+15%</span>
-            </div>
+            {activityStats.viewsChange && (
+              <div className={`activity-trend ${activityStats.viewsChange >= 0 ? 'positive' : 'negative'}`} style={{
+                display: 'flex',
+                alignItems: 'center',
+                fontSize: '0.8rem',
+                fontWeight: '500',
+                color: activityStats.viewsChange >= 0 ? '#10b981' : '#ef4444'
+              }}>
+                <i className={`fas fa-arrow-${activityStats.viewsChange >= 0 ? 'up' : 'down'}`} style={{
+                  marginRight: '4px'
+                }}></i>
+                <span>{Math.abs(activityStats.viewsChange)}%</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Quick Actions */}
-      <div className="sidebar-card">
-        <div className="quick-actions">
-          <button className="quick-action-btn primary" onClick={handleCreatePost}>
-            <i className="fas fa-plus"></i>
+      <div className="sidebar-card" style={{
+        backgroundColor: currentTheme.bgPrimary,
+        borderRadius: '12px',
+        padding: '16px',
+        border: `1px solid ${currentTheme.border}`
+      }}>
+        <div className="quick-actions" style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr',
+          gap: '8px'
+        }}>
+          <button
+            className="quick-action-btn primary"
+            onClick={handleCreatePost}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '10px 16px',
+              borderRadius: '8px',
+              border: 'none',
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              fontWeight: '500',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#2563eb';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#3b82f6';
+            }}
+          >
+            <i className="fas fa-plus" style={{
+              marginRight: '8px'
+            }}></i>
             <span>New Post</span>
           </button>
-          <button className="quick-action-btn story" onClick={handleCreateStory}>
-            <i className="fas fa-camera"></i>
-            <span>Add Story</span>
-          </button>
-          <button className="quick-action-btn secondary" onClick={handleFindFriends}>
-            <i className="fas fa-user-plus"></i>
-            <span>Find Friends</span>
-          </button>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '8px'
+          }}>
+            <button
+              className="quick-action-btn story"
+              onClick={handleCreateStory}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '10px 12px',
+                borderRadius: '8px',
+                border: `1px solid ${currentTheme.border}`,
+                backgroundColor: currentTheme.bgSecondary,
+                color: currentTheme.textPrimary,
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                fontSize: '0.9rem'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = currentTheme.bgTertiary;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = currentTheme.bgSecondary;
+              }}
+            >
+              <i className="fas fa-camera" style={{
+                marginRight: '6px',
+                color: '#f59e0b'
+              }}></i>
+              <span>Story</span>
+            </button>
+
+            <button
+              className="quick-action-btn secondary"
+              onClick={handleFindFriends}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '10px 12px',
+                borderRadius: '8px',
+                border: `1px solid ${currentTheme.border}`,
+                backgroundColor: currentTheme.bgSecondary,
+                color: currentTheme.textPrimary,
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                fontSize: '0.9rem'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = currentTheme.bgTertiary;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = currentTheme.bgSecondary;
+              }}
+            >
+              <i className="fas fa-user-plus" style={{
+                marginRight: '6px',
+                color: '#8b5cf6'
+              }}></i>
+              <span>Friends</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

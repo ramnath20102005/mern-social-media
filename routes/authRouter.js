@@ -5,7 +5,7 @@ const auth = require('../middleware/auth');
 
 router.post('/register', authCtrl.register);
 router.post("/register_admin", authCtrl.registerAdmin);
-router.post("/changePassword", auth,  authCtrl.changePassword);
+router.post("/changePassword", auth, authCtrl.changePassword);
 
 
 router.post("/login", authCtrl.login);
@@ -16,6 +16,7 @@ router.post("/logout", authCtrl.logout);
 
 
 router.post("/refresh_token", authCtrl.generateAccessToken);
+router.post("/forgot_password", authCtrl.forgotPassword);
 
 
 module.exports = router;

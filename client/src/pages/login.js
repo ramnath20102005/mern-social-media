@@ -4,9 +4,9 @@ import { adminLogin, login } from "../redux/actions/authAction";
 import { useDispatch, useSelector } from "react-redux";
 
 const Login = () => {
-  const initialState = { email: "", password: "" };
+  const initialState = { identifier: "", password: "" };
   const [userData, setUserData] = useState(initialState);
-  const { email, password } = userData;
+  const { identifier, password } = userData;
 
   const [typePass, setTypePass] = useState(false);
 
@@ -26,7 +26,10 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(login(userData));
+    const payload = identifier.includes('@')
+      ? { email: identifier, password }
+      : { username: identifier, password };
+    dispatch(login(payload));
   };
 
   return (
@@ -47,21 +50,21 @@ const Login = () => {
             <h2 className="auth-title">Welcome Back</h2>
             <p className="auth-subtitle">Sign in to your account</p>
 
-            {/* Email Input */}
+            {/* Email or Username */}
             <div className="form-group">
-              <label htmlFor="email" className="form-label">
-                <i className="fas fa-envelope"></i>
-                Email Address
+              <label htmlFor="identifier" className="form-label">
+                <i className="fas fa-id-badge"></i>
+                Email or Username
               </label>
               <div className="input-wrapper">
                 <input
-                  type="email"
+                  type="text"
                   className="modern-input"
-                  id="email"
-                  placeholder="Enter your email"
+                  id="identifier"
+                  placeholder="Enter email or username"
                   onChange={handleChangeInput}
-                  value={email}
-                  name="email"
+                  value={identifier}
+                  name="identifier"
                   required
                 />
               </div>
@@ -99,19 +102,22 @@ const Login = () => {
             <button
               type="submit"
               className="auth-submit-btn"
-              disabled={!email || !password}
+              disabled={!identifier || !password}
             >
               <span>Sign In</span>
               <i className="fas fa-arrow-right"></i>
             </button>
 
-            {/* Register Link */}
+            {/* Links */}
             <div className="auth-footer">
               <p>
                 Don't have an account?{" "}
                 <Link to="/register" className="auth-link">
                   Create one now
                 </Link>
+              </p>
+              <p>
+                <Link to="/forgot" className="auth-link">Forgot your password?</Link>
               </p>
             </div>
           </form>

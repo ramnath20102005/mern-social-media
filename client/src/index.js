@@ -1,4 +1,5 @@
 import React from 'react';
+import './i18n';
 import ReactDOM from 'react-dom';
 import './styles/modern-layout.css';
 import App from './App';

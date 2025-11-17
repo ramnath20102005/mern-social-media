@@ -1,0 +1,126 @@
+{
+    "app": {
+        "title": "Mesme"
+    },
+    "home": {
+        "storiesTitle": "Historias",
+        "loadingText": "Cargando publicaciones increíbles...",
+        "emptyTitle": "¡Aún no hay publicaciones!",
+        "emptySubtitle": "Sé el primero en compartir algo increíble",
+        "createPost": "Crear publicación"
+    },
+    "discover": {
+        "title": "Explorar",
+        "subtitle": "Descubre contenido asombroso de la comunidad",
+        "searchPlaceholder": "Buscar publicaciones, usuarios, hashtags...",
+        "filters": {
+            "all": "Todo",
+            "photos": "Fotos",
+            "videos": "Videos",
+            "trending": "Tendencias",
+            "recent": "Reciente"
+        },
+        "loadingTitle": "Descubriendo contenido",
+        "loadingSubtitle": "Encontrando las mejores publicaciones para ti...",
+        "resultsTitle": "Resultados de búsqueda para \"{{query}}\"",
+        "resultsCount": "{{count}} publicaciones encontradas",
+        "noResultsTitle": "No se encontraron resultados",
+        "noResultsSubtitle": "Intenta buscar otra cosa"
+    },
+    "menu": {
+        "home": "Inicio",
+        "profile": "Perfil",
+        "messages": "Mensajes",
+        "explore": "Explorar",
+        "bookmarks": "Guardados",
+        "settings": "Configuración"
+    },
+    "nav": {
+        "home": "Inicio",
+        "explore": "Explorar",
+        "messages": "Mensajes",
+        "settings": "Ajustes",
+        "profile": "Perfil"
+    },
+    "profileMenu": {
+        "myProfile": "Mi perfil",
+        "viewEdit": "Ver y editar perfil",
+        "appearance": "Cambiar apariencia",
+        "lightMode": "Modo claro",
+        "darkMode": "Modo oscuro",
+        "signOut": "Cerrar sesión",
+        "seeYouLater": "¡Hasta luego!"
+    },
+    "settings": {
+        "heading": "Ajustes",
+        "subheading": "Administra tus preferencias de cuenta y privacidad",
+        "tabs": {
+            "general": "General",
+            "privacy": "Privacidad",
+            "notifications": "Notificaciones",
+            "account": "Cuenta"
+        },
+        "general": {
+            "theme": "Tema",
+            "chooseTheme": "Elige entre modo claro y oscuro",
+            "language": "Idioma",
+            "selectLanguage": "Selecciona tu idioma preferido",
+            "autoPlayVideos": "Reproducción automática de videos",
+            "autoPlayVideosDesc": "Reproducir videos automáticamente en tu feed"
+        },
+        "privacy": {
+            "profileVisibility": "Visibilidad del perfil",
+            "whoCanSee": "Quién puede ver tu perfil",
+            "everyone": "Todos",
+            "friends": "Solo amigos",
+            "onlyMe": "Solo yo",
+            "showOnlineStatus": "Mostrar estado en línea",
+            "showOnlineStatusDesc": "Permitir que otros vean cuando estás en línea",
+            "download": "Descarga de datos",
+            "downloadDesc": "Descarga una copia de tus datos",
+            "downloadBtn": "Descargar datos"
+        },
+        "notifications": {
+            "heading": "Configuración de notificaciones",
+            "push": "Notificaciones push",
+            "pushDesc": "Recibe notificaciones en tu dispositivo",
+            "email": "Notificaciones por correo",
+            "emailDesc": "Recibe notificaciones por correo electrónico",
+            "sound": "Efectos de sonido",
+            "soundDesc": "Reproducir sonidos para notificaciones"
+        },
+        "account": {
+            "heading": "Configuración de la cuenta",
+            "changePassword": "Cambiar contraseña",
+            "changePasswordDesc": "Actualiza la contraseña de tu cuenta",
+            "currentPassword": "Contraseña actual",
+            "newPassword": "Nueva contraseña",
+            "confirmNewPassword": "Confirmar nueva contraseña",
+            "changePasswordBtn": "Cambiar contraseña",
+            "twoFactor": "Autenticación de dos factores",
+            "twoFactorDesc": "Agrega una capa extra de seguridad",
+            "disable2FA": "Desactivar 2FA",
+            "enable2FA": "Activar 2FA",
+            "deleteAccount": "Eliminar cuenta",
+            "deleteAccountDesc": "Eliminar permanentemente tu cuenta y datos",
+            "enterPassword": "Introduce tu contraseña",
+            "typeDELETE": "Escribe \"DELETE\" para confirmar",
+            "deleteBtn": "Eliminar cuenta"
+        }
+    },
+    "sidebar": {
+        "peopleToFollow": "Personas para seguir",
+        "seeAll": "Ver todo",
+        "follow": "Seguir",
+        "following": "Siguiendo",
+        "activeNow": "Activo ahora",
+        "online": "en línea",
+        "recommendedGroups": "Grupos recomendados",
+        "members": "miembros",
+        "yourActivity": "Tu actividad",
+        "likesReceived": "Me gusta recibidos",
+        "comments": "Comentarios",
+        "profileViews": "Vistas del perfil",
+        "user": "Usuario"
+    }
+}

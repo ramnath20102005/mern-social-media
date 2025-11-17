@@ -1,0 +1,126 @@
+{
+    "app": {
+        "title": "Mesme"
+    },
+    "home": {
+        "storiesTitle": "Histoires",
+        "loadingText": "Chargement des publications...",
+        "emptyTitle": "Aucune publication pour le moment !",
+        "emptySubtitle": "Soyez le premier à partager quelque chose d'incroyable",
+        "createPost": "Créer une publication"
+    },
+    "discover": {
+        "title": "Découvrir",
+        "subtitle": "Découvrez du contenu incroyable de la communauté",
+        "searchPlaceholder": "Rechercher des publications, des utilisateurs, des hashtags...",
+        "filters": {
+            "all": "Tout",
+            "photos": "Photos",
+            "videos": "Vidéos",
+            "trending": "Tendance",
+            "recent": "Récent"
+        },
+        "loadingTitle": "Découverte du contenu",
+        "loadingSubtitle": "Recherche des meilleures publications pour vous...",
+        "resultsTitle": "Résultats de recherche pour \"{{query}}\"",
+        "resultsCount": "{{count}} publications trouvées",
+        "noResultsTitle": "Aucun résultat trouvé",
+        "noResultsSubtitle": "Essayez une autre recherche"
+    },
+    "menu": {
+        "home": "Accueil",
+        "profile": "Profil",
+        "messages": "Messages",
+        "explore": "Explorer",
+        "bookmarks": "Enregistrés",
+        "settings": "Paramètres"
+    },
+    "nav": {
+        "home": "Accueil",
+        "explore": "Explorer",
+        "messages": "Messages",
+        "settings": "Paramètres",
+        "profile": "Profil"
+    },
+    "profileMenu": {
+        "myProfile": "Mon profil",
+        "viewEdit": "Voir et modifier le profil",
+        "appearance": "Changer l'apparence",
+        "lightMode": "Mode clair",
+        "darkMode": "Mode sombre",
+        "signOut": "Se déconnecter",
+        "seeYouLater": "À plus tard !"
+    },
+    "settings": {
+        "heading": "Paramètres",
+        "subheading": "Gérez vos préférences de compte et de confidentialité",
+        "tabs": {
+            "general": "Général",
+            "privacy": "Confidentialité",
+            "notifications": "Notifications",
+            "account": "Compte"
+        },
+        "sidebar": {
+            "peopleToFollow": "Personnes à suivre",
+            "seeAll": "Tout voir",
+            "follow": "Suivre",
+            "following": "Abonné",
+            "activeNow": "Actif maintenant",
+            "online": "en ligne",
+            "recommendedGroups": "Groupes recommandés",
+            "members": "membres",
+            "yourActivity": "Votre activité",
+            "likesReceived": "Mentions j’aime reçues",
+            "comments": "Commentaires",
+            "profileViews": "Vues du profil",
+            "user": "Utilisateur"
+        },
+        "general": {
+            "theme": "Thème",
+            "chooseTheme": "Choisissez entre le mode clair et sombre",
+            "language": "Langue",
+            "selectLanguage": "Sélectionnez votre langue préférée",
+            "autoPlayVideos": "Lecture automatique des vidéos",
+            "autoPlayVideosDesc": "Lire automatiquement les vidéos dans votre fil"
+        },
+        "privacy": {
+            "profileVisibility": "Visibilité du profil",
+            "whoCanSee": "Qui peut voir votre profil",
+            "everyone": "Tout le monde",
+            "friends": "Amis uniquement",
+            "onlyMe": "Moi seulement",
+            "showOnlineStatus": "Afficher le statut en ligne",
+            "showOnlineStatusDesc": "Permettre aux autres de voir quand vous êtes en ligne",
+            "download": "Téléchargement des données",
+            "downloadDesc": "Télécharger une copie de vos données",
+            "downloadBtn": "Télécharger les données"
+        },
+        "notifications": {
+            "heading": "Paramètres de notification",
+            "push": "Notifications push",
+            "pushDesc": "Recevoir des notifications sur votre appareil",
+            "email": "Notifications par e-mail",
+            "emailDesc": "Recevoir des notifications par e-mail",
+            "sound": "Effets sonores",
+            "soundDesc": "Jouer des sons pour les notifications"
+        },
+        "account": {
+            "heading": "Paramètres du compte",
+            "changePassword": "Changer le mot de passe",
+            "changePasswordDesc": "Mettre à jour le mot de passe de votre compte",
+            "currentPassword": "Mot de passe actuel",
+            "newPassword": "Nouveau mot de passe",
+            "confirmNewPassword": "Confirmer le nouveau mot de passe",
+            "changePasswordBtn": "Changer le mot de passe",
+            "twoFactor": "Authentification à deux facteurs",
+            "twoFactorDesc": "Ajouter une couche de sécurité supplémentaire",
+            "disable2FA": "Désactiver 2FA",
+            "enable2FA": "Activer 2FA",
+            "deleteAccount": "Supprimer le compte",
+            "deleteAccountDesc": "Supprimer définitivement votre compte et vos données",
+            "enterPassword": "Entrez votre mot de passe",
+            "typeDELETE": "Tapez \"DELETE\" pour confirmer",
+            "deleteBtn": "Supprimer le compte"
+        }
+    }
+}

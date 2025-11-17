@@ -2,13 +2,17 @@ import { ADMIN_TYPES } from "../actions/adminAction";
 import { DeleteData } from "../actions/globalTypes";
 
 const initialState = {
-    total_users: 0,
-    total_posts: 0,
-    total_comments: 0,
-    total_likes: 0,
-    total_active_users: 0,
-    total_spam_posts: 0,
-    spam_posts : []
+  total_users: 0,
+  total_posts: 0,
+  total_comments: 0,
+  total_likes: 0,
+  total_active_users: 0,
+  total_spam_posts: 0,
+  spam_posts: [],
+  users: [],
+  posts: [],
+  comments: [],
+  loading: false
 };
 
 const authReducer = (state = initialState, action) => {
@@ -64,6 +68,24 @@ const authReducer = (state = initialState, action) => {
       return {
         ...state,
         spam_posts: DeleteData(state.spam_posts, action.payload._id),
+      };
+
+    case ADMIN_TYPES.GET_USERS:
+      return {
+        ...state,
+        users: action.payload,
+      };
+
+    case ADMIN_TYPES.GET_ALL_POSTS:
+      return {
+        ...state,
+        posts: action.payload,
+      };
+
+    case ADMIN_TYPES.GET_COMMENTS_DETAIL:
+      return {
+        ...state,
+        comments: action.payload,
       };
 
     default:

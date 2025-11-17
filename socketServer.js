@@ -4,55 +4,72 @@ let admins = [];
 const SocketServer = (socket) => {
   //#region //!Connection
   socket.on("joinUser", (id) => {
+
     // Remove existing user if already connected
     users = users.filter(user => user.id !== id);
     users.push({ id, socketId: socket.id });
     console.log(`👤 User ${id} joined. Total users: ${users.length}`);
     console.log('Active users:', users.map(u => u.id));
-    
+
     // Broadcast updated online users list to all connected users
     const onlineUserIds = users.map(u => u.id);
     users.forEach(user => {
       socket.to(user.socketId).emit('onlineUsersUpdate', onlineUserIds);
     });
-    
+
     // Also send to the newly joined user
     socket.emit('onlineUsersUpdate', onlineUserIds);
+
+    // Notify all admins about updated active users count
+    const totalActiveUsers = users.length;
+    admins.forEach(admin => {
+      socket.to(admin.socketId).emit('getActiveUsersToClient', totalActiveUsers);
+    });
   });
 
   socket.on("joinAdmin", (id) => {
+
     // Remove existing admin if already connected
     admins = admins.filter(admin => admin.id !== id);
     admins.push({ id, socketId: socket.id });
     const admin = admins.find((admin) => admin.id === id);
     let totalActiveUsers = users.length;
 
-    socket.to(`${admin.socketId}`).emit("activeUsers", totalActiveUsers);
+    socket.to(`${admin.socketId}`).emit("getActiveUsersToClient", totalActiveUsers);
   });
 
   socket.on("leaveUser", (id) => {
+
     const leavingUser = users.find(user => user.id === id);
     users = users.filter(user => user.id !== id);
-    
+
     if (leavingUser) {
       console.log(`👋 User ${id} left intentionally. Total users: ${users.length}`);
-      
+
       // Broadcast updated online users list
       const onlineUserIds = users.map(u => u.id);
       users.forEach(user => {
         socket.to(user.socketId).emit('onlineUsersUpdate', onlineUserIds);
       });
+
+      // Notify all admins about updated active users count
+      const totalActiveUsers = users.length;
+      admins.forEach(admin => {
+        socket.to(admin.socketId).emit('getActiveUsersToClient', totalActiveUsers);
+      });
     }
   });
 
   socket.on("disconnect", () => {
+
     const disconnectedUser = users.find(user => user.socketId === socket.id);
     users = users.filter((user) => user.socketId !== socket.id);
     admins = admins.filter((user) => user.socketId !== socket.id);
-    
+
     if (disconnectedUser) {
+
       console.log(`👋 User ${disconnectedUser.id} disconnected. Total users: ${users.length}`);
-      
+
       // Broadcast updated online users list to remaining users
       const onlineUserIds = users.map(u => u.id);
       users.forEach(user => {
@@ -151,12 +168,12 @@ const SocketServer = (socket) => {
   //#region //!Messages - Unified approach
   socket.on("sendMessage", async (msg, callback) => {
     console.log(`💬 Unified message:`, { conversationId: msg.conversationId, sender: msg.sender, text: msg.text });
-    
+
     try {
       const Messages = require('./models/messageModel');
       const Conversations = require('./models/conversationModel');
       const Groups = require('./models/groupModel');
-      
+
       // Find the conversation
       const conversation = await Conversations.findById(msg.conversationId)
         .populate('recipients', 'fullname username avatar')
@@ -168,7 +185,7 @@ const SocketServer = (socket) => {
 
       // Check permissions and create message based on conversation type
       let newMessage;
-      
+
       if (conversation.isGroupConversation) {
         // Group conversation
         const group = conversation.group;
@@ -178,7 +195,7 @@ const SocketServer = (socket) => {
 
         const isMember = group.isMember(msg.sender);
         const isCreator = group.creator.toString() === msg.sender.toString();
-        
+
         if (!isMember && !isCreator) {
           throw new Error('User is not a member of this group');
         }
@@ -208,7 +225,7 @@ const SocketServer = (socket) => {
         const isRecipient = conversation.recipients.some(
           recipient => recipient._id.toString() === msg.sender.toString()
         );
-        
+
         if (!isRecipient) {
           throw new Error('User is not part of this conversation');
         }
@@ -229,7 +246,7 @@ const SocketServer = (socket) => {
 
       const savedMessage = await newMessage.save();
       await savedMessage.populate('sender', 'fullname username avatar');
-      
+
       // Update conversation last message
       conversation.lastMessage = {
         text: msg.text || 'Media',
@@ -239,7 +256,7 @@ const SocketServer = (socket) => {
       };
       conversation.updatedAt = new Date();
       await conversation.save();
-      
+
       console.log(`✅ Message saved to DB with ID: ${savedMessage._id}`);
 
       // Send acknowledgment to sender
@@ -261,12 +278,12 @@ const SocketServer = (socket) => {
         const recipientId = conversation.recipients.find(
           r => r._id.toString() !== msg.sender.toString()
         )?._id.toString();
-        
+
         const user = users.find(user => user.id === recipientId);
         if (user) {
           console.log(`✅ Recipient ${recipientId} is online, broadcasting message`);
           socket.to(`${user.socketId}`).emit("messageReceived", savedMessage);
-          
+
           // Create notification for recipient
           const notificationMsg = {
             id: savedMessage._id,
@@ -281,7 +298,7 @@ const SocketServer = (socket) => {
               avatar: msg.senderAvatar || ''
             }
           };
-          
+
           socket.to(`${user.socketId}`).emit("createNotifyToClient", notificationMsg);
         }
       }
@@ -330,11 +347,11 @@ const SocketServer = (socket) => {
     try {
       const Groups = require('./models/groupModel');
       const group = await Groups.findById(groupId);
-      
+
       if (group) {
         const isMember = group.members.some(m => m.user.toString() === userId.toString());
         const isCreator = group.creator.toString() === userId.toString();
-        
+
         if (isMember || isCreator) {
           socket.join(`group_${groupId}`);
           console.log(`👤 User ${userId} joined group ${groupId}`);
@@ -354,22 +371,22 @@ const SocketServer = (socket) => {
 
   socket.on('addGroupMessage', async (msg, callback) => {
     console.log(`💬 Group message from ${msg.sender} to group ${msg.group}:`, msg.text);
-    
+
     try {
       // Save message to database first
       const Messages = require('./models/messageModel');
       const Groups = require('./models/groupModel');
       const Conversations = require('./models/conversationModel');
-      
+
       // Find the group WITHOUT populating members for simpler comparison
       const group = await Groups.findById(msg.group);
-      
+
       if (!group) {
         console.log('❌ Group not found:', msg.group);
-        return callback({ 
-          success: false, 
+        return callback({
+          success: false,
           error: 'Group not found',
-          tempId: msg.tempId 
+          tempId: msg.tempId
         });
       }
 
@@ -382,15 +399,15 @@ const SocketServer = (socket) => {
         return m.user.toString() === msg.sender.toString();
       });
       const isCreator = group.creator.toString() === msg.sender.toString();
-      
+
       console.log('Access check - isMember:', isMember, 'isCreator:', isCreator);
-      
+
       if (!isMember && !isCreator) {
         console.log('❌ Access denied - User is not a member or creator');
-        return callback({ 
-          success: false, 
+        return callback({
+          success: false,
           error: 'User is not a member of this group',
-          tempId: msg.tempId 
+          tempId: msg.tempId
         });
       }
 
@@ -416,7 +433,7 @@ const SocketServer = (socket) => {
         text: msg.text,
         messageType: msg.messageType || 'text'
       };
-      
+
       // Only add media if it exists and is not empty
       if (msg.media && msg.media.length > 0) {
         messageData.media = msg.media;
@@ -434,7 +451,7 @@ const SocketServer = (socket) => {
 
       const savedMessage = await newMessage.save();
       await savedMessage.populate('sender', 'fullname username avatar');
-      
+
       console.log(`✅ Group message saved to DB with ID: ${savedMessage._id}`);
 
       // Update group last activity
@@ -452,7 +469,7 @@ const SocketServer = (socket) => {
 
       // Broadcast to all group members
       socket.to(`group_${msg.group}`).emit('addGroupMessageToClient', savedMessage);
-      
+
       // Also send to the sender for confirmation
       socket.emit('addGroupMessageToClient', savedMessage);
 
@@ -536,7 +553,7 @@ const SocketServer = (socket) => {
   // Group message deletion
   socket.on('deleteGroupMessage', ({ messageId, groupId, userId }) => {
     console.log(`🗑️ User ${userId} deleted message ${messageId} in group ${groupId}`);
-    
+
     // Broadcast message deletion to all group members
     socket.to(`group_${groupId}`).emit('groupMessageDeleted', {
       messageId,
@@ -544,7 +561,7 @@ const SocketServer = (socket) => {
       deletedBy: userId,
       deletedAt: new Date()
     });
-    
+
     // Also send to the sender for confirmation
     socket.emit('groupMessageDeleted', {
       messageId,
@@ -556,7 +573,7 @@ const SocketServer = (socket) => {
 
   socket.on('deleteMultipleGroupMessages', ({ messageIds, groupId, userId }) => {
     console.log(`🗑️ User ${userId} deleted ${messageIds.length} messages in group ${groupId}`);
-    
+
     // Broadcast multiple message deletion to all group members
     socket.to(`group_${groupId}`).emit('multipleGroupMessagesDeleted', {
       messageIds,
@@ -564,7 +581,7 @@ const SocketServer = (socket) => {
       deletedBy: userId,
       deletedAt: new Date()
     });
-    
+
     // Also send to the sender for confirmation
     socket.emit('multipleGroupMessagesDeleted', {
       messageIds,

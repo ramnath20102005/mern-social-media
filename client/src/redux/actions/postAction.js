@@ -32,70 +32,70 @@ export const repostPost = ({ post, auth }) => async (dispatch) => {
   }
 };
 
-export const createPost = ({content, images, auth, socket}) => async dispatch => {
-    let media = [];
+export const createPost = ({ content, images, auth, socket }) => async dispatch => {
+  let media = [];
 
-    try {
-        dispatch({ type: GLOBALTYPES.ALERT, payload: {loading: true} });
+  try {
+    dispatch({ type: GLOBALTYPES.ALERT, payload: { loading: true } });
 
-        if(images.length > 0){ media = await imageUpload(images)}
+    if (images.length > 0) { media = await imageUpload(images) }
 
-        const res = await postDataAPI('posts', {content, images: media}, auth.token );
+    const res = await postDataAPI('posts', { content, images: media }, auth.token);
 
-        
-        dispatch({ type: POST_TYPES.CREATE_POST , payload: {...res.data.newPost, user: auth.user} });
-        
-        dispatch({ type: GLOBALTYPES.ALERT, payload: { loading: false } });
-        
 
-        // todo notification
-        const msg = {
-          id: res.data.newPost._id,
-          text: "Added a new post.",
-          recipients: res.data.newPost.user.followers,
-          url: `/post/${res.data.newPost._id}`,
-          content, 
-          image: media[0].url
-        };
+    dispatch({ type: POST_TYPES.CREATE_POST, payload: { ...res.data.newPost, user: auth.user } });
 
-        dispatch(createNotify({msg, auth, socket}));
+    dispatch({ type: GLOBALTYPES.ALERT, payload: { loading: false } });
 
-    } catch (err) {
-        dispatch({
-            type: GLOBALTYPES.ALERT,
-            payload: {
-                error: err.response?.data?.msg || 'An error occurred'
-            }
-        })
-    }
+
+    // todo notification
+    const msg = {
+      id: res.data.newPost._id,
+      text: "Added a new post.",
+      recipients: res.data.newPost.user.followers,
+      url: `/post/${res.data.newPost._id}`,
+      content,
+      image: media[0].url
+    };
+
+    dispatch(createNotify({ msg, auth, socket }));
+
+  } catch (err) {
+    dispatch({
+      type: GLOBALTYPES.ALERT,
+      payload: {
+        error: err.response?.data?.msg || 'An error occurred'
+      }
+    })
+  }
 }
 
 
 export const getPosts = (token) => async dispatch => {
-    try {
-        dispatch({ type: POST_TYPES.LOADING_POST, payload: true  });
-        const res = await getDataAPI('posts', token);
-        dispatch({ type: POST_TYPES.GET_POSTS, payload: {...res.data, page: 2} });
+  try {
+    dispatch({ type: POST_TYPES.LOADING_POST, payload: true });
+    const res = await getDataAPI('posts', token);
+    dispatch({ type: POST_TYPES.GET_POSTS, payload: { ...res.data, page: 2 } });
 
-        dispatch({ type: POST_TYPES.LOADING_POST, payload: false });
-    } catch (err) {
-        dispatch({
-          type: GLOBALTYPES.ALERT,
-          payload: {
-            error: err.response?.data?.msg || 'An error occurred',
-          },
-        });
-    }
+    dispatch({ type: POST_TYPES.LOADING_POST, payload: false });
+  } catch (err) {
+    dispatch({
+      type: GLOBALTYPES.ALERT,
+      payload: {
+        error: err.response?.data?.msg || 'An error occurred',
+      },
+    });
+  }
 }
 
 
 export const updatePost = ({ content, images, auth, status }) => async (dispatch) => {
   let media = [];
-    const imgNewUrl = images.filter(img => !img.url);
-    const imgOldUrl = images.filter(img => img.url);
-    if(status.content === content && imgNewUrl.length === 0 && imgOldUrl.length === status.images.length){
-        return;
-    }
+  const imgNewUrl = images.filter(img => !img.url);
+  const imgOldUrl = images.filter(img => img.url);
+  if (status.content === content && imgNewUrl.length === 0 && imgOldUrl.length === status.images.length) {
+    return;
+  }
   try {
     dispatch({ type: GLOBALTYPES.ALERT, payload: { loading: true } });
     if (imgNewUrl.length > 0) {
@@ -106,7 +106,7 @@ export const updatePost = ({ content, images, auth, status }) => async (dispatch
       { content, images: [...imgOldUrl, ...media] },
       auth.token
     );
-    
+
     dispatch({ type: POST_TYPES.UPDATE_POST, payload: res.data.newPost });
     dispatch({ type: GLOBALTYPES.ALERT, payload: { success: res.data.msg } });
   } catch (err) {
@@ -121,11 +121,11 @@ export const updatePost = ({ content, images, auth, status }) => async (dispatch
 
 
 export const likePost = ({ post, auth, socket }) => async (dispatch) => {
-  const newPost = {...post, likes: [...post.likes, auth.user]};
+  const newPost = { ...post, likes: [...post.likes, auth.user] };
 
-  dispatch({type: POST_TYPES.UPDATE_POST, payload: newPost});
+  dispatch({ type: POST_TYPES.UPDATE_POST, payload: newPost });
   socket.emit("likePost", newPost);
-  
+
   try {
     await patchDataAPI(`post/${post._id}/like`, null, auth.token);
 
@@ -157,7 +157,7 @@ export const unLikePost = ({ post, auth, socket }) => async (dispatch) => {
   dispatch({ type: POST_TYPES.UPDATE_POST, payload: newPost });
   socket.emit("unLikePost", newPost);
 
-  
+
   try {
     await patchDataAPI(`post/${post._id}/unlike`, null, auth.token);
 
@@ -166,7 +166,7 @@ export const unLikePost = ({ post, auth, socket }) => async (dispatch) => {
       id: auth.user._id,
       text: "Liked your post.",
       recipients: [post.user._id],
-      url: `/post/${post._id}`, 
+      url: `/post/${post._id}`,
     };
 
     dispatch(removeNotify({ msg, auth, socket }));
@@ -182,10 +182,10 @@ export const unLikePost = ({ post, auth, socket }) => async (dispatch) => {
 
 
 export const getPost = ({ detailPost, id, auth }) => async (dispatch) => {
-  if(detailPost.every(post => post._id !== id )){
+  if (detailPost.every(post => post._id !== id)) {
     try {
       const res = await getDataAPI(`post/${id}`, auth.token);
-      dispatch({ type: POST_TYPES.GET_POST, payload: res.data.post})
+      dispatch({ type: POST_TYPES.GET_POST, payload: res.data.post })
 
 
     } catch (err) {
@@ -200,22 +200,52 @@ export const getPost = ({ detailPost, id, auth }) => async (dispatch) => {
 };
 
 
-export const deletePost = ({ post, auth, socket }) => async (dispatch) => {
+export const deletePost = ({ post, auth, socket, history }) => async (dispatch) => {
+  if (!auth.token) {
+    return dispatch({
+      type: GLOBALTYPES.ALERT,
+      payload: {
+        error: 'Authentication required. Please log in again.'
+      }
+    });
+  }
+
   dispatch({ type: POST_TYPES.DELETE_POST, payload: post });
 
   try {
     const res = await deleteDataAPI(`post/${post._id}`, auth.token);
 
-    // todo notification
+    // Remove notifications for this post
     const msg = {
       id: post._id,
-      text: "Added a new post.",
-      recipients: res.data.newPost.user.followers,
+      text: "deleted a post.",
       url: `/post/${post._id}`,
     };
 
     dispatch(removeNotify({ msg, auth, socket }));
+
+    // Redirect to home after successful deletion
+    if (history) {
+      history.push('/');
+    }
+
+    return res.data;
+
   } catch (err) {
+    let errorMsg = 'Failed to delete post';
+
+    if (err.response) {
+      // Handle different types of errors
+      if (err.response.status === 401) {
+        // Token expired or invalid
+        errorMsg = 'Your session has expired. Please log in again.';
+        // Optionally dispatch logout action here
+        // dispatch({ type: GLOBALTYPES.AUTH, payload: {} });
+      } else if (err.response.data && err.response.data.msg) {
+        errorMsg = err.response.data.msg;
+      }
+    }
+
     dispatch({
       type: GLOBALTYPES.ALERT,
       payload: {
@@ -236,26 +266,29 @@ export const reportPost = ({ post, auth }) => async (dispatch) => {
       payload: { error: "You have already reported this post." },
     });
   }
-    const newPost = { ...post };
-    newPost.reports.push(auth.user._id);
+  const newPost = { ...post };
+  newPost.reports.push(auth.user._id);
 
   dispatch({ type: POST_TYPES.REPORT_POST, payload: newPost });
-  
+
 
   try {
     await patchDataAPI(`reportPost/${post._id}`, null, auth.token);
   } catch (err) {
     dispatch({
       type: GLOBALTYPES.ALERT,
-      payload: { error: err.response?.data?.msg || 'An error occurred' },
+      payload: {
+        error: err.response?.data?.msg || 'An error occurred',
+        details: err.response?.data?.details || null
+      },
     });
   }
 };
 
 export const savePost = ({ post, auth }) => async (dispatch) => {
-  const newUser = {...auth.user, saved: [...auth.user.saved, post._id] };
+  const newUser = { ...auth.user, saved: [...auth.user.saved, post._id] };
 
-  dispatch({ type: GLOBALTYPES.AUTH, payload: {...auth, user: newUser}});
+  dispatch({ type: GLOBALTYPES.AUTH, payload: { ...auth, user: newUser } });
 
 
   try {

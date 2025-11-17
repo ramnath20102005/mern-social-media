@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const {Schema } = mongoose;
+const { Schema } = mongoose;
 
 const userSchema = new Schema(
   {
@@ -110,23 +110,35 @@ const userSchema = new Schema(
       default: true
     },
     twoFactorAuth: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false
+    },
+    isBlocked: {
+      type: Boolean,
+      default: false
+    },
+    mustChangePassword: {
+      type: Boolean,
+      default: false
+    },
+    passwordResetCount: {
+      type: Number,
+      default: 0
     },
     notifications: [{
-        id: String,
-        type: String,
-        title: String,
-        message: String,
-        data: Schema.Types.Mixed,
-        timestamp: {
-            type: Date,
-            default: Date.now
-        },
-        read: {
-            type: Boolean,
-            default: false
-        }
+      id: String,
+      type: String,
+      title: String,
+      message: String,
+      data: Schema.Types.Mixed,
+      timestamp: {
+        type: Date,
+        default: Date.now
+      },
+      read: {
+        type: Boolean,
+        default: false
+      }
     }]
   },
   {
@@ -135,4 +147,4 @@ const userSchema = new Schema(
 );
 
 
-module.exports = mongoose.model('user',userSchema);
+module.exports = mongoose.model('user', userSchema);

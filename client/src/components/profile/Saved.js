@@ -15,14 +15,14 @@ const Saved = ({ auth, dispatch }) => {
   useEffect(() => {
     setLoad(true);
     getDataAPI(`getSavePosts`, auth.token)
-    .then(res => { 
-        setSavePosts(res.data.savePosts) 
+      .then(res => {
+        setSavePosts(res.data.savePosts)
         setResult(res.data.result)
         setLoad(false)
-    })  
-    .catch(err => {
-        dispatch({type: GLOBALTYPES.ALERT, payload: {error: err.response.data.msg}})
-    })
+      })
+      .catch(err => {
+        dispatch({ type: GLOBALTYPES.ALERT, payload: { error: err.response?.data?.msg || 'An error occurred' } })
+      })
 
     return () => setSavePosts([]);
   }, [dispatch, auth.token]);
@@ -39,12 +39,12 @@ const Saved = ({ auth, dispatch }) => {
 
   return (
     <div className="saved-posts">
-      <ProfileHeader 
-        title="Saved Posts" 
-        showSeeAll={savePosts.length > 0} 
+      <ProfileHeader
+        title="Saved Posts"
+        showSeeAll={savePosts.length > 0}
         seeAllLink="/saved"
       />
-      
+
       <PostThumb posts={savePosts} result={result} />
 
       {load && (

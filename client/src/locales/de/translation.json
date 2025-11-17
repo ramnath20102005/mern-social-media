@@ -1,0 +1,126 @@
+{
+    "app": {
+        "title": "Mesme"
+    },
+    "home": {
+        "storiesTitle": "Geschichten",
+        "loadingText": "Lade großartige Beiträge...",
+        "emptyTitle": "Noch keine Beiträge!",
+        "emptySubtitle": "Sei der Erste, der etwas Großartiges teilt",
+        "createPost": "Beitrag erstellen"
+    },
+    "discover": {
+        "title": "Entdecken",
+        "subtitle": "Entdecken Sie großartige Inhalte aus der Community",
+        "searchPlaceholder": "Beiträge, Benutzer, Hashtags suchen...",
+        "filters": {
+            "all": "Alle",
+            "photos": "Fotos",
+            "videos": "Videos",
+            "trending": "Trends",
+            "recent": "Neueste"
+        },
+        "loadingTitle": "Inhalte werden entdeckt",
+        "loadingSubtitle": "Finde die besten Beiträge für dich...",
+        "resultsTitle": "Suchergebnisse für \"{{query}}\"",
+        "resultsCount": "{{count}} Beiträge gefunden",
+        "noResultsTitle": "Keine Ergebnisse gefunden",
+        "noResultsSubtitle": "Versuche, etwas anderes zu suchen"
+    },
+    "menu": {
+        "home": "Startseite",
+        "profile": "Profil",
+        "messages": "Nachrichten",
+        "explore": "Entdecken",
+        "bookmarks": "Gespeichert",
+        "settings": "Einstellungen"
+    },
+    "sidebar": {
+        "peopleToFollow": "Personen zum Folgen",
+        "seeAll": "Alle ansehen",
+        "follow": "Folgen",
+        "following": "Folgt",
+        "activeNow": "Jetzt aktiv",
+        "online": "online",
+        "recommendedGroups": "Empfohlene Gruppen",
+        "members": "Mitglieder",
+        "yourActivity": "Deine Aktivität",
+        "likesReceived": "Erhaltene Likes",
+        "comments": "Kommentare",
+        "profileViews": "Profilaufrufe",
+        "user": "Benutzer"
+    },
+    "nav": {
+        "home": "Startseite",
+        "explore": "Entdecken",
+        "messages": "Nachrichten",
+        "settings": "Einstellungen",
+        "profile": "Profil"
+    },
+    "profileMenu": {
+        "myProfile": "Mein Profil",
+        "viewEdit": "Profil ansehen und bearbeiten",
+        "appearance": "Darstellung wechseln",
+        "lightMode": "Heller Modus",
+        "darkMode": "Dunkler Modus",
+        "signOut": "Abmelden",
+        "seeYouLater": "Bis später!"
+    },
+    "settings": {
+        "heading": "Einstellungen",
+        "subheading": "Verwalten Sie Ihre Kontoeinstellungen und Privatsphäre",
+        "tabs": {
+            "general": "Allgemein",
+            "privacy": "Privatsphäre",
+            "notifications": "Benachrichtigungen",
+            "account": "Konto"
+        },
+        "general": {
+            "theme": "Theme",
+            "chooseTheme": "Zwischen hellem und dunklem Modus wählen",
+            "language": "Sprache",
+            "selectLanguage": "Bevorzugte Sprache auswählen",
+            "autoPlayVideos": "Videos automatisch abspielen",
+            "autoPlayVideosDesc": "Videos im Feed automatisch abspielen"
+        },
+        "privacy": {
+            "profileVisibility": "Sichtbarkeit des Profils",
+            "whoCanSee": "Wer kann Ihr Profil sehen",
+            "everyone": "Jeder",
+            "friends": "Nur Freunde",
+            "onlyMe": "Nur ich",
+            "showOnlineStatus": "Online-Status anzeigen",
+            "showOnlineStatusDesc": "Anderen anzeigen, wenn Sie online sind",
+            "download": "Daten herunterladen",
+            "downloadDesc": "Kopie Ihrer Daten herunterladen",
+            "downloadBtn": "Daten herunterladen"
+        },
+        "notifications": {
+            "heading": "Benachrichtigungseinstellungen",
+            "push": "Push-Benachrichtigungen",
+            "pushDesc": "Benachrichtigungen auf Ihrem Gerät erhalten",
+            "email": "E-Mail-Benachrichtigungen",
+            "emailDesc": "Benachrichtigungen per E-Mail erhalten",
+            "sound": "Soundeffekte",
+            "soundDesc": "Töne für Benachrichtigungen abspielen"
+        },
+        "account": {
+            "heading": "Kontoeinstellungen",
+            "changePassword": "Passwort ändern",
+            "changePasswordDesc": "Kontopasswort aktualisieren",
+            "currentPassword": "Aktuelles Passwort",
+            "newPassword": "Neues Passwort",
+            "confirmNewPassword": "Neues Passwort bestätigen",
+            "changePasswordBtn": "Passwort ändern",
+            "twoFactor": "Zwei-Faktor-Authentifizierung",
+            "twoFactorDesc": "Zusätzliche Sicherheitsebene hinzufügen",
+            "disable2FA": "2FA deaktivieren",
+            "enable2FA": "2FA aktivieren",
+            "deleteAccount": "Konto löschen",
+            "deleteAccountDesc": "Konto und Daten dauerhaft löschen",
+            "enterPassword": "Passwort eingeben",
+            "typeDELETE": "Zum Bestätigen \"DELETE\" eingeben",
+            "deleteBtn": "Konto löschen"
+        }
+    }
+}

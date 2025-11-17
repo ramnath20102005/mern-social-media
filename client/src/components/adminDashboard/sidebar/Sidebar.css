@@ -1,14 +1,14 @@
 .sidebar-attractive-layout {
     display: flex;
     min-height: 100vh;
-    background: linear-gradient(135deg, #e2e8f0, #f1f5f9);
+    background: var(--bg-tertiary);
     font-family: 'Inter', sans-serif;
 }
 
 .sidebar-attractive {
     width: 280px;
-    background: linear-gradient(160deg, #1e293b, #334155);
-    color: #f1f5f9;
+    background: linear-gradient(160deg, var(--bg-secondary), var(--bg-tertiary));
+    color: var(--text-inverse);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -24,7 +24,7 @@
     padding: 3rem 1.75rem 2rem 1.75rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     text-align: center;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.06);
     backdrop-filter: blur(8px);
 }
 
@@ -48,7 +48,7 @@
 .sidebar-attractive__logo h1 {
     font-size: 1.6rem;
     font-weight: 800;
-    color: #ffd369;
+    color: var(--primary-400);
     margin: 0;
     letter-spacing: 1.2px;
     text-transform: uppercase;
@@ -65,7 +65,7 @@
 .sidebar-attractive__link {
     background: transparent;
     border: none;
-    color: #d1d5db;
+    color: var(--text-secondary);
     text-align: left;
     padding: 1rem 1.5rem;
     border-radius: 14px;
@@ -81,7 +81,7 @@
 
 .sidebar-attractive__link i {
     font-size: 1.3rem;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.12);
     padding: 10px;
     border-radius: 50%;
     transition: all 0.3s ease;
@@ -89,17 +89,38 @@
 
 .sidebar-attractive__link:hover,
 .sidebar-attractive__link.active {
-    background: linear-gradient(90deg, #ffd369, #f59e0b);
-    color: #1e293b;
-    box-shadow: 0 6px 20px rgba(255, 211, 105, 0.3);
+    background: linear-gradient(90deg, var(--primary-500), var(--primary-600));
+    color: var(--bg-primary);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
     transform: translateX(5px);
 }
 
 .sidebar-attractive__link:hover i,
 .sidebar-attractive__link.active i {
-    background: #1e293b;
-    color: #ffd369;
+    background: var(--bg-tertiary);
+    color: var(--primary-300);
     transform: scale(1.1);
+}
+
+.sidebar-attractive__link.logout {
+    color: #fecaca;
+    /* soft red text */
+}
+
+.sidebar-attractive__link.logout i {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.sidebar-attractive__link.logout:hover {
+    background: linear-gradient(90deg, #ef4444, #dc2626);
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.35);
+}
+
+.sidebar-attractive__link.logout:hover i {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
 }
 
 .sidebar-attractive__divider {

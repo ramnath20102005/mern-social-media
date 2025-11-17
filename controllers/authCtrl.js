@@ -7,14 +7,15 @@ const authCtrl = {
     try {
       const { fullname, username, email, password, gender } = req.body;
 
-      let newUserName = username.toLowerCase().replace(/ /g, "");
+      const newUserName = (username || "").toLowerCase().replace(/ /g, "");
+      const normEmail = (email || "").toLowerCase();
 
       const user_name = await Users.findOne({ username: newUserName });
       if (user_name) {
         return res.status(400).json({ msg: "This username is already taken." });
       }
 
-      const user_email = await Users.findOne({ email });
+      const user_email = await Users.findOne({ email: normEmail });
       if (user_email) {
         return res
           .status(400)
@@ -32,7 +33,7 @@ const authCtrl = {
       const newUser = new Users({
         fullname,
         username: newUserName,
-        email,
+        email: normEmail,
         password: passwordHash,
         gender,
       });
@@ -43,7 +44,9 @@ const authCtrl = {
       res.cookie("refreshtoken", refresh_token, {
         httpOnly: true,
         path: "/api/refresh_token",
-        maxAge: 30 * 24 * 60 * 60 * 1000, //validity of 30 days
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 30 * 24 * 60 * 60 * 1000,
       });
 
       await newUser.save();
@@ -63,7 +66,7 @@ const authCtrl = {
 
   changePassword: async (req, res) => {
     try {
-      const {oldPassword, newPassword} = req.body;
+      const { oldPassword, newPassword } = req.body;
 
       const user = await Users.findOne({ _id: req.user._id });
 
@@ -79,10 +82,10 @@ const authCtrl = {
       }
 
       const newPasswordHash = await bcrypt.hash(newPassword, 12);
-      
-      await Users.findOneAndUpdate({_id: req.user._id}, {password: newPasswordHash });
 
-      res.json({msg: "Password updated successfully."})
+      await Users.findOneAndUpdate({ _id: req.user._id }, { password: newPasswordHash });
+
+      res.json({ msg: "Password updated successfully." })
 
     } catch (err) {
       return res.status(500).json({ msg: err.message });
@@ -93,14 +96,15 @@ const authCtrl = {
     try {
       const { fullname, username, email, password, gender, role } = req.body;
 
-      let newUserName = username.toLowerCase().replace(/ /g, "");
+      const newUserName = (username || "").toLowerCase().replace(/ /g, "");
+      const normEmail = (email || '').toLowerCase();
 
       const user_name = await Users.findOne({ username: newUserName });
       if (user_name) {
         return res.status(400).json({ msg: "This username is already taken." });
       }
 
-      const user_email = await Users.findOne({ email });
+      const user_email = await Users.findOne({ email: normEmail });
       if (user_email) {
         return res
           .status(400)
@@ -118,14 +122,11 @@ const authCtrl = {
       const newUser = new Users({
         fullname,
         username: newUserName,
-        email,
+        email: normEmail,
         password: passwordHash,
         gender,
         role
       });
-
-
-
 
       await newUser.save();
 
@@ -137,9 +138,14 @@ const authCtrl = {
 
   login: async (req, res) => {
     try {
-      const { email, password } = req.body;
+      const { email, username, password } = req.body;
+      const identifier = (email || username || '').toString().trim().toLowerCase();
 
-      const user = await Users.findOne({ email, role: "user" }).populate(
+      // Allow both users and admins to login from this endpoint
+      const query = {};
+      if (identifier.includes('@')) query.email = identifier; else query.username = identifier;
+
+      const user = await Users.findOne(query).populate(
         "followers following",
         "-password"
       );
@@ -159,8 +165,9 @@ const authCtrl = {
       res.cookie("refreshtoken", refresh_token, {
         httpOnly: true,
         path: "/api/refresh_token",
-        sameSite: 'lax',
-        maxAge: 30 * 24 * 60 * 60 * 1000, //validity of 30 days
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 30 * 24 * 60 * 60 * 1000,
       });
 
       res.json({
@@ -178,9 +185,19 @@ const authCtrl = {
 
   adminLogin: async (req, res) => {
     try {
-      const { email, password } = req.body;
+      const { email, username, password } = req.body;
+      const identifier = (email || username || '').toString().trim().toLowerCase();
 
-      const user = await Users.findOne({ email, role: "admin" });
+      let query = { role: 'admin' };
+      if (identifier.includes('@')) query.email = identifier; else query.username = identifier;
+
+      let user = await Users.findOne(query);
+      // Fallback: if not found, try alternate field
+      if (!user) {
+        const altQuery = { role: 'admin' };
+        if (query.email) altQuery.username = identifier; else altQuery.email = identifier;
+        user = await Users.findOne(altQuery);
+      }
 
       if (!user) {
         return res.status(400).json({ msg: "Email or Password is incorrect." });
@@ -197,7 +214,9 @@ const authCtrl = {
       res.cookie("refreshtoken", refresh_token, {
         httpOnly: true,
         path: "/api/refresh_token",
-        maxAge: 30 * 24 * 60 * 60 * 1000, //validity of 30 days
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 30 * 24 * 60 * 60 * 1000,
       });
 
       res.json({
@@ -257,6 +276,34 @@ const authCtrl = {
       return res.status(500).json({ msg: err.message });
     }
   },
+
+  // New: forgot password supports email or username + newPassword
+  forgotPassword: async (req, res) => {
+    try {
+      const { email, username, newPassword } = req.body;
+      const identifier = (email || username || '').toString().trim().toLowerCase();
+      if (!newPassword || newPassword.length < 6) {
+        return res.status(400).json({ msg: "Password must be at least 6 characters long." });
+      }
+      let query = {};
+      if (!identifier) return res.status(400).json({ msg: 'Email or Username is required.' });
+      if (identifier.includes('@')) query.email = identifier; else query.username = identifier;
+
+      const user = await Users.findOne(query);
+      if (!user) return res.status(400).json({ msg: 'User not found.' });
+
+      const passwordHash = await bcrypt.hash(newPassword, 12);
+      await Users.findByIdAndUpdate(user._id, {
+        password: passwordHash,
+        mustChangePassword: false,
+        $inc: { passwordResetCount: 1 }
+      });
+
+      return res.json({ msg: 'Password updated successfully.' });
+    } catch (err) {
+      return res.status(500).json({ msg: err.message });
+    }
+  }
 };
 
 const createAccessToken = (payload) => {

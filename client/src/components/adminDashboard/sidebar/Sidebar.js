@@ -1,19 +1,23 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout } from "../../../redux/actions/authAction";
 import "./Sidebar.css";
 
 import Main from "../main/Main";
-import AdminManagement from "../adminManagement/AdminManagement";
-import Spam from "../spamManagement/Spam";
+import AllPosts from "../posts/AllPosts";
+import Comments from "../comments/Comments";
 import UsersManagement from "../usersManagement/UsersManagement";
+import Spam from "../spamManagement/Spam";
+import Likes from "../likes/Likes";
 
 const menuItems = [
   { id: 1, icon: "fa-th-large", label: "Dashboard" },
-  { id: 2, icon: "fa-user-shield", label: "Admin Management" },
-  { id: 3, icon: "fa-ban", label: "Spams Management" },
-  { id: 4, icon: "fa-users", label: "Users Management" },
+  { id: 2, icon: "fa-file-text-o", label: "All Posts" },
+  { id: 3, icon: "fa-users", label: "Users Management" },
+  { id: 4, icon: "fa-comments", label: "Comments" },
+  { id: 5, icon: "fa-ban", label: "Reported" },
+  { id: 6, icon: "fa-thumbs-up", label: "Likes" },
+  { id: 7, icon: "fa-power-off", label: "Log out", action: "logout" },
 ];
 
 const Sidebar = () => {
@@ -22,14 +26,16 @@ const Sidebar = () => {
 
   const renderContent = () => {
     switch (adminMenu) {
-      case 1:
-        return <Main />;
       case 2:
-        return <AdminManagement />;
+        return <AllPosts />;
       case 3:
-        return <Spam />;
-      case 4:
         return <UsersManagement />;
+      case 4:
+        return <Comments />;
+      case 5:
+        return <Spam />;
+      case 6:
+        return <Likes />;
       default:
         return null;
     }
@@ -41,38 +47,30 @@ const Sidebar = () => {
         <div className="sidebar-attractive__header">
           <div className="sidebar-attractive__logo">
             <span role="img" aria-label="logo" className="sidebar-attractive__emoji">🌐</span>
-            <h1>Campus Connect</h1>
+            <h1>Mesme</h1>
           </div>
         </div>
         <nav className="sidebar-attractive__menu">
           {menuItems.map((item) => (
             <button
               key={item.id}
-              className={`sidebar-attractive__link${adminMenu === item.id ? " active" : ""}`}
-              onClick={() => setAdminMenu(item.id)}
+              className={`sidebar-attractive__link${adminMenu === item.id && !item.action ? " active" : ""}${item.action === 'logout' ? ' logout' : ''}`}
+              onClick={() => {
+                if (item.action === 'logout') {
+                  dispatch(logout());
+                } else {
+                  setAdminMenu(item.id)
+                }
+              }}
               type="button"
             >
               <i className={`fa ${item.icon}`}></i>
               <span>{item.label}</span>
             </button>
           ))}
-          <div className="sidebar-attractive__divider" />
-          <button className="sidebar-attractive__link" type="button">
-            <i className="fa fa-archive"></i>
-            <span>Archive</span>
-          </button>
-          <button className="sidebar-attractive__link" type="button">
-            <i className="fa fa-handshake-o"></i>
-            <span>Partners</span>
-          </button>
         </nav>
-        <div className="sidebar-attractive__logout">
-          <Link to="/" onClick={() => dispatch(logout())}>
-            <i className="fa fa-power-off"></i> Log out
-          </Link>
-        </div>
       </aside>
-      <main className="sidebar-attractive-content">{renderContent()}</main>
+      <main className="sidebar-attractive-content">{adminMenu === 1 ? <Main onNavigate={setAdminMenu} /> : renderContent()}</main>
     </div>
   );
 };

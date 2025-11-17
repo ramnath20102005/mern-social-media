@@ -7,14 +7,14 @@ import { NOTIFY_TYPES } from "./redux/actions/notifyAction";
 import { MESSAGE_TYPES } from "./redux/actions/messageAction";
 import { GROUP_TYPES } from "./redux/actions/groupAction";
 
-import audioTone from './audio/pristine-609.mp3' 
+import audioTone from './audio/pristine-609.mp3'
 
 const spawnNotification = (body, icon, url, title) => {
   let options = {
     body, icon
   }
   let n = new Notification(title, options);
-  n.onclick =  e => {
+  n.onclick = e => {
     e.preventDefault();
     window.open(url, '_blank');
   }
@@ -36,7 +36,7 @@ const SocketClient = () => {
         console.log('🔌 Admin joining socket:', auth.user.username, auth.user._id);
         socket.emit("joinAdmin", auth.user._id);
       }
-      
+
       // Cleanup on unmount or user change
       return () => {
         if (socket && auth.user) {
@@ -122,7 +122,7 @@ const SocketClient = () => {
     if (socket) {
       socket.on("createNotifyToClient", (msg) => {
         dispatch({ type: NOTIFY_TYPES.CREATE_NOTIFY, payload: msg });
-        
+
         if (notify.sound) {
           audioRef.current.play();
         }
@@ -130,7 +130,7 @@ const SocketClient = () => {
           msg.user.username + " " + msg.text,
           msg.user.avatar,
           msg.url,
-          "CAMPUS CONNECT"
+          "MESME"
         );
       });
       return () => socket.off("createNotifyToClient");
@@ -192,9 +192,9 @@ const SocketClient = () => {
     if (socket) {
       socket.on('groupMessageDeleted', ({ messageId, groupId, deletedBy, deletedAt }) => {
         console.log('🗑️ Group message deleted via socket:', messageId, 'in group:', groupId);
-        dispatch({ 
-          type: GROUP_TYPES.DELETE_GROUP_MESSAGE, 
-          payload: { messageId, groupId } 
+        dispatch({
+          type: GROUP_TYPES.DELETE_GROUP_MESSAGE,
+          payload: { messageId, groupId }
         });
       });
       return () => socket.off('groupMessageDeleted');
@@ -205,9 +205,9 @@ const SocketClient = () => {
     if (socket) {
       socket.on('multipleGroupMessagesDeleted', ({ messageIds, groupId, deletedBy, deletedAt }) => {
         console.log('🗑️ Multiple group messages deleted via socket:', messageIds.length, 'in group:', groupId);
-        dispatch({ 
-          type: GROUP_TYPES.DELETE_MULTIPLE_GROUP_MESSAGES, 
-          payload: { messageIds, groupId } 
+        dispatch({
+          type: GROUP_TYPES.DELETE_MULTIPLE_GROUP_MESSAGES,
+          payload: { messageIds, groupId }
         });
       });
       return () => socket.off('multipleGroupMessagesDeleted');

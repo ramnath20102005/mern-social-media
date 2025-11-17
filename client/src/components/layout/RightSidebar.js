@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import Avatar from '../Avatar';
 import { follow, unfollow } from '../../redux/actions/profileAction';
 import { getDataAPI } from '../../utils/fetchData';
+import ActivityModal from '../modals/ActivityModal';
 
 const RightSidebar = () => {
   const [likes, setLikes] = useState(0);
@@ -11,6 +13,7 @@ const RightSidebar = () => {
   const [profileViews, setProfileViews] = useState(0);
   const [modalContent, setModalContent] = useState(null); // Can be 'likes' or 'comments'
   const { auth, suggestions, socket, online = { users: [] }, homePosts } = useSelector(state => state);
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const mounted = useRef(true);
   const [followingUsers, setFollowingUsers] = useState(new Set());
@@ -37,7 +40,7 @@ const RightSidebar = () => {
           // Get top 5 followers
           const followerIds = auth.user.followers.slice(0, 5);
           if (followerIds.length > 0) {
-            const promises = followerIds.map(id => 
+            const promises = followerIds.map(id =>
               getDataAPI(`user/${typeof id === 'object' ? id._id : id}`, auth.token).catch(() => null)
             );
             const results = await Promise.all(promises);
@@ -59,7 +62,7 @@ const RightSidebar = () => {
     };
 
     fetchTopFollowers();
-    
+
     // Cleanup function
     return () => {
       mounted.current = false;
@@ -104,23 +107,23 @@ const RightSidebar = () => {
   ];
 
   // Calculate dynamic stats
-  const calculateTotalComments = () => {
+  const calculateTotalComments = useCallback(() => {
     if (!homePosts.posts || !auth.user) return 0;
     const userPosts = homePosts.posts.filter(post => post.user._id === auth.user._id);
     return userPosts.reduce((sum, post) => sum + (post.comments?.length || 0), 0);
-  };
+  }, [homePosts.posts, auth.user]);
 
-  const calculateTotalLikes = () => {
+  const calculateTotalLikes = useCallback(() => {
     if (!homePosts.posts || !auth.user) return 0;
     const userPosts = homePosts.posts.filter(post => post.user._id === auth.user._id);
     return userPosts.reduce((sum, post) => sum + (post.likes?.length || 0), 0);
-  };
+  }, [homePosts.posts, auth.user]);
 
-  const calculateProfileViews = () => {
+  const calculateProfileViews = useCallback(() => {
     const totalLikes = calculateTotalLikes();
     const followerCount = auth.user?.followers?.length || 0;
     return Math.floor(totalLikes * 1.5 + followerCount * 10 + Math.random() * 200);
-  };
+  }, [calculateTotalLikes, auth.user]);
 
   useEffect(() => {
     if (auth.user) {
@@ -128,7 +131,7 @@ const RightSidebar = () => {
       setComments(calculateTotalComments());
       setProfileViews(calculateProfileViews());
     }
-  }, [homePosts.posts, auth.user]);
+  }, [auth.user, calculateTotalLikes, calculateTotalComments, calculateProfileViews]);
 
   useEffect(() => {
     if (socket) {
@@ -145,7 +148,7 @@ const RightSidebar = () => {
         socket.off('createComment', handleCommentUpdate);
       };
     }
-  }, [socket, auth.user, homePosts.posts]);
+  }, [socket, calculateTotalLikes, calculateTotalComments]);
 
   const handleOpenModal = (type) => {
     setModalContent(type);
@@ -155,17 +158,7 @@ const RightSidebar = () => {
     setModalContent(null);
   };
 
-  const calculateEngagementRate = () => {
-    if (!homePosts.posts || !auth.user) return 0;
-    const userPosts = homePosts.posts.filter(post => post.user._id === auth.user._id);
-    if (userPosts.length === 0) return 0;
-    
-    const totalEngagement = userPosts.reduce((sum, post) => 
-      sum + (post.likes?.length || 0) + (post.comments?.length || 0), 0
-    );
-    const followerCount = auth.user?.followers?.length || 1;
-    return Math.min(Math.floor((totalEngagement / (userPosts.length * followerCount)) * 100), 100);
-  };
+  // Removed unused calculateEngagementRate to satisfy linter
 
   // Format number for display
   const formatNumber = (num) => {
@@ -182,49 +175,52 @@ const RightSidebar = () => {
       {/* People to Follow */}
       <div className="sidebar-card">
         <div className="suggestions-header">
-          <h3 className="suggestions-title">People to Follow</h3>
+          <h3 className="suggestions-title" style={{ color: 'var(--text-primary)' }}>{t('sidebar.peopleToFollow')}</h3>
           <Link to="/discover" className="see-all-link">
-            See all
+            {t('sidebar.seeAll')}
           </Link>
         </div>
         <div className="suggestions-list">
           {suggestedUsers.map((user) => (
             <div key={user._id} className="suggestion-item">
               <Link to={`/profile/${user._id}`} className="suggestion-link">
-                <Avatar src={user.avatar} size="suggestion-avatar" />
+                <div className="suggestion-avatar-container">
+                  <img
+                    src={user.avatar}
+                    alt={user.fullname || user.username}
+                    className="suggestion-avatar"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = 'https://ui-avatars.com/api/?name=' + (user.fullname || user.username || 'User') + '&background=random';
+                    }}
+                  />
+                </div>
                 <div className="suggestion-info">
-                  <span className="suggestion-name">{user.fullname}</span>
-                  <div className="suggestion-meta">
-                    <span className="meta-item">
-                      <i className="fas fa-user-friends"></i>
-                      <span>2</span>
-                    </span>
-                    <span className="meta-separator">•</span>
-                    <span className="meta-item">
-                      <i className="fas fa-user-plus"></i>
-                      <span>{user.following?.length || 0}</span>
-                    </span>
-                    <span className="meta-separator">•</span>
-                    <span className="meta-item">
-                      <i className="fas fa-users"></i>
-                      <span>{user.followers?.length || 0}</span>
-                    </span>
-                  </div>
+                  <span className="suggestion-name">
+                    {user.fullname || user.name || user.username || `${user.firstName || ''} ${user.lastName || ''}`.trim() || t('sidebar.user')}
+                  </span>
+                  <span className="suggestion-username">
+                    @{user.username || 'user' + user._id.slice(0, 5)}
+                  </span>
                 </div>
               </Link>
               <button
                 className={`follow-button ${followingUsers.has(user._id) ? 'following' : ''}`}
-                onClick={() => handleFollow(user)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleFollow(user);
+                }}
               >
                 {followingUsers.has(user._id) ? (
                   <>
                     <i className="fas fa-check"></i>
-                    Following
+                    <span>{t('sidebar.following')}</span>
                   </>
                 ) : (
                   <>
-                    <i className="fas fa-plus"></i>
-                    Follow
+                    <i className="fas fa-user-plus"></i>
+                    <span>{t('sidebar.follow')}</span>
                   </>
                 )}
               </button>
@@ -237,8 +233,8 @@ const RightSidebar = () => {
       {/* Active Friends */}
       <div className="sidebar-card">
         <div className="section-header">
-          <h3 className="section-title">Active Now</h3>
-          <span className="active-count">{topFollowers.filter(f => f.isOnline).length} online</span>
+          <h3 className="section-title" style={{ color: 'var(--text-primary)' }}>{t('sidebar.activeNow')}</h3>
+          <span className="active-count">{topFollowers.filter(f => f.isOnline).length} {t('sidebar.online')}</span>
         </div>
         <div className="active-friends">
           {displayFollowers.map((friend, index) => (
@@ -248,8 +244,10 @@ const RightSidebar = () => {
                 <div className={`status-indicator ${friend.isOnline ? 'online' : 'offline'}`}></div>
               </div>
               <div className="friend-info">
-                <span className="friend-name">{friend.fullname}</span>
-                <span className="friend-status">{friend.isOnline ? 'Active now' : friend.lastSeen}</span>
+                <span className="friend-name" style={{ color: 'var(--text-primary)' }}>
+                  {friend.fullname || friend.name || friend.username || `${friend.firstName || ''} ${friend.lastName || ''}`.trim() || 'User'}
+                </span>
+                <span className="friend-status">{friend.isOnline ? t('sidebar.activeNow') : friend.lastSeen}</span>
               </div>
               <button className="message-btn">
                 <i className="fas fa-comment"></i>
@@ -262,9 +260,9 @@ const RightSidebar = () => {
       {/* Recommended Groups */}
       <div className="sidebar-card">
         <div className="section-header">
-          <h3 className="section-title">Recommended Groups</h3>
+          <h3 className="section-title" style={{ color: 'var(--text-primary)' }}>{t('sidebar.recommendedGroups')}</h3>
           <Link to="/groups" className="see-all-link">
-            See all
+            {t('sidebar.seeAll')}
           </Link>
         </div>
         <div className="recommended-groups">
@@ -275,7 +273,7 @@ const RightSidebar = () => {
               </div>
               <div className="group-info">
                 <span className="group-name">{group.name}</span>
-                <span className="group-meta">{group.members} members • {group.category}</span>
+                <span className="group-meta">{group.members} {t('sidebar.members')} • {group.category}</span>
               </div>
               <button className="join-group-btn">
                 <i className="fas fa-plus"></i>
@@ -285,17 +283,17 @@ const RightSidebar = () => {
         </div>
       </div>
 
-            {/* Your Activity */}
+      {/* Your Activity */}
       <div className="sidebar-card stats-card">
         <div className="section-header">
-          <h3 className="section-title">Your Activity</h3>
+          <h3 className="section-title" style={{ color: 'var(--text-primary)' }}>{t('sidebar.yourActivity')}</h3>
           <button className="section-action"><i className="fas fa-chart-line"></i></button>
         </div>
         <div className="activity-stats">
           <div className="stat-item" onClick={() => handleOpenModal('likes')}>
             <div className="stat-icon likes-icon"><i className="fas fa-heart"></i></div>
             <div className="stat-info">
-              <span className="stat-label">Likes received</span>
+              <span className="stat-label">{t('sidebar.likesReceived')}</span>
               <span className="stat-value">{formatNumber(likes)}</span>
             </div>
             <div className="stat-trend up"><i className="fas fa-arrow-up"></i> +12%</div>
@@ -303,7 +301,7 @@ const RightSidebar = () => {
           <div className="stat-item" onClick={() => handleOpenModal('comments')}>
             <div className="stat-icon comments-icon"><i className="fas fa-comment"></i></div>
             <div className="stat-info">
-              <span className="stat-label">Comments</span>
+              <span className="stat-label">{t('sidebar.comments')}</span>
               <span className="stat-value">{formatNumber(comments)}</span>
             </div>
             <div className="stat-trend up"><i className="fas fa-arrow-up"></i> +8%</div>
@@ -311,7 +309,7 @@ const RightSidebar = () => {
           <div className="stat-item">
             <div className="stat-icon views-icon"><i className="fas fa-eye"></i></div>
             <div className="stat-info">
-              <span className="stat-label">Profile views</span>
+              <span className="stat-label">{t('sidebar.profileViews')}</span>
               <span className="stat-value">{formatNumber(profileViews)}</span>
             </div>
             <div className="stat-trend up"><i className="fas fa-arrow-up"></i> +15%</div>
@@ -319,9 +317,11 @@ const RightSidebar = () => {
         </div>
       </div>
 
-      <ActivityModal type={modalContent} onClose={handleCloseModal} />
+      {modalContent && (
+        <ActivityModal type={modalContent} onClose={handleCloseModal} />
+      )}
 
-            <div className="sidebar-footer">
+      <div className="sidebar-footer">
         <div className="footer-links">
           <Link to="/about">About</Link>
           <Link to="/privacy">Privacy</Link>

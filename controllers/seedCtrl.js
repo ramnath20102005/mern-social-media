@@ -19,11 +19,14 @@ const seedCtrl = {
 
       // Create users
       const passwordHash = await bcrypt.hash('password123', 12);
+      const adminPasswordHash = await bcrypt.hash('admin123', 12);
       const demoUsers = [
         { fullname: 'Alice Johnson', username: 'alice', email: 'alice@example.com', password: passwordHash, gender: 'female' },
         { fullname: 'Bob Smith', username: 'bob', email: 'bob@example.com', password: passwordHash, gender: 'male' },
         { fullname: 'Charlie Kim', username: 'charlie', email: 'charlie@example.com', password: passwordHash, gender: 'male' },
         { fullname: 'Diana Patel', username: 'diana', email: 'diana@example.com', password: passwordHash, gender: 'female' },
+        // Seed requested admin
+        { fullname: 'admin', username: 'admin', email: 'admin.com', password: adminPasswordHash, gender: 'male', role: 'admin' },
       ];
 
       const createdUsers = await Users.insertMany(demoUsers);
@@ -49,7 +52,7 @@ const seedCtrl = {
       createdUsers.forEach((u, idx) => {
         postsPayload.push({
           content: `Hello from @${u.username}! Loving Campus Connect #${idx + 1}`,
-          images: [ { url: placeholderImgs[idx % placeholderImgs.length], public_id: `seed_${idx}` } ],
+          images: [{ url: placeholderImgs[idx % placeholderImgs.length], public_id: `seed_${idx}` }],
           user: u._id,
           likes: [],
           comments: [],

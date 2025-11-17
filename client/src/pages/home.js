@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useTranslation } from 'react-i18next';
+
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
 
@@ -13,6 +15,8 @@ import LoadIcon from "../images/loading.gif";
 
 const Home = () => {
   const { homePosts, auth } = useSelector((state) => state);
+  const { t } = useTranslation();
+
   const dispatch = useDispatch();
   const { pathname } = useLocation();
   const [showStatus, setShowStatus] = useState(true);
@@ -26,10 +30,10 @@ const Home = () => {
   };
 
   const mobileNavItems = [
-    { label: 'Home', icon: 'fas fa-home', path: '/' },
-    { label: 'Explore', icon: 'fas fa-compass', path: '/discover' },
-    { label: 'Messages', icon: 'fas fa-envelope', path: '/message' },
-    { label: 'Profile', icon: 'fas fa-user', path: `/profile/${auth.user?._id}` },
+    { label: t('nav.home'), icon: 'fas fa-home', path: '/' },
+    { label: t('nav.explore'), icon: 'fas fa-compass', path: '/discover' },
+    { label: t('nav.messages'), icon: 'fas fa-envelope', path: '/message' },
+    { label: t('nav.profile'), icon: 'fas fa-user', path: `/profile/${auth.user?._id}` },
   ];
 
   const isActive = (path) => {
@@ -41,15 +45,15 @@ const Home = () => {
       <div className="main-layout">
         {/* Left Sidebar */}
         <LeftSidebar />
-        
+
         {/* Center Feed */}
         <div className="center-feed">
           {/* Stories Section */}
           <div className="feed-card">
             <div className="stories-section">
               <div className="stories-header">
-                <h3 className="stories-title">Stories</h3>
-                <button 
+                <h3 className="stories-title" style={{ color: 'var(--text-primary)' }}>{t('home.storiesTitle')}</h3>
+                <button
                   className="stories-add-btn"
                   onClick={() => dispatch({ type: GLOBALTYPES.STORY, payload: true })}
                 >
@@ -75,7 +79,7 @@ const Home = () => {
               <div className="loading-container">
                 <div className="loading-spinner">
                   <img src={LoadIcon} alt="loading" className="loading-icon" />
-                  <p className="loading-text">Loading amazing posts...</p>
+                  <p className="loading-text" style={{ color: 'var(--text-secondary)' }}>{t('home.loadingText')}</p>
                 </div>
               </div>
             </div>
@@ -83,8 +87,8 @@ const Home = () => {
             <div className="feed-card">
               <div className="empty-feed">
                 <div className="empty-icon">🚀</div>
-                <h3 className="empty-title">No posts yet!</h3>
-                <p className="empty-subtitle">Be the first to share something amazing</p>
+                <h3 className="empty-title" style={{ color: 'var(--text-primary)' }}>{t('home.emptyTitle')}</h3>
+                <p className="empty-subtitle" style={{ color: 'var(--text-tertiary)' }}>{t('home.emptySubtitle')}</p>
               </div>
             </div>
           ) : (
@@ -95,7 +99,7 @@ const Home = () => {
         {/* Right Sidebar */}
         <RightSidebar />
       </div>
-      
+
       {/* Mobile Bottom Navigation */}
       <div className="mobile-bottom-nav">
         <div className="mobile-nav-items">
@@ -111,10 +115,10 @@ const Home = () => {
           ))}
         </div>
       </div>
-      
+
       {/* Floating Action Button */}
       <div className="fab-container">
-        <button className="fab-button" onClick={handleFabClick} title="Create Post">
+        <button className="fab-button" onClick={handleFabClick} title={t('home.createPost')}>
           <i className="fas fa-plus"></i>
         </button>
       </div>

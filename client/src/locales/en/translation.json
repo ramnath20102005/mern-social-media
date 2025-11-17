@@ -1,0 +1,126 @@
+{
+    "app": {
+        "title": "Mesme"
+    },
+    "nav": {
+        "home": "Home",
+        "explore": "Explore",
+        "messages": "Messages",
+        "settings": "Settings",
+        "profile": "Profile"
+    },
+    "menu": {
+        "home": "Home",
+        "profile": "Profile",
+        "messages": "Messages",
+        "explore": "Explore",
+        "bookmarks": "Bookmarks",
+        "settings": "Settings"
+    },
+    "profileMenu": {
+        "myProfile": "My Profile",
+        "viewEdit": "View and edit profile",
+        "appearance": "Switch appearance",
+        "lightMode": "Light Mode",
+        "darkMode": "Dark Mode",
+        "signOut": "Sign Out",
+        "seeYouLater": "See you later!"
+    },
+    "settings": {
+        "heading": "Settings",
+        "subheading": "Manage your account preferences and privacy settings",
+        "tabs": {
+            "general": "General",
+            "privacy": "Privacy",
+            "notifications": "Notifications",
+            "account": "Account"
+        },
+        "general": {
+            "theme": "Theme",
+            "chooseTheme": "Choose between light and dark mode",
+            "language": "Language",
+            "selectLanguage": "Select your preferred language",
+            "autoPlayVideos": "Auto-play Videos",
+            "autoPlayVideosDesc": "Automatically play videos in your feed"
+        },
+        "privacy": {
+            "profileVisibility": "Profile Visibility",
+            "whoCanSee": "Who can see your profile",
+            "everyone": "Everyone",
+            "friends": "Friends only",
+            "onlyMe": "Only me",
+            "showOnlineStatus": "Show Online Status",
+            "showOnlineStatusDesc": "Let others see when you're online",
+            "download": "Data Download",
+            "downloadDesc": "Download a copy of your data",
+            "downloadBtn": "Download Data"
+        },
+        "notifications": {
+            "heading": "Notification Settings",
+            "push": "Push Notifications",
+            "pushDesc": "Receive notifications on your device",
+            "email": "Email Notifications",
+            "emailDesc": "Receive notifications via email",
+            "sound": "Sound Effects",
+            "soundDesc": "Play sounds for notifications"
+        },
+        "account": {
+            "heading": "Account Settings",
+            "changePassword": "Change Password",
+            "changePasswordDesc": "Update your account password",
+            "currentPassword": "Current Password",
+            "newPassword": "New Password",
+            "confirmNewPassword": "Confirm New Password",
+            "changePasswordBtn": "Change Password",
+            "twoFactor": "Two-Factor Authentication",
+            "twoFactorDesc": "Add an extra layer of security",
+            "disable2FA": "Disable 2FA",
+            "enable2FA": "Enable 2FA",
+            "deleteAccount": "Delete Account",
+            "deleteAccountDesc": "Permanently delete your account and data",
+            "enterPassword": "Enter your password",
+            "typeDELETE": "Type \"DELETE\" to confirm",
+            "deleteBtn": "Delete Account"
+        }
+    },
+    "sidebar": {
+        "peopleToFollow": "People to Follow",
+        "seeAll": "See all",
+        "follow": "Follow",
+        "following": "Following",
+        "activeNow": "Active now",
+        "online": "online",
+        "recommendedGroups": "Recommended Groups",
+        "members": "members",
+        "yourActivity": "Your Activity",
+        "likesReceived": "Likes received",
+        "comments": "Comments",
+        "profileViews": "Profile views",
+        "user": "User"
+    },
+    "home": {
+        "storiesTitle": "Stories",
+        "loadingText": "Loading amazing posts...",
+        "emptyTitle": "No posts yet!",
+        "emptySubtitle": "Be the first to share something amazing",
+        "createPost": "Create Post"
+    },
+    "discover": {
+        "title": "Explore",
+        "subtitle": "Discover amazing content from the community",
+        "searchPlaceholder": "Search posts, users, hashtags...",
+        "filters": {
+            "all": "All",
+            "photos": "Photos",
+            "videos": "Videos",
+            "trending": "Trending",
+            "recent": "Recent"
+        },
+        "loadingTitle": "Discovering Content",
+        "loadingSubtitle": "Finding the best posts for you...",
+        "resultsTitle": "Search Results for \"{{query}}\"",
+        "resultsCount": "{{count}} posts found",
+        "noResultsTitle": "No results found",
+        "noResultsSubtitle": "Try searching for something else"
+    }
+}

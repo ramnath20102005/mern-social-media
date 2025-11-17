@@ -2,29 +2,26 @@ import "./Main.css";
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
-// import Chart from "../charts/Chart";
 import {
   getTotalUsers,
   getTotalPosts,
   getTotalComments,
   getTotalLikes,
-  getTotalActiveUsers,
   getTotalSpamPosts,
 } from "../../../redux/actions/adminAction";
 
 
-const Main = () => {
-    const { auth, admin, socket } = useSelector((state) => state);
-    const dispatch = useDispatch();
+const Main = ({ onNavigate }) => {
+  const { auth, admin } = useSelector((state) => state);
+  const dispatch = useDispatch();
 
-    useEffect(() => {
-      dispatch(getTotalUsers(auth.token));
-      dispatch(getTotalPosts(auth.token));
-      dispatch(getTotalComments(auth.token));
-      dispatch(getTotalLikes(auth.token));
-      dispatch(getTotalSpamPosts(auth.token));
-      dispatch(getTotalActiveUsers({ auth, socket }));
-    }, [dispatch, auth.token, socket, auth]);
+  useEffect(() => {
+    dispatch(getTotalUsers(auth.token));
+    dispatch(getTotalPosts(auth.token));
+    dispatch(getTotalComments(auth.token));
+    dispatch(getTotalLikes(auth.token));
+    dispatch(getTotalSpamPosts(auth.token));
+  }, [dispatch, auth.token]);
   return (
     <div className="main_admin">
       <div className="main__container">
@@ -41,7 +38,7 @@ const Main = () => {
 
         {/* <!-- MAIN CARDS STARTS HERE --> */}
         <div className="main__cards">
-          <div className="card_admin">
+          <div className="card_admin" role="button" tabIndex={0} onClick={() => onNavigate && onNavigate(3)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onNavigate && onNavigate(3); } }}>
             <i
               className="fa fa-users fa-2x text-lightblue"
               aria-hidden="true"
@@ -52,7 +49,17 @@ const Main = () => {
             </div>
           </div>
 
-          <div className="card_admin">
+          <div
+            className="card_admin"
+            role="button"
+            tabIndex={0}
+            onClick={() => onNavigate && onNavigate(4)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                onNavigate && onNavigate(4);
+              }
+            }}
+          >
             <i className="fa fa-comments fa-2x text-red" aria-hidden="true"></i>
             <div className="card_inner_admin">
               <p className="text-primary-p">Total Comments</p>
@@ -62,7 +69,17 @@ const Main = () => {
             </div>
           </div>
 
-          <div className="card_admin">
+          <div
+            className="card_admin"
+            role="button"
+            tabIndex={0}
+            onClick={() => onNavigate && onNavigate(2)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                onNavigate && onNavigate(2);
+              }
+            }}
+          >
             <i
               className="fa fa-camera fa-2x text-yellow"
               aria-hidden="true"
@@ -73,7 +90,17 @@ const Main = () => {
             </div>
           </div>
 
-          <div className="card_admin">
+          <div
+            className="card_admin"
+            role="button"
+            tabIndex={0}
+            onClick={() => onNavigate && onNavigate(5)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                onNavigate && onNavigate(5);
+              }
+            }}
+          >
             <i className="fa fa-ban fa-2x text-red" aria-hidden="true"></i>
             <div className="card_inner_admin">
               <p className="text-primary-p">Reported Posts</p>
@@ -83,7 +110,17 @@ const Main = () => {
             </div>
           </div>
 
-          <div className="card_admin">
+          <div
+            className="card_admin"
+            role="button"
+            tabIndex={0}
+            onClick={() => onNavigate && onNavigate(6)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                onNavigate && onNavigate(6);
+              }
+            }}
+          >
             <i
               className="fa fa-thumbs-up fa-2x text-green"
               aria-hidden="true"
@@ -94,67 +131,40 @@ const Main = () => {
             </div>
           </div>
 
-          <div className="card_admin">
-            <i
-              className="fa fa-check-circle fa-2x  text-green"
-              aria-hidden="true"
-            ></i>
-            <div className="card_inner_admin">
-              <p className="text-primary-p">Total Active Users</p>
-              <span className="font-bold text-title">
-                {admin.total_active_users}
-              </span>
-            </div>
-          </div>
         </div>
         {/* <!-- MAIN CARDS ENDS HERE --> */}
 
-        {/* <!-- CHARTS STARTS HERE 
-        <div className="charts">
-          <div className="charts__left">
-            <div className="charts__left__title">
-              <div>
-                <h1>Daily Reports</h1>
-                <p>Cupertino, California, USA</p>
+        {/* Visual KPI Bars (pictorial) */}
+        <div className="charts" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 24 }}>
+          {(() => {
+            const clamp = (n) => Math.max(0, Math.min(100, Math.round(n)));
+            const postsPerUser = clamp((admin.total_posts / Math.max(1, admin.total_users)) * 100);
+            const likesPerPost = clamp((admin.total_likes / Math.max(1, admin.total_posts)) * 100);
+            const commentsPerPost = clamp((admin.total_comments / Math.max(1, admin.total_posts)) * 100);
+            const spamRate = clamp((admin.total_spam_posts / Math.max(1, admin.total_posts)) * 100);
+            const cards = [
+              { title: 'Posts per user', value: `${admin.total_posts} / ${Math.max(1, admin.total_users)}`, percent: postsPerUser, icon: 'fa fa-camera', color: 'var(--primary-500)' },
+              { title: 'Likes per post', value: `${admin.total_likes} / ${Math.max(1, admin.total_posts)}`, percent: likesPerPost, icon: 'fa fa-thumbs-up', color: 'var(--success-500)' },
+              { title: 'Comments per post', value: `${admin.total_comments} / ${Math.max(1, admin.total_posts)}`, percent: commentsPerPost, icon: 'fa fa-comments', color: 'var(--warning-500)' },
+              { title: 'Reported rate', value: `${admin.total_spam_posts} / ${Math.max(1, admin.total_posts)}`, percent: spamRate, icon: 'fa fa-ban', color: 'var(--danger-500)' },
+            ];
+            return cards.map((c, i) => (
+              <div key={i} className="stat_card">
+                <div className="stat_header">
+                  <i className={`${c.icon} stat_icon`} />
+                  <div>
+                    <div className="stat_title">{c.title}</div>
+                    <div className="stat_value">{c.value}</div>
+                  </div>
+                </div>
+                <div className="stat_bar">
+                  <div className="stat_fill" style={{ width: `${c.percent}%`, background: c.color }} />
+                </div>
+                <div className="stat_percent">{c.percent}%</div>
               </div>
-              <i className="fa fa-usd" aria-hidden="true"></i>
-            </div>
-            <Chart />
-          </div>
-
-          <div className="charts__right">
-            <div className="charts__right__title">
-              <div>
-                <h1>Stats Reports</h1>
-                <p>Cupertino, California, USA</p>
-              </div>
-              <i className="fa fa-usd" aria-hidden="true"></i>
-            </div>
-
-            <div className="charts__right__cards">
-              <div className="card1">
-                <h1>Income</h1>
-                <p>$75,300</p>
-              </div>
-
-              <div className="card2">
-                <h1>Sales</h1>
-                <p>$124,200</p>
-              </div>
-
-              <div className="card3">
-                <h1>Users</h1>
-                <p>3900</p>
-              </div>
-
-              <div className="card4">
-                <h1>Orders</h1>
-                <p>1881</p>
-              </div>
-            </div>
-          </div>
+            ));
+          })()}
         </div>
-        CHARTS ENDS HERE --> */}
       </div>
     </div>
   );

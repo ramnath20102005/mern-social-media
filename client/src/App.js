@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Route } from "react-router-dom";
+import { BrowserRouter as Router, Route, Redirect } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import io from 'socket.io-client'
@@ -7,6 +7,8 @@ import PageRender from "./customRouter/PageRender";
 import PrivateRouter from "./customRouter/PrivateRouter";
 import Login from "./pages/login";
 import Register from "./pages/register";
+import AdminLogin from "./pages/admin";
+import Forgot from "./pages/forgot";
 import Home from "./pages/home";
 import Alert from "./components/alert/Alert";
 import Header from "./components/header/Header";
@@ -23,14 +25,14 @@ import SocketClient from "./SocketClient";
 import './styles/modern-layout.css';
 
 function App() {
-  const { auth, status, story, storyViewer, modal, socket } = useSelector((state) => state);
+  const { auth, status, story, storyViewer, modal, socket, theme } = useSelector((state) => state);
   const dispatch = useDispatch();
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
     // Clear any existing alerts before refresh token
     dispatch({ type: GLOBALTYPES.ALERT, payload: {} });
-    
+
     // Delay refresh token to avoid showing errors on initial load
     setTimeout(() => {
       dispatch(refreshToken()).finally(() => {
@@ -51,47 +53,47 @@ function App() {
   useEffect(() => {
     if (auth.token && auth.user && auth.user._id) {
       console.log('🔌 Creating socket connection for authenticated user:', auth.user.username);
-      
+
       // Add a small delay to ensure auth is fully settled
       const timer = setTimeout(() => {
-        const socket = io(process.env.NODE_ENV === 'production' 
-          ? 'https://mysocial-lvsn.onrender.com' 
+        const socket = io(process.env.NODE_ENV === 'production'
+          ? 'https://mysocial-lvsn.onrender.com'
           : 'http://localhost:8080', {
-            transports: ['websocket', 'polling'],
-            withCredentials: true,
-            forceNew: false,
-            reconnection: true,
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 5000,
-            reconnectionAttempts: 3,
-            timeout: 10000,
-            autoConnect: true
-          });
-        
+          transports: ['websocket', 'polling'],
+          withCredentials: true,
+          forceNew: false,
+          reconnection: true,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 5000,
+          reconnectionAttempts: 3,
+          timeout: 10000,
+          autoConnect: true
+        });
+
         // Add connection event listeners for debugging
         socket.on('connect', () => {
           console.log('✅ Socket connected successfully');
         });
-        
+
         socket.on('disconnect', (reason) => {
           console.log('❌ Socket disconnected:', reason);
         });
-        
+
         socket.on('connect_error', (error) => {
           console.log('❌ Socket connection error:', error.message);
         });
-        
-        dispatch({type: GLOBALTYPES.SOCKET, payload: socket });
+
+        dispatch({ type: GLOBALTYPES.SOCKET, payload: socket });
       }, 200);
-      
+
       return () => {
         clearTimeout(timer);
         // Clear socket from Redux when auth changes
-        dispatch({type: GLOBALTYPES.SOCKET, payload: null });
+        dispatch({ type: GLOBALTYPES.SOCKET, payload: null });
       };
     } else {
       // Clear socket when not authenticated
-      dispatch({type: GLOBALTYPES.SOCKET, payload: null });
+      dispatch({ type: GLOBALTYPES.SOCKET, payload: null });
     }
   }, [auth.token, auth.user, dispatch]);
 
@@ -133,6 +135,10 @@ function App() {
     document.title = 'Mesme';
   }, []);
 
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme ? 'dark' : 'light');
+  }, [theme]);
+
   // Show loading screen during initialization
   if (isInitializing) {
     return (
@@ -173,8 +179,14 @@ function App() {
           {story && <StoryModal />}
           {storyViewer.show && <StoryDetailsModal />}
           {auth.token && <SocketClient />}
-          <Route exact path="/" component={auth.token ? Home : Login} />
+          <Route exact path="/" render={() => {
+            if (!auth.token) return <Login />;
+            if (auth.user && auth.user.role === 'admin') return <Redirect to="/adminDashboard" />;
+            return <Home />;
+          }} />
           <Route exact path="/register" component={Register} />
+          <Route exact path="/admin" component={AdminLogin} />
+          <Route exact path="/forgot" component={Forgot} />
 
           <PrivateRouter exact path="/:page" component={PageRender} auth={auth.token} />
           <PrivateRouter exact path="/:page/:id" component={PageRender} auth={auth.token} />

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../redux/actions/authAction";
@@ -7,10 +8,11 @@ import Avatar from "../Avatar";
 import NotifyModal from "../NotifyModal";
 
 const Menu = () => {
+  const { t } = useTranslation();
   const navLinks = [
-    { label: "Home", icon: "fas fa-home", path: "/" },
-    { label: "Explore", icon: "fas fa-compass", path: "/discover" },
-    { label: "Messages", icon: "fas fa-envelope", path: "/message" },
+    { label: t('nav.home'), icon: "fas fa-home", path: "/" },
+    { label: t('nav.explore'), icon: "fas fa-compass", path: "/discover" },
+    { label: t('nav.messages'), icon: "fas fa-envelope", path: "/message" },
   ];
 
   const { auth, theme, notify } = useSelector((state) => state);
@@ -100,91 +102,91 @@ const Menu = () => {
             <div className="profile-status-indicator"></div>
           </div>
         </button>
-          <div className={`dropdown-menu modern-profile-menu ${isProfileDropdownOpen ? 'show' : ''}`}>
-            {/* User Info Header */}
-            <div className="profile-menu-header">
-              <div className="profile-info">
-                <Avatar src={auth.user.avatar} size="big-avatar" />
-                <div className="profile-details">
-                  <h4 className="profile-name">{auth.user.fullname || auth.user.username}</h4>
-                  <p className="profile-username">@{auth.user.username}</p>
-                </div>
+        <div className={`dropdown-menu modern-profile-menu ${isProfileDropdownOpen ? 'show' : ''}`}>
+          {/* User Info Header */}
+          <div className="profile-menu-header">
+            <div className="profile-info">
+              <Avatar src={auth.user.avatar} size="big-avatar" />
+              <div className="profile-details">
+                <h4 className="profile-name">{auth.user.fullname || auth.user.username}</h4>
+                <p className="profile-username">@{auth.user.username}</p>
               </div>
-            </div>
-            
-            {/* Menu Items */}
-            <div className="profile-menu-items">
-              <Link
-                className="modern-dropdown-item"
-                to={`/profile/${auth.user._id}`}
-                onClick={() => setIsProfileDropdownOpen(false)}
-              >
-                <div className="menu-item-icon">
-                  <i className="fas fa-user"></i>
-                </div>
-                <div className="menu-item-content">
-                  <span className="menu-item-title">My Profile</span>
-                  <span className="menu-item-subtitle">View and edit profile</span>
-                </div>
-              </Link>
-              
-              <div
-                className="modern-dropdown-item"
-                onClick={() => {
-                  dispatch({ type: GLOBALTYPES.THEME, payload: !theme });
-                }}
-              >
-                <div className="menu-item-icon">
-                  <i className={theme ? "fas fa-sun" : "fas fa-moon"}></i>
-                </div>
-                <div className="menu-item-content">
-                  <span className="menu-item-title">{theme ? "Light Mode" : "Dark Mode"}</span>
-                  <span className="menu-item-subtitle">Switch appearance</span>
-                </div>
-                <div className="menu-item-toggle">
-                  <div className={`toggle-switch ${theme ? 'active' : ''}`}>
-                    <div className="toggle-slider"></div>
-                  </div>
-                </div>
-              </div>
-              
-              <Link
-                className="modern-dropdown-item"
-                to="/settings"
-                onClick={() => setIsProfileDropdownOpen(false)}
-              >
-                <div className="menu-item-icon">
-                  <i className="fas fa-cog"></i>
-                </div>
-                <div className="menu-item-content">
-                  <span className="menu-item-title">Settings</span>
-                  <span className="menu-item-subtitle">Privacy and preferences</span>
-                </div>
-              </Link>
-            </div>
-            
-            <div className="profile-menu-divider"></div>
-            
-            {/* Logout */}
-            <div className="profile-menu-footer">
-              <Link
-                className="modern-dropdown-item logout-item"
-                to="/"
-                onClick={() => {
-                  setIsProfileDropdownOpen(false);
-                  dispatch(logout());
-                }}
-              >
-                <div className="menu-item-icon">
-                  <i className="fas fa-sign-out-alt"></i>
-                </div>
-                <div className="menu-item-content">
-                  <span className="menu-item-title">Sign Out</span>
-                  <span className="menu-item-subtitle">See you later!</span>
-                </div>
-              </Link>
             </div>
           </div>
+
+          {/* Menu Items */}
+          <div className="profile-menu-items">
+            <Link
+              className="modern-dropdown-item"
+              to={`/profile/${auth.user._id}`}
+              onClick={() => setIsProfileDropdownOpen(false)}
+            >
+              <div className="menu-item-icon">
+                <i className="fas fa-user"></i>
+              </div>
+              <div className="menu-item-content">
+                <span className="menu-item-title">{t('profileMenu.myProfile')}</span>
+                <span className="menu-item-subtitle">{t('profileMenu.viewEdit')}</span>
+              </div>
+            </Link>
+
+            <div
+              className="modern-dropdown-item"
+              onClick={() => {
+                dispatch({ type: GLOBALTYPES.THEME, payload: !theme });
+              }}
+            >
+              <div className="menu-item-icon">
+                <i className={theme ? "fas fa-sun" : "fas fa-moon"}></i>
+              </div>
+              <div className="menu-item-content">
+                <span className="menu-item-title">{theme ? t('profileMenu.lightMode') : t('profileMenu.darkMode')}</span>
+                <span className="menu-item-subtitle">{t('profileMenu.appearance')}</span>
+              </div>
+              <div className="menu-item-toggle">
+                <div className={`toggle-switch ${theme ? 'active' : ''}`}>
+                  <div className="toggle-slider"></div>
+                </div>
+              </div>
+            </div>
+
+            <Link
+              className="modern-dropdown-item"
+              to="/settings"
+              onClick={() => setIsProfileDropdownOpen(false)}
+            >
+              <div className="menu-item-icon">
+                <i className="fas fa-cog"></i>
+              </div>
+              <div className="menu-item-content">
+                <span className="menu-item-title">{t('nav.settings')}</span>
+                <span className="menu-item-subtitle">Privacy and preferences</span>
+              </div>
+            </Link>
+          </div>
+
+          <div className="profile-menu-divider"></div>
+
+          {/* Logout */}
+          <div className="profile-menu-footer">
+            <Link
+              className="modern-dropdown-item logout-item"
+              to="/"
+              onClick={() => {
+                setIsProfileDropdownOpen(false);
+                dispatch(logout());
+              }}
+            >
+              <div className="menu-item-icon">
+                <i className="fas fa-sign-out-alt"></i>
+              </div>
+              <div className="menu-item-content">
+                <span className="menu-item-title">{t('profileMenu.signOut')}</span>
+                <span className="menu-item-subtitle">{t('profileMenu.seeYouLater')}</span>
+              </div>
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );
