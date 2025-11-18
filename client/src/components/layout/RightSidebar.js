@@ -5,19 +5,19 @@ import { useSelector, useDispatch } from 'react-redux';
 import Avatar from '../Avatar';
 import { follow, unfollow } from '../../redux/actions/profileAction';
 import { getDataAPI } from '../../utils/fetchData';
+import { GLOBALTYPES } from '../../redux/actions/globalTypes';
 import ActivityModal from '../modals/ActivityModal';
 
 const RightSidebar = () => {
-  const [likes, setLikes] = useState(0);
-  const [comments, setComments] = useState(0);
-  const [profileViews, setProfileViews] = useState(0);
-  const [modalContent, setModalContent] = useState(null); // Can be 'likes' or 'comments'
+  const [modalContent, setModalContent] = useState(null);
   const { auth, suggestions, socket, online = { users: [] }, homePosts } = useSelector(state => state);
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const mounted = useRef(true);
   const [followingUsers, setFollowingUsers] = useState(new Set());
   const [topFollowers, setTopFollowers] = useState([]);
+  const [recommendedGroups, setRecommendedGroups] = useState([]);
+  const [loadingGroups, setLoadingGroups] = useState(true);
 
   // Initialize following state based on auth.user.following
   useEffect(() => {
@@ -87,68 +87,55 @@ const RightSidebar = () => {
     }
   };
 
-  const suggestedUsers = suggestions.users?.slice(0, 5) || [
-    { _id: '1', fullname: 'Sarah Wilson', username: 'sarahw', avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face', followers: ['1', '2'] },
-    { _id: '3', fullname: 'Emma Davis', username: 'emmad', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face', followers: ['2', '3'] },
-    { _id: '4', fullname: 'Alex Johnson', username: 'alexj', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face', followers: ['1', '2', '3'] },
-    { _id: '5', fullname: 'Lisa Brown', username: 'lisab', avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face', followers: ['2'] },
-  ];
+  // Get random 5 users from suggestions
+  const getRandomUsers = (users, count) => {
+    if (!users || users.length === 0) return [];
+    const shuffled = [...users].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, Math.min(count, shuffled.length));
+  };
+
+  // Get suggested users or show empty state
+  const suggestedUsers = React.useMemo(() => {
+    const users = suggestions.users || [];
+    return getRandomUsers(users, 5);
+  }, [suggestions.users]);
+
+  // Fetch recommended groups
+  useEffect(() => {
+    const fetchRecommendedGroups = async () => {
+      try {
+        setLoadingGroups(true);
+        const res = await getDataAPI('group/recommended?limit=5', auth.token);
+        if (mounted.current) {
+          setRecommendedGroups(res.data.groups || []);
+        }
+      } catch (err) {
+        dispatch({ 
+          type: GLOBALTYPES.ALERT, 
+          payload: { error: err.response?.data.msg || 'Failed to load recommended groups' } 
+        });
+      } finally {
+        if (mounted.current) {
+          setLoadingGroups(false);
+        }
+      }
+    };
+
+    if (auth.token) {
+      fetchRecommendedGroups();
+    }
+
+    return () => {
+      mounted.current = false;
+    };
+  }, [auth.token, dispatch]);
 
 
+  // Show message if no followers
   // Show message if no followers
   const displayFollowers = topFollowers.length > 0 ? topFollowers : [
     { fullname: 'No followers yet', username: 'empty', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face', isOnline: false, lastSeen: 'not active' }
   ];
-
-  const recommendedGroups = [
-    { name: 'React Developers', members: '12.5K', category: 'Technology', image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=80&h=80&fit=crop' },
-    { name: 'UI/UX Designers', members: '8.2K', category: 'Design', image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=80&h=80&fit=crop' },
-    { name: 'Startup Founders', members: '15.7K', category: 'Business', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop' },
-  ];
-
-  // Calculate dynamic stats
-  const calculateTotalComments = useCallback(() => {
-    if (!homePosts.posts || !auth.user) return 0;
-    const userPosts = homePosts.posts.filter(post => post.user._id === auth.user._id);
-    return userPosts.reduce((sum, post) => sum + (post.comments?.length || 0), 0);
-  }, [homePosts.posts, auth.user]);
-
-  const calculateTotalLikes = useCallback(() => {
-    if (!homePosts.posts || !auth.user) return 0;
-    const userPosts = homePosts.posts.filter(post => post.user._id === auth.user._id);
-    return userPosts.reduce((sum, post) => sum + (post.likes?.length || 0), 0);
-  }, [homePosts.posts, auth.user]);
-
-  const calculateProfileViews = useCallback(() => {
-    const totalLikes = calculateTotalLikes();
-    const followerCount = auth.user?.followers?.length || 0;
-    return Math.floor(totalLikes * 1.5 + followerCount * 10 + Math.random() * 200);
-  }, [calculateTotalLikes, auth.user]);
-
-  useEffect(() => {
-    if (auth.user) {
-      setLikes(calculateTotalLikes());
-      setComments(calculateTotalComments());
-      setProfileViews(calculateProfileViews());
-    }
-  }, [auth.user, calculateTotalLikes, calculateTotalComments, calculateProfileViews]);
-
-  useEffect(() => {
-    if (socket) {
-      const handleLikeUpdate = () => setLikes(calculateTotalLikes());
-      const handleCommentUpdate = () => setComments(calculateTotalComments());
-
-      socket.on('likePost', handleLikeUpdate);
-      socket.on('unLikePost', handleLikeUpdate);
-      socket.on('createComment', handleCommentUpdate);
-
-      return () => {
-        socket.off('likePost', handleLikeUpdate);
-        socket.off('unLikePost', handleLikeUpdate);
-        socket.off('createComment', handleCommentUpdate);
-      };
-    }
-  }, [socket, calculateTotalLikes, calculateTotalComments]);
 
   const handleOpenModal = (type) => {
     setModalContent(type);
@@ -160,15 +147,6 @@ const RightSidebar = () => {
 
   // Removed unused calculateEngagementRate to satisfy linter
 
-  // Format number for display
-  const formatNumber = (num) => {
-    if (num >= 1000000) {
-      return (num / 1000000).toFixed(1) + 'M';
-    } else if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'K';
-    }
-    return num.toString();
-  };
 
   return (
     <div className="right-sidebar">
@@ -181,51 +159,58 @@ const RightSidebar = () => {
           </Link>
         </div>
         <div className="suggestions-list">
-          {suggestedUsers.map((user) => (
-            <div key={user._id} className="suggestion-item">
-              <Link to={`/profile/${user._id}`} className="suggestion-link">
-                <div className="suggestion-avatar-container">
-                  <img
-                    src={user.avatar}
-                    alt={user.fullname || user.username}
-                    className="suggestion-avatar"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = 'https://ui-avatars.com/api/?name=' + (user.fullname || user.username || 'User') + '&background=random';
-                    }}
-                  />
-                </div>
-                <div className="suggestion-info">
-                  <span className="suggestion-name">
-                    {user.fullname || user.name || user.username || `${user.firstName || ''} ${user.lastName || ''}`.trim() || t('sidebar.user')}
-                  </span>
-                  <span className="suggestion-username">
-                    @{user.username || 'user' + user._id.slice(0, 5)}
-                  </span>
-                </div>
-              </Link>
-              <button
-                className={`follow-button ${followingUsers.has(user._id) ? 'following' : ''}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleFollow(user);
-                }}
-              >
-                {followingUsers.has(user._id) ? (
-                  <>
-                    <i className="fas fa-check"></i>
-                    <span>{t('sidebar.following')}</span>
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-user-plus"></i>
-                    <span>{t('sidebar.follow')}</span>
-                  </>
-                )}
-              </button>
+          {suggestedUsers.length === 0 ? (
+            <div className="no-suggestions">
+              <div className="no-suggestions-icon">
+                <i className="fas fa-user-friends"></i>
+              </div>
+              <p className="no-suggestions-text">No people to follow</p>
+              <p className="no-suggestions-hint">When you follow people, they'll appear here</p>
             </div>
-          ))}
+          ) : (
+            suggestedUsers.map((user) => (
+              <div key={user._id} className="suggestion-item">
+                <Link to={`/profile/${user._id}`} className="suggestion-link">
+                  <div className="suggestion-avatar-container">
+                    <Avatar src={user.avatar} size="medium" />
+                    {online.users.includes(user._id) && (
+                      <span className="online-status"></span>
+                    )}
+                  </div>
+                  <div className="suggestion-info">
+                    <span className="suggestion-name">
+                      {user.fullname || user.name || user.username || `${user.firstName || ''} ${user.lastName || ''}`.trim() || t('sidebar.user')}
+                    </span>
+                    <span className="suggestion-username">
+                      @{user.username || 'user' + (user._id ? user._id.slice(0, 5) : '')}
+                    </span>
+                    <span className="suggestion-stats">
+                      {user.followers ? user.followers.length : 0} followers
+                    </span>
+                  </div>
+                </Link>
+                <button
+                  className={`follow-btn ${followingUsers.has(user._id) ? 'following' : ''}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleFollow(user);
+                  }}
+                  aria-label={followingUsers.has(user._id) ? `Unfollow ${user.username}` : `Follow ${user.username}`}
+                >
+                  {followingUsers.has(user._id) ? (
+                    <>
+                      <i className="fas fa-user-check"></i> Following
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-user-plus"></i> Follow
+                    </>
+                  )}
+                </button>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
@@ -265,60 +250,87 @@ const RightSidebar = () => {
             {t('sidebar.seeAll')}
           </Link>
         </div>
-        <div className="recommended-groups">
-          {recommendedGroups.map((group, index) => (
-            <div key={index} className="group-item">
-              <div className="group-image">
-                <img src={group.image} alt={group.name} />
+        {loadingGroups ? (
+          <div className="loading-groups">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="group-item-skeleton">
+                <div className="skeleton-avatar"></div>
+                <div className="skeleton-info">
+                  <div className="skeleton-line"></div>
+                  <div className="skeleton-line-sm"></div>
+                </div>
+                <div className="skeleton-button"></div>
               </div>
-              <div className="group-info">
-                <span className="group-name">{group.name}</span>
-                <span className="group-meta">{group.members} {t('sidebar.members')} • {group.category}</span>
+            ))}
+          </div>
+        ) : recommendedGroups.length > 0 ? (
+          <div className="recommended-groups">
+            {recommendedGroups.map((group) => (
+              <div key={group._id} className="group-item">
+                <Link to={`/group/${group._id}`} className="group-image">
+                  <img 
+                    src={group.avatar || 'https://res.cloudinary.com/devatchannel/image/upload/v1602752402/avatar/avatar_cugq40.png'} 
+                    alt={group.name} 
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = 'https://res.cloudinary.com/devatchannel/image/upload/v1602752402/avatar/avatar_cugq40.png';
+                    }}
+                  />
+                </Link>
+                <div className="group-info">
+                  <Link to={`/group/${group._id}`} className="group-name">
+                    {group.name}
+                  </Link>
+                  <div className="group-meta">
+                    <span className="members-count">
+                      <i className="fas fa-users"></i> {group.memberCount || 0} {t('sidebar.members')}
+                    </span>
+                    {group.category && (
+                      <span className="group-category">
+                        <i className="fas fa-tag"></i> {group.category}
+                      </span>
+                    )}
+                  </div>
+                  {group.creatorName && (
+                    <div className="group-creator">
+                      <i className="fas fa-user"></i> Created by {group.creatorName}
+                    </div>
+                  )}
+                </div>
+                <button className="join-group-btn" onClick={(e) => {
+                  e.preventDefault();
+                  // Handle join group action
+                  dispatch({ 
+                    type: GLOBALTYPES.ALERT, 
+                    payload: { info: `Request to join ${group.name} sent` } 
+                  });
+                }}>
+                  <i className="fas fa-plus"></i>
+                </button>
               </div>
-              <button className="join-group-btn">
-                <i className="fas fa-plus"></i>
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Your Activity */}
-      <div className="sidebar-card stats-card">
-        <div className="section-header">
-          <h3 className="section-title" style={{ color: 'var(--text-primary)' }}>{t('sidebar.yourActivity')}</h3>
-          <button className="section-action"><i className="fas fa-chart-line"></i></button>
-        </div>
-        <div className="activity-stats">
-          <div className="stat-item" onClick={() => handleOpenModal('likes')}>
-            <div className="stat-icon likes-icon"><i className="fas fa-heart"></i></div>
-            <div className="stat-info">
-              <span className="stat-label">{t('sidebar.likesReceived')}</span>
-              <span className="stat-value">{formatNumber(likes)}</span>
-            </div>
-            <div className="stat-trend up"><i className="fas fa-arrow-up"></i> +12%</div>
+            ))}
           </div>
-          <div className="stat-item" onClick={() => handleOpenModal('comments')}>
-            <div className="stat-icon comments-icon"><i className="fas fa-comment"></i></div>
-            <div className="stat-info">
-              <span className="stat-label">{t('sidebar.comments')}</span>
-              <span className="stat-value">{formatNumber(comments)}</span>
+        ) : (
+          <div className="no-groups">
+            <div className="no-groups-icon">
+              <i className="fas fa-users"></i>
             </div>
-            <div className="stat-trend up"><i className="fas fa-arrow-up"></i> +8%</div>
+            <p className="no-groups-text">No groups to recommend</p>
+            <p className="no-groups-hint">Join some groups to get better recommendations</p>
+            <Link to="/groups/explore" className="explore-groups-btn">
+              Explore Groups
+            </Link>
           </div>
-          <div className="stat-item">
-            <div className="stat-icon views-icon"><i className="fas fa-eye"></i></div>
-            <div className="stat-info">
-              <span className="stat-label">{t('sidebar.profileViews')}</span>
-              <span className="stat-value">{formatNumber(profileViews)}</span>
-            </div>
-            <div className="stat-trend up"><i className="fas fa-arrow-up"></i> +15%</div>
-          </div>
-        </div>
+        )}
       </div>
 
       {modalContent && (
-        <ActivityModal type={modalContent} onClose={handleCloseModal} />
+        <ActivityModal
+          isOpen={!!modalContent}
+          onClose={handleCloseModal}
+          type={modalContent}
+          count={0}
+        />
       )}
 
       <div className="sidebar-footer">
@@ -329,6 +341,7 @@ const RightSidebar = () => {
           <Link to="/help">Help</Link>
         </div>
         <div className="footer-copyright">
+          <span> 2024 MESME. All rights reserved.</span>
           <span>© 2024 MESME. All rights reserved.</span>
         </div>
       </div>

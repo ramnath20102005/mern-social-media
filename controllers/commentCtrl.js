@@ -1,5 +1,6 @@
 const Comments = require("../models/commentModel");
 const Posts = require("../models/postModel");
+const { analyzeCommentSafety } = require("../utils/commentSafetyService");
 
 const commentCtrl = {
   createComment: async (req, res) => {
@@ -16,13 +17,19 @@ const commentCtrl = {
         }
       }
 
+      const safety = await analyzeCommentSafety(content);
+
       const newComment = new Comments({
         user: req.user._id,
         content,
         tag,
         reply,
         postUserId,
-        postId
+        postId,
+        safety: {
+          userSafety: safety.userSafety,
+          categories: safety.categories,
+        },
       });
 
       await Posts.findOneAndUpdate(
@@ -44,9 +51,17 @@ const commentCtrl = {
     try {
       const { content } = req.body;
 
+      const safety = await analyzeCommentSafety(content);
+
       await Comments.findOneAndUpdate(
         { _id: req.params.id, user: req.user._id },
-        { content }
+        {
+          content,
+          safety: {
+            userSafety: safety.userSafety,
+            categories: safety.categories,
+          },
+        }
       );
 
       res.json({ msg: "updated successfully." });

@@ -1093,4 +1093,58 @@ const groupCtrl = {
   }
 };
 
+// Get recommended groups
+groupCtrl.getRecommendedGroups = async (req, res) => {
+  try {
+    const { limit = 5 } = req.query;
+    
+    // Get groups that the user is not a member of
+    const recommendedGroups = await Groups.aggregate([
+      {
+        $match: {
+          'members.user': { $ne: req.user._id }, // Not already a member
+          isActive: true,
+          isExpired: false,
+          expiryDate: { $gt: new Date() } // Only active groups
+        }
+      },
+      { $sample: { size: parseInt(limit) } }, // Get random groups
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'creator',
+          foreignField: '_id',
+          as: 'creatorInfo'
+        }
+      },
+      { $unwind: '$creatorInfo' },
+      {
+        $project: {
+          name: 1,
+          description: 1,
+          avatar: 1,
+          memberCount: { $size: '$members' },
+          category: '$category',
+          createdAt: 1,
+          'creatorName': {
+            $ifNull: [
+              '$creatorInfo.fullname',
+              { $concat: [
+                { $ifNull: ['$creatorInfo.firstName', ''] }, 
+                ' ', 
+                { $ifNull: ['$creatorInfo.lastName', ''] }
+              ]}
+            ]
+          }
+        }
+      }
+    ]);
+
+    res.json({ groups: recommendedGroups });
+  } catch (err) {
+    console.error('Error in getRecommendedGroups:', err);
+    return res.status(500).json({ msg: err.message });
+  }
+};
+
 module.exports = groupCtrl;

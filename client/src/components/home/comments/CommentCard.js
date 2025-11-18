@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import Avatar from '../../Avatar';
 import { Link } from 'react-router-dom';
-import { useSelector , useDispatch } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import moment from 'moment';
 import LikeButton from "../../LikeButton";
 import CommentMenu from './CommentMenu';
 import { likeComment, unLikeComment, updateComment } from '../../../redux/actions/commentAction';
 import InputComment from "../InputComment";
+import { FaCircleInfo, FaXmark } from 'react-icons/fa6';
 
 const CommentCard = ({ children, comment, post, commentId }) => {
   const { auth, theme } = useSelector((state) => state);
@@ -18,6 +19,40 @@ const CommentCard = ({ children, comment, post, commentId }) => {
   const [loadLike, setLoadLike] = useState(false);
   const [onEdit, setOnEdit] = useState(false);
   const [onReply, setOnReply] = useState(false);
+  const [showAnalysis, setShowAnalysis] = useState(false);
+
+  const safetyStatus = (comment.safety && comment.safety.userSafety) || "unknown";
+  const safetyCategories = Array.isArray(comment.safety?.categories)
+    ? comment.safety.categories.filter(Boolean)
+    : [];
+    
+  const getSafetyDetails = () => {
+    switch(safetyStatus) {
+      case 'safe':
+        return {
+          title: 'Safe Content',
+          description: 'This comment has been analyzed and appears to be safe.',
+          icon: '✅',
+          color: 'var(--success-500)'
+        };
+      case 'unsafe':
+        return {
+          title: 'Potentially Unsafe Content',
+          description: 'This comment was flagged as potentially containing harmful or inappropriate content.',
+          icon: '⚠️',
+          color: 'var(--danger-500)'
+        };
+      default:
+        return {
+          title: 'Analysis Unavailable',
+          description: 'The safety analysis for this comment is not available.',
+          icon: '❓',
+          color: 'var(--text-secondary)'
+        };
+    }
+  };
+  
+  const safetyDetails = getSafetyDetails();
 
   useEffect(() => {
     setContent(comment.content);
@@ -138,6 +173,30 @@ const CommentCard = ({ children, comment, post, commentId }) => {
           <span className="comment-time">
             {moment(comment.createdAt).fromNow()}
           </span>
+          <div className="safety-indicator-container">
+            <span
+              className={`comment-safety-pill ${safetyStatus}`}
+              onClick={() => setShowAnalysis(true)}
+              style={{ cursor: 'pointer' }}
+            >
+              <span className="comment-safety-dot" />
+              {safetyStatus === "unsafe"
+                ? "Flagged"
+                : safetyStatus === "safe"
+                ? "Safe"
+                : "Unknown"}
+            </span>
+            <button 
+              className="analyze-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowAnalysis(true);
+              }}
+              title="View analysis details"
+            >
+              <FaCircleInfo />
+            </button>
+          </div>
           
           {comment.likes.length > 0 && (
             <span className="comment-likes">
@@ -169,6 +228,51 @@ const CommentCard = ({ children, comment, post, commentId }) => {
           </Link>
         </InputComment>
       )}
+      
+      {showAnalysis && (
+        <div className="analysis-modal-overlay" onClick={() => setShowAnalysis(false)}>
+          <div className="analysis-modal" onClick={e => e.stopPropagation()}>
+            <div className="analysis-modal-header">
+              <h4>Content Safety Analysis</h4>
+              <button className="close-btn" onClick={() => setShowAnalysis(false)}>
+                <FaXmark />
+              </button>
+            </div>
+            <div className="analysis-modal-content">
+              <div className="analysis-status" style={{ color: safetyDetails.color }}>
+                <span className="analysis-icon" style={{ fontSize: '24px' }}>{safetyDetails.icon}</span>
+                <h3>{safetyDetails.title}</h3>
+              </div>
+              <p className="analysis-description">{safetyDetails.description}</p>
+              
+              {safetyCategories.length > 0 && (
+                <div className="analysis-categories">
+                  <h4>Detected Categories:</h4>
+                  <div className="category-tags">
+                    {safetyCategories.map((category, index) => (
+                      <span key={index} className="category-tag">
+                        {category}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <div className="analysis-metadata">
+                <div className="metadata-item">
+                  <span className="metadata-label">Status:</span>
+                  <span className="metadata-value">{safetyStatus.charAt(0).toUpperCase() + safetyStatus.slice(1)}</span>
+                </div>
+                <div className="metadata-item">
+                  <span className="metadata-label">Analyzed:</span>
+                  <span className="metadata-value">{moment(comment.updatedAt || comment.createdAt).fromNow()}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {children}
     </div>
   );

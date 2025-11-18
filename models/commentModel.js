@@ -10,6 +10,14 @@ const commentSchema = new Schema(
     tag: Object,
     reply: mongoose.Types.ObjectId,
     likes: [{ type: mongoose.Types.ObjectId, ref: "user" }],
+    safety: {
+      userSafety: {
+        type: String,
+        enum: ["safe", "unsafe", "unknown"],
+        default: "unknown",
+      },
+      categories: [String],
+    },
     user: { type: mongoose.Types.ObjectId, ref: "user" },
     postId: mongoose.Types.ObjectId,
     postUserId: mongoose.Types.ObjectId,

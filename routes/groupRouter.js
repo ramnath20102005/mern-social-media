@@ -4,6 +4,7 @@ const auth = require('../middleware/auth');
 const { isGroupAdmin, isGroupCreator, isGroupMember } = require('../middleware/groupAuth');
 
 // Group management routes
+router.get('/recommended', auth, groupCtrl.getRecommendedGroups);
 router.post('/create', auth, groupCtrl.createGroup);
 router.get('/my-groups', auth, groupCtrl.getUserGroups);
 router.get('/:id', auth, isGroupMember, groupCtrl.getGroup);

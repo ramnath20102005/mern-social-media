@@ -87,16 +87,6 @@ const LeftSidebar = () => {
       }
     },
     {
-      key: 'bookmarks',
-      label: t('menu.bookmarks'),
-      icon: 'fas fa-bookmark',
-      path: '/saved',
-      color: {
-        light: '#ef4444', // red-500
-        dark: '#f87171'   // red-400
-      }
-    },
-    {
       key: 'settings',
       label: t('menu.settings'),
       icon: 'fas fa-cog',
