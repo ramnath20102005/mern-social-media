@@ -17,16 +17,30 @@ export const checkImage = (file) => {
 
 export const imageUpload = async (images) => {
     let imgArr = [];
+    
+    if (!images || !Array.isArray(images) || images.length === 0) {
+        console.warn('No images provided to upload');
+        return [];
+    }
+
     try {
         for(const item of images){
-            // Temporary solution: Create a compressed data URL for testing
-            // In production, replace this with actual Cloudinary upload
+            if (!item) continue;
+            
             let url;
             if(item.camera) {
                 url = item.camera; // Camera already provides data URL
-            } else {
+            } else if (item.file) {
+                // Handle file objects
+                const file = item.file;
+                const err = checkImage(file);
+                if (err) {
+                    console.warn('Image validation failed:', err);
+                    continue;
+                }
+                
                 // Convert file to compressed data URL
-                url = await new Promise((resolve) => {
+                url = await new Promise((resolve, reject) => {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     const img = new Image();

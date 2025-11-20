@@ -243,19 +243,29 @@ const StatusModal = () => {
       const postData = {
         content,
         images,
-        location,
-        taggedUsers: taggedUsers.map(user => user._id),
-        feeling,
-        activity,
-        privacy,
         auth,
-        socket
+        socket,
+        location: location?.name || '',
+        taggedUsers: taggedUsers.map(user => user._id),
+        feeling: feeling || '',
+        activity: activity || '',
+        privacy: privacy || 'public'
       };
 
       if (status.onEdit) {
         await dispatch(updatePost({ ...postData, status }));
       } else {
-        await dispatch(createPost(postData));
+        await dispatch(createPost({
+          content: postData.content,
+          images: postData.images,
+          auth: postData.auth,
+          socket: postData.socket,
+          location: postData.location,
+          taggedUsers: postData.taggedUsers,
+          feeling: postData.feeling,
+          activity: postData.activity,
+          privacy: postData.privacy
+        }));
       }
 
       // Clear form and close modal on success

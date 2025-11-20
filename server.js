@@ -10,29 +10,34 @@ const { scheduleExpiryChecks, scheduleCleanup } = require('./utils/groupExpirySc
 
 process.removeAllListeners('warning');
 
-// Allowed origins - add all your frontend URLs here
-const allowedOrigins = [
-  'https://mern-social-media-vu92.onrender.com', // Your frontend URL
-  'http://localhost:3000',                       // Local development
-  'http://localhost:5000'                        // If you run frontend on port 5000
-];
-
+// CORS configuration
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl, etc.)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = `The CORS policy for this site does not allow access from the specified origin: ${origin}`;
-      console.warn(msg);
-      return callback(new Error(msg), false);
+    // In development, allow all origins
+    if (process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
     }
-    return callback(null, true);
+    
+    // In production, allow specific origins
+    const allowedOrigins = [
+      'https://mysocial-lvsn.onrender.com',
+      'http://localhost:3000',
+      'http://localhost:5000'
+    ];
+    
+    // Allow requests with no origin (like mobile apps, curl, etc.)
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+    
+    const msg = `The CORS policy for this site does not allow access from the specified origin: ${origin}`;
+    console.warn(msg);
+    return callback(new Error(msg), false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'x-access-token'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range', 'Set-Cookie'],
   maxAge: 3600 // 1 hour
 };
 

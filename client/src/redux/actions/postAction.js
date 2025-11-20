@@ -32,33 +32,41 @@ export const repostPost = ({ post, auth }) => async (dispatch) => {
   }
 };
 
-export const createPost = ({ content, images, auth, socket }) => async dispatch => {
+export const createPost = ({ content, images = [], auth, socket }) => async dispatch => {
   let media = [];
 
   try {
     dispatch({ type: GLOBALTYPES.ALERT, payload: { loading: true } });
 
-    if (images.length > 0) { media = await imageUpload(images) }
+    if (images && images.length > 0) {
+      media = await imageUpload(images);
+    }
 
     const res = await postDataAPI('posts', { content, images: media }, auth.token);
 
-
-    dispatch({ type: POST_TYPES.CREATE_POST, payload: { ...res.data.newPost, user: auth.user } });
+    dispatch({ 
+      type: POST_TYPES.CREATE_POST, 
+      payload: { 
+        ...res.data.newPost, 
+        user: auth.user 
+      } 
+    });
 
     dispatch({ type: GLOBALTYPES.ALERT, payload: { loading: false } });
 
+    // Only create notification if post was created successfully
+    if (res.data.newPost) {
+      const msg = {
+        id: res.data.newPost._id,
+        text: "Added a new post.",
+        recipients: res.data.newPost.user?.followers || [],
+        url: `/post/${res.data.newPost._id}`,
+        content: content || '',
+        image: media[0]?.url || ''
+      };
 
-    // todo notification
-    const msg = {
-      id: res.data.newPost._id,
-      text: "Added a new post.",
-      recipients: res.data.newPost.user.followers,
-      url: `/post/${res.data.newPost._id}`,
-      content,
-      image: media[0].url
-    };
-
-    dispatch(createNotify({ msg, auth, socket }));
+      dispatch(createNotify({ msg, auth, socket }));
+    }
 
   } catch (err) {
     dispatch({
