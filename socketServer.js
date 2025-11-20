@@ -268,6 +268,8 @@ const SocketServer = (socket) => {
         });
       }
 
+      // WebSocket server configuration is now handled in socketConfig.js
+
       // Broadcast message based on conversation type
       if (conversation.isGroupConversation) {
         // Broadcast to all group members
@@ -458,26 +460,14 @@ const SocketServer = (socket) => {
       group.lastActivity = new Date();
       await group.save();
 
-      // Initialize WebSocket server with CORS
-const io = require('socket.io')(http, {
-  cors: {
-    origin: [
-      'https://mern-social-media-vu92.onrender.com',
-      'http://localhost:3000',
-      'http://localhost:5000'
-    ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
-  },
-  allowEIO3: true
-});
+      // WebSocket server configuration is now handled in socketConfig.js
 
 // ... (rest of the code remains the same)
 
       // Also send to the sender for confirmation
       socket.emit('addGroupMessageToClient', savedMessage);
 
+// ... (rest of the code remains the same)
     } catch (error) {
       console.error('❌ Error saving group message:', error);
       if (callback) {

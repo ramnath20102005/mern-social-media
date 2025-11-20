@@ -60,7 +60,18 @@ const io = initSocket(http);
 
 // Initialize Socket.IO server
 const SocketServer = require('./socketServer');
-SocketServer(io);
+
+// Set up socket connection handling
+io.on('connection', (socket) => {
+  console.log('New client connected:', socket.id);
+  
+  // Initialize socket handlers
+  SocketServer(socket);
+  
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
+  });
+});
 
 //#endregion
 
