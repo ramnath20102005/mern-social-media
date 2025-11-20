@@ -59,14 +59,14 @@ const initSocket = require('./socketConfig');
 const io = initSocket(http);
 
 // Initialize Socket.IO server
-const SocketServer = require('./socketServer');
+const socketServer = require('./socketServer');
 
 // Set up socket connection handling
 io.on('connection', (socket) => {
   console.log('New client connected:', socket.id);
   
   // Initialize socket handlers
-  SocketServer(socket);
+  socketServer(socket);
   
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
