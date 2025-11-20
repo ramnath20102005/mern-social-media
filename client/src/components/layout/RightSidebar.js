@@ -110,10 +110,7 @@ const RightSidebar = () => {
           setRecommendedGroups(res.data.groups || []);
         }
       } catch (err) {
-        dispatch({ 
-          type: GLOBALTYPES.ALERT, 
-          payload: { error: err.response?.data.msg || 'Failed to load recommended groups' } 
-        });
+        console.error('Failed to load recommended groups:', err.message);
       } finally {
         if (mounted.current) {
           setLoadingGroups(false);
@@ -180,12 +177,6 @@ const RightSidebar = () => {
                   <div className="suggestion-info">
                     <span className="suggestion-name">
                       {user.fullname || user.name || user.username || `${user.firstName || ''} ${user.lastName || ''}`.trim() || t('sidebar.user')}
-                    </span>
-                    <span className="suggestion-username">
-                      @{user.username || 'user' + (user._id ? user._id.slice(0, 5) : '')}
-                    </span>
-                    <span className="suggestion-stats">
-                      {user.followers ? user.followers.length : 0} followers
                     </span>
                   </div>
                 </Link>

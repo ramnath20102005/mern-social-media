@@ -6,6 +6,7 @@ import { useSelector, useDispatch } from "react-redux";
 import LoadIcon  from "../../images/loading.gif";
 import { getProfileUsers } from "../../redux/actions/profileAction";
 import Saved from '../../components/profile/Saved';
+import '../../styles/profile-layout-fixes.css'; // Import the layout fixes
 
 const Profile = () => {
   const { profile, auth } = useSelector(state => state);

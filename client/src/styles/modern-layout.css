@@ -2392,11 +2392,24 @@ body {
 /* Ultra-Compact Avatar */
 .suggestion-avatar-container {
   position: relative;
-  width: 20px;
-  height: 20px;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
-  margin-right: 6px;
+  margin-right: var(--space-3);
   align-self: center;
+}
+
+.suggestion-avatar-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  padding: 2px; /* thickness of the ring */
+  background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
 }
 
 .suggestion-avatar {
@@ -2496,7 +2509,7 @@ body {
 }
 
 /* Enhanced Follow Button */
-.follow-button {
+.follow-btn {
   min-width: 100px;
   padding: 8px 16px;
   border-radius: 20px;
@@ -2506,131 +2519,43 @@ body {
   transition: all 0.2s ease;
   border: 2px solid var(--primary-500);
   background: var(--primary-500);
-  color: white;
+  color: #ffffff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  white-space: nowrap;
   position: relative;
-  overflow: visible;
-  z-index: 1;
-  box-sizing: border-box;
-  text-align: center;
+  overflow: hidden;
 }
 
-.follow-button::before {
+.follow-btn::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background: linear-gradient(135deg, var(--primary-600), var(--secondary-500));
   opacity: 0;
-  z-index: -1;
-  border-radius: 18px;
   transition: opacity 0.3s ease;
 }
 
-.follow-button:hover::before {
+.follow-btn:hover::before {
   opacity: 1;
 }
 
-.follow-button i {
-  font-size: 0.8rem;
-  min-width: 12px;
-  transition: transform 0.2s ease;
-}
-
-.follow-button:hover {
+.follow-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-  border-color: var(--primary-600);
 }
 
-.follow-button:active {
-  transform: translateY(0);
-}
-
-.follow-button.following {
+.follow-btn.following {
   background: transparent;
   color: var(--primary-500);
   border-color: var(--primary-200);
-  min-width: 110px;
-  padding: 8px 12px;
 }
 
-.follow-button.following:hover {
+.follow-btn.following:hover {
   background: rgba(239, 246, 255, 0.8);
   color: var(--primary-600);
   border-color: var(--primary-300);
-}
-
-/* Ensure text doesn't get cut off */
-.suggestion-item {
-  overflow: visible;
-}
-
-.suggestion-link {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  margin-right: 12px;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-  .suggestion-item {
-    padding: var(--space-4);
-    gap: var(--space-3);
-  }
-
-  .suggestion-avatar-container {
-    width: 48px;
-    height: 48px;
-  }
-
-  .suggestion-name {
-    font-size: 0.95rem;
-  }
-
-  .suggestion-meta {
-    font-size: 0.75rem;
-  }
-
-  .follow-button {
-    padding: 6px 12px;
-    font-size: 0.8rem;
-  }
-}
-
-.suggestion-name {
-  font-weight: var(--font-semibold);
-  color: var(--gray-900);
-  margin-bottom: 2px;
-}
-
-.suggestion-meta {
-  font-size: var(--text-sm);
-  color: var(--gray-500);
-}
-
-.follow-button {
-  background: var(--primary-500);
-  color: white;
-  border: none;
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-full);
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.follow-button:hover {
-  background: var(--primary-600);
-  transform: scale(1.05);
 }
 
 /* Animations */
@@ -10552,10 +10477,8 @@ body {
   flex: 1;
   background: none;
   border: none;
-  outline: none;
-  font-size: var(--text-sm);
   color: var(--text-primary);
-  padding: var(--space-1) 0;
+  outline: none;
 }
 
 .message-search-input::placeholder {
@@ -13286,13 +13209,13 @@ body {
   flex: 1 !important;
   border: none !important;
   background: transparent !important;
-  color: white !important;
+  color: var(--text-primary) !important;
   font-size: 14px !important;
   outline: none !important;
 }
 
-.message-search-input::placeholder {
-  color: rgba(255, 255, 255, 0.7) !important;
+[data-theme="dark"] .message-search-input {
+  color: #ffffff !important;
 }
 
 .close-search-btn {
@@ -16674,11 +16597,11 @@ body {
 
 /* Enhanced Search Container */
 .whatsapp-search-container {
+  position: relative;
+  z-index: 1001;
   padding: 16px 20px !important;
   background: rgba(102, 126, 234, 0.02) !important;
   border-bottom: 1px solid rgba(102, 126, 234, 0.1) !important;
-  position: relative !important;
-  z-index: 1 !important;
 }
 
 /* Stunning Chat List */
@@ -16687,7 +16610,7 @@ body {
   overflow-y: auto !important;
   padding: 8px 0 !important;
   position: relative !important;
-  z-index: 1 !important;
+  z-index: 0 !important;
 }
 
 .conversations-list,

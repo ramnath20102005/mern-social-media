@@ -1,0 +1,262 @@
+/* Modern Modal Overlay */
+.modern-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Modal Container */
+.modern-modal-container {
+  width: 100%;
+  max-width: 450px;
+  max-height: 80vh;
+  background: var(--bg-primary);
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Modal Header */
+.modern-modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  background: var(--bg-primary);
+  z-index: 10;
+}
+
+.modal-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-icon {
+  color: var(--primary-color);
+  font-size: 1.1em;
+}
+
+.modal-count {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+/* Close Button */
+.modern-close-btn {
+  background: var(--bg-secondary);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.modern-close-btn:hover {
+  background: var(--border-color);
+  color: var(--text-primary);
+  transform: rotate(90deg);
+}
+
+/* Modal Content */
+.modern-modal-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+
+.modern-modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modern-modal-content::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 3px;
+}
+
+/* Empty State */
+.empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  color: var(--border-color);
+}
+
+.empty-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 8px;
+  color: var(--text-primary);
+}
+
+.empty-subtitle {
+  font-size: 0.9375rem;
+  margin: 0;
+  line-height: 1.5;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+/* Users List */
+.users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 4px;
+}
+
+/* User Item */
+.modern-user-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 12px;
+  transition: background-color 0.2s ease;
+  margin: 0 8px;
+}
+
+.modern-user-item:hover {
+  background: var(--hover-color);
+}
+
+.user-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 12px;
+  border: 2px solid var(--border-color);
+  transition: transform 0.2s ease;
+}
+
+.modern-user-item:hover .user-avatar {
+  transform: scale(1.05);
+}
+
+.user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-username {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Follow Button */
+.follow-btn-container {
+  margin-left: 12px;
+}
+
+/* Loading State */
+.loading-state {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 480px) {
+  .modern-modal-container {
+    max-height: 90vh;
+    border-radius: 12px 12px 0 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: 100%;
+    animation: slideUp 0.3s ease;
+  }
+
+  .modern-modal-header {
+    padding: 14px 16px;
+  }
+
+  .modal-title {
+    font-size: 1.1rem;
+  }
+
+  .modern-user-item {
+    padding: 10px 12px;
+  }
+
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+  }
+}

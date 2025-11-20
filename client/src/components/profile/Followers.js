@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Avatar from "../Avatar";
 import FollowBtn from "../FollowBtn";
+import "../../styles/followers-following-modal.css";
 
 const Followers = ({ users, setShowFollowers }) => {
   const { auth } = useSelector((state) => state);
@@ -48,37 +49,31 @@ const Followers = ({ users, setShowFollowers }) => {
             <div className="users-list">
               {users.map((user) => (
                 <div key={user._id} className="modern-user-item">
-                  <Link 
-                    to={`/profile/${user._id}`} 
-                    className="user-link"
+                  <Link
+                    to={`/profile/${user._id}`}
                     onClick={handleClose}
+                    className="d-flex align-items-center"
+                    style={{ flex: 1, textDecoration: "none", color: "inherit" }}
                   >
-                    <div className="user-avatar-container">
-                      <Avatar src={user.avatar} size="medium-avatar" />
-                      <div className="user-status-indicator online"></div>
-                    </div>
+                    <img 
+                      src={user.avatar} 
+                      alt={user.username} 
+                      className="user-avatar"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = '/default-avatar.png';
+                      }}
+                    />
                     <div className="user-info">
-                      <h4 className="user-fullname">{user.fullname}</h4>
+                      <h4 className="user-name">{user.fullname || user.username}</h4>
                       <p className="user-username">@{user.username}</p>
-                      <div className="user-stats">
-                        <span className="stat-item">
-                          <i className="fas fa-users"></i>
-                          {user.followers?.length || 0} followers
-                        </span>
-                        <span className="stat-divider">•</span>
-                        <span className="stat-item">
-                          {user.following?.length || 0} following
-                        </span>
-                      </div>
                     </div>
                   </Link>
-                  <div className="user-actions">
-                    {auth.user._id !== user._id && (
-                      <div className="follow-btn-container">
-                        <FollowBtn user={user} />
-                      </div>
-                    )}
-                  </div>
+                  {auth.user._id !== user._id && (
+                    <div className="follow-btn-container">
+                      <FollowBtn user={user} />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

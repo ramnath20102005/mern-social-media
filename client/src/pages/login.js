@@ -119,6 +119,9 @@ const Login = () => {
               <p>
                 <Link to="/forgot" className="auth-link">Forgot your password?</Link>
               </p>
+              <p>
+                <Link to="/admin" className="auth-link"><strong>Admin Login</strong></Link>
+              </p>
             </div>
           </form>
         </div>

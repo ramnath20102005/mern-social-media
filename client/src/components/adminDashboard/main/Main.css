@@ -65,10 +65,8 @@
 }
 
 .card_admin {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    height: 120px;
+    display: block;
+    height: auto;
     padding: 25px;
     border-radius: 16px;
     background: linear-gradient(145deg, var(--bg-primary), var(--bg-secondary));

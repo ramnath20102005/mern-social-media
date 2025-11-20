@@ -1,0 +1,45 @@
+/* Header z-index fix */
+.app-header {
+  position: relative;
+  z-index: 100;
+  background: var(--bg-primary);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Profile container positioning */
+.instagram-profile-container {
+  position: relative;
+  z-index: 1; /* Lower than header */
+  margin-top: 60px; /* Height of the header */
+}
+
+/* Profile header/avatar section */
+.instagram-profile-header {
+  position: relative;
+  z-index: 1;
+}
+
+/* Profile avatar image */
+.profile-avatar {
+  position: relative;
+  z-index: 2;
+}
+
+/* Ensure the header content doesn't interfere with other elements */
+.header-content {
+  position: relative;
+  z-index: 100;
+  background: var(--bg-primary);
+}
+
+/* Fix for any absolute positioned elements in the profile */
+.profile-avatar-container {
+  position: relative;
+  z-index: 5;
+}
+
+/* Ensure the profile info section appears below the header */
+.profile-info-section {
+  position: relative;
+  z-index: 1;
+}

@@ -18,25 +18,31 @@ const MessageSearch = ({ onUserSelect, onClose }) => {
   const debounceRef = useRef(null);
 
   // Debounced search function
-  const debouncedSearch = useCallback(async (searchTerm) => {
-    if (!searchTerm.trim()) {
+  const handleSearch = async (e) => {
+    const value = e.target.value;
+    setSearch(value);
+    
+    if (value.length === 0) {
       setResults({ users: [] });
+      setIsOpen(false);
       return;
     }
 
+    setLoad(true);
     try {
-      setLoad(true);
-      const res = await getDataAPI(`search?username=${searchTerm}&type=users&limit=10`, auth.token);
+      const res = await getDataAPI(`search?username=${value}&type=users&limit=10`, auth.token);
       setResults({ users: res.data.users || [] });
-      setLoad(false);
+      setIsOpen(true);
     } catch (err) {
-      setLoad(false);
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: { error: err.response?.data?.msg || "Search failed" },
+      setResults({ users: [] });
+      dispatch({ 
+        type: GLOBALTYPES.ALERT, 
+        payload: { error: err.response?.data?.msg || 'Error performing search' } 
       });
+    } finally {
+      setLoad(false);
     }
-  }, [auth.token, dispatch]);
+  };
 
   // Handle real-time search
   useEffect(() => {
@@ -46,7 +52,7 @@ const MessageSearch = ({ onUserSelect, onClose }) => {
 
     debounceRef.current = setTimeout(() => {
       if (search) {
-        debouncedSearch(search);
+        handleSearch({ target: { value: search } });
       }
     }, 300);
 
@@ -55,7 +61,7 @@ const MessageSearch = ({ onUserSelect, onClose }) => {
         clearTimeout(debounceRef.current);
       }
     };
-  }, [search, debouncedSearch]);
+  }, [search]);
 
   // Load recent searches from localStorage
   useEffect(() => {
@@ -75,7 +81,7 @@ const MessageSearch = ({ onUserSelect, onClose }) => {
     e.preventDefault();
     if (search.trim()) {
       addToRecentSearches(search.trim());
-      debouncedSearch(search.trim());
+      handleSearch({ target: { value: search.trim() } });
     }
   };
 
@@ -99,16 +105,35 @@ const MessageSearch = ({ onUserSelect, onClose }) => {
 
   const handleSuggestionClick = (suggestion) => {
     setSearch(suggestion);
-    debouncedSearch(suggestion);
+    // Trigger search directly since we're setting the search value
+    handleSearch({ target: { value: suggestion } });
     addToRecentSearches(suggestion);
   };
 
   const handleUserSelect = (user) => {
     addToRecentSearches(user.username);
+    setSearch('');
+    setResults({ users: [] });
+    setIsOpen(false);
+    
+    // Add a small delay to ensure state updates complete before scrolling
+    setTimeout(() => {
+      const selectedElement = document.querySelector(`.conversation[data-userid="${user._id}"]`);
+      if (selectedElement) {
+        selectedElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 50);
+    
     if (onUserSelect) {
       onUserSelect(user);
     }
-    handleClose();
+  };
+
+  const handleCloseSearch = (e) => {
+    e.stopPropagation();
+    setSearch('');
+    setResults({ users: [] });
+    setIsOpen(false);
   };
 
   // Handle click outside to close dropdown
@@ -160,8 +185,9 @@ const MessageSearch = ({ onUserSelect, onClose }) => {
           {search && (
             <button
               type="button"
-              onClick={handleClose}
+              onClick={handleCloseSearch}
               className="search-clear-button"
+              aria-label="Clear search"
             >
               <i className="fas fa-times"></i>
             </button>
