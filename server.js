@@ -10,20 +10,30 @@ const { scheduleExpiryChecks, scheduleCleanup } = require('./utils/groupExpirySc
 
 process.removeAllListeners('warning');
 
-// Allow your hosted frontend origin (Render) and localhost during development
-const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? [
-      'https://mysocial-frontend-nm3u.onrender.com', // your Render frontend
-    ]
-  : [
-      'http://localhost:3000'
-    ];
+// Allowed origins - add all your frontend URLs here
+const allowedOrigins = [
+  'https://mern-social-media-vu92.onrender.com', // Your frontend URL
+  'http://localhost:3000',                       // Local development
+  'http://localhost:5000'                        // If you run frontend on port 5000
+];
 
 const corsOptions = {
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = `The CORS policy for this site does not allow access from the specified origin: ${origin}`;
+      console.warn(msg);
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 3600 // 1 hour
 };
 
 
@@ -43,19 +53,14 @@ app.use(cookieParser())
 
 //#region // !Socket
 const http = require('http').createServer(app);
-const io = require('socket.io')(http, {
-  cors: {
-    origin: allowedOrigins,
-    methods: ['GET', 'POST'],
-    credentials: true
-  }
-});
 
+// Initialize WebSocket server with CORS configuration
+const initSocket = require('./socketConfig');
+const io = initSocket(http);
 
-
-io.on('connection', socket => {
-    SocketServer(socket);
-})
+// Initialize Socket.IO server
+const SocketServer = require('./socketServer');
+SocketServer(io);
 
 //#endregion
 

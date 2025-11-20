@@ -458,17 +458,22 @@ const SocketServer = (socket) => {
       group.lastActivity = new Date();
       await group.save();
 
-      // Send acknowledgment to sender with saved message
-      if (callback) {
-        callback({
-          success: true,
-          message: savedMessage,
-          tempId: msg.tempId
-        });
-      }
+      // Initialize WebSocket server with CORS
+const io = require('socket.io')(http, {
+  cors: {
+    origin: [
+      'https://mern-social-media-vu92.onrender.com',
+      'http://localhost:3000',
+      'http://localhost:5000'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+  },
+  allowEIO3: true
+});
 
-      // Broadcast to all group members
-      socket.to(`group_${msg.group}`).emit('addGroupMessageToClient', savedMessage);
+// ... (rest of the code remains the same)
 
       // Also send to the sender for confirmation
       socket.emit('addGroupMessageToClient', savedMessage);
